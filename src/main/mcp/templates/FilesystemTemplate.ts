@@ -1,4 +1,4 @@
-import { McpServerTemplate, McpServerTemplateInfo } from './McpServerTemplate';
+import { McpServerTemplate, McpServerTemplateInfo } from './McpServerTemplate.js';
 import { join } from 'path';
 import { homedir } from 'os';
 

@@ -259,14 +259,7 @@ export const McpServerTemplates: React.FC<McpServerTemplatesProps> = ({ onAddSer
     }
   };
 
-  const getRiskLevelColor = (level: string) => {
-    switch (level) {
-      case 'low': return 'text-green-600 dark:text-green-400';
-      case 'medium': return 'text-yellow-600 dark:text-yellow-400';
-      case 'high': return 'text-red-600 dark:text-red-400';
-      default: return 'text-gray-600 dark:text-gray-400';
-    }
-  };
+
 
   if (isConfiguring && selectedTemplate) {
     return (

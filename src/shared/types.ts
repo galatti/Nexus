@@ -1,4 +1,82 @@
 // Electron API types
+// API Response Types
+export interface ApiResponse<T = unknown> {
+  success: boolean;
+  data?: T;
+  error?: string;
+}
+
+export interface LlmStatusResponse {
+  currentProvider: string | null;
+  currentProviderName: string | null;
+  currentProviderType: string | null;
+  currentModel: string | null;
+  isHealthy: boolean;
+  models?: LlmModel[];
+}
+
+export interface McpTemplateResponse {
+  templates: McpServerTemplateInfo[];
+}
+
+export interface McpInstallationStatus {
+  [templateId: string]: {
+    isInstalled: boolean;
+    isInstalling: boolean;
+    error?: string;
+  };
+}
+
+export interface McpInstallationResponse {
+  success: boolean;
+  error?: string;
+  installedVersion?: string;
+  command?: string;
+  args?: string[];
+}
+
+export interface PendingApproval {
+  id: string;
+  toolName: string;
+  serverId: string;
+  args: Record<string, unknown>;
+  riskLevel: 'low' | 'medium' | 'high';
+  timestamp: Date;
+  timeout?: number;
+}
+
+export interface ApprovalResult {
+  approved: boolean;
+  scope?: 'once' | 'session' | 'always';
+}
+
+export interface McpServerTemplateInfo {
+  id: string;
+  name: string;
+  description: string;
+  category: 'filesystem' | 'web' | 'weather' | 'productivity' | 'development' | 'custom';
+  icon: string;
+  npmPackage?: string;
+  version?: string;
+  defaultEnabled: boolean;
+  requiresConfig: boolean;
+  configFields: McpConfigField[];
+  documentation?: string;
+  examples?: string[];
+}
+
+export interface McpConfigField {
+  key: string;
+  label: string;
+  type: 'text' | 'password' | 'number' | 'boolean' | 'select' | 'path';
+  required: boolean;
+  placeholder?: string;
+  description?: string;
+  options?: string[];
+  validation?: RegExp;
+  defaultValue?: unknown;
+}
+
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   minimizeWindow: () => Promise<void>;
@@ -10,16 +88,16 @@ export interface ElectronAPI {
   disconnectFromServer: (serverId: string) => Promise<void>;
   executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) => Promise<unknown>;
   sendMessage: (message: string, options?: Record<string, unknown>) => Promise<string>;
-  getLlmStatus: () => Promise<any>;
-  getAvailableModels: (providerId?: string) => Promise<any>;
+  getLlmStatus: () => Promise<ApiResponse<LlmStatusResponse>>;
+  getAvailableModels: (providerId?: string) => Promise<ApiResponse<LlmModel[]>>;
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => () => void;
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
-  getMcpTemplates: () => Promise<any>;
-  checkMcpInstallations: () => Promise<any>;
-  installMcpTemplate: (templateId: string) => Promise<any>;
-  generateServerFromTemplate: (templateId: string, config: Record<string, any>, serverName: string) => Promise<any>;
-  getPendingApprovals: () => Promise<any>;
-  respondToApproval: (approvalId: string, result: any) => Promise<any>;
+  getMcpTemplates: () => Promise<ApiResponse<McpTemplateResponse>>;
+  checkMcpInstallations: () => Promise<ApiResponse<McpInstallationStatus>>;
+  installMcpTemplate: (templateId: string) => Promise<McpInstallationResponse>;
+  generateServerFromTemplate: (templateId: string, config: Record<string, unknown>, serverName: string) => Promise<ApiResponse<McpServerConfig>>;
+  getPendingApprovals: () => Promise<ApiResponse<PendingApproval[]>>;
+  respondToApproval: (approvalId: string, result: ApprovalResult) => Promise<ApiResponse<boolean>>;
 }
 
 // Application settings
@@ -50,7 +128,7 @@ export interface McpServerConfig {
   autoStart: boolean;
   status?: 'disconnected' | 'connecting' | 'connected' | 'error';
   templateId?: string;
-  userConfig?: Record<string, any>;
+  userConfig?: Record<string, unknown>;
 }
 
 // LLM Provider configuration

@@ -1,4 +1,4 @@
-import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types';
+import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types.js';
 
 export interface LlmResponse {
   content: string;

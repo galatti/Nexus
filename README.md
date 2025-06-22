@@ -61,7 +61,6 @@ NEXUS MVP is a fully functional desktop application that provides a modern inter
   - **Filesystem Template**: Secure file system access
   - **Web Search Template**: Brave Search API integration
   - **Weather Template**: OpenWeatherMap integration
-  - **Pomodoro Template**: Built-in productivity timer
   
 - ✅ **Permission Management**:
   - Risk assessment (low/medium/high)
@@ -211,10 +210,7 @@ src/
 - Get current weather and forecasts
 - Location-based queries
 
-**Pomodoro Template**
-- Built-in productivity timer
-- Start, pause, and reset sessions
-- Integrated with chat interface
+
 
 ### Permissions System
 - **Automatic Risk Assessment**: Low, medium, high risk categorization
@@ -240,7 +236,6 @@ npm run build:renderer   # Build React frontend
 npm run build:main       # Build Electron main process
 
 # Custom MCP Servers
-npm run build:pomodoro    # Build Pomodoro server
 
 # Linting and Testing
 npm run lint             # Run ESLint
@@ -288,10 +283,9 @@ Example:
 
 ### Creating Custom MCP Servers
 
-1. Use `PomodoroServer.ts` as template
-2. Implement MCP protocol methods
-3. Add build script for compilation
-4. Create template class for UI integration
+1. Implement MCP protocol methods
+2. Add build script for compilation  
+3. Create template class for UI integration
 
 ### Theme Customization
 

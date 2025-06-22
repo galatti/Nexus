@@ -1,6 +1,12 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
-import { isDev } from '../shared/utils';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import { isDev } from '../shared/utils.js';
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Keep a global reference of the window object
 let mainWindow: BrowserWindow | null = null;
@@ -18,9 +24,13 @@ const createWindow = (): void => {
       // Enable context isolation for security
       contextIsolation: true,
       // Preload script path
-      preload: join(__dirname, '../preload/preload.js'),
+      preload: join(__dirname, '../preload/preload.mjs'),
       // Enable web security
       webSecurity: true,
+      // Enable ES modules support in sandbox
+      sandbox: false,
+      // Enable ES modules in preload
+      additionalArguments: ['--enable-experimental-web-platform-features'],
     },
     // Window configuration
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
@@ -92,11 +102,11 @@ app.on('web-contents-created', (_event, contents) => {
 });
 
 // Import services
-import { configManager } from './config/ConfigManager';
-import { connectionManager } from './mcp/ConnectionManager';
-import { llmManager } from './llm/LlmManager';
-import { templateManager } from './mcp/templates/TemplateManager';
-import { permissionManager } from './permissions/PermissionManager';
+import { configManager } from './config/ConfigManager.js';
+import { connectionManager } from './mcp/ConnectionManager.js';
+import { llmManager } from './llm/LlmManager.js';
+import { templateManager } from './mcp/templates/TemplateManager.js';
+import { permissionManager } from './permissions/PermissionManager.js';
 
 // Initialize services
 async function initializeServices(): Promise<void> {
@@ -114,38 +124,7 @@ async function initializeServices(): Promise<void> {
       await llmManager.addProvider(settings.llm.provider);
     }
     
-    // Auto-configure built-in Pomodoro server if not already present
-    const existingPomodoroServers = settings.mcp.servers.filter(s => s.templateId === 'pomodoro' || s.id === 'builtin-pomodoro');
-    
-    if (existingPomodoroServers.length === 0) {
-      try {
-        console.log('No Pomodoro server found, adding built-in Pomodoro server');
-        const pomodoroConfig = await templateManager.generateServerConfig('pomodoro', {
-          workDuration: 25,
-          shortBreakDuration: 5,
-          longBreakDuration: 15,
-          longBreakInterval: 4,
-          notifications: true,
-          autoStart: false
-        }, 'Pomodoro Timer');
-        
-        // Enable auto-start for the built-in Pomodoro server
-        pomodoroConfig.autoStart = true;
-        
-        configManager.addMcpServer(pomodoroConfig);
-        console.log('Built-in Pomodoro server configured successfully');
-      } catch (error) {
-        console.error('Failed to auto-configure Pomodoro server:', error);
-      }
-    } else if (existingPomodoroServers.length > 1) {
-      // Clean up duplicates
-      console.log(`Found ${existingPomodoroServers.length} duplicate Pomodoro servers, cleaning up...`);
-      // Keep only the first one, remove the rest
-      for (let i = 1; i < existingPomodoroServers.length; i++) {
-        configManager.removeMcpServer(existingPomodoroServers[i].id);
-      }
-      console.log('Duplicate Pomodoro servers removed');
-    }
+
     
     // Connect to configured MCP servers
     const updatedSettings = configManager.getSettings();
@@ -388,7 +367,7 @@ When the user asks you to perform an action that matches one of these tools, you
 3. The tool result will be automatically included in your response
 
 For example, if user says "start a timer", respond with:
-"I'll start a Pomodoro timer for you. <tool_call>{"tool": "start_timer", "serverId": "pomodoro-server-id", "args": {"sessionType": "work"}}</tool_call>"`,
+"I'll start a timer for you. <tool_call>{"tool": "start_timer", "serverId": "timer-server-id", "args": {"sessionType": "work"}}</tool_call>"`,
         timestamp: new Date()
       } as any;
       

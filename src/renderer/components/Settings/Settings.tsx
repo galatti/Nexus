@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppSettings, LlmProviderConfig, McpServerConfig } from '../../../shared/types';
+import { AppSettings, LlmProviderConfig } from '../../../shared/types';
 import { McpServerTemplates } from '../MCP/McpServerTemplates';
 
 interface SettingsProps {
@@ -399,7 +399,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        {settings.mcp.servers.map((server, index) => (
+                        {settings.mcp.servers.map((server) => (
                           <div key={server.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                             <div className="flex items-center justify-between">
                               <div>
@@ -430,7 +430,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 {/* MCP Server Templates */}
                 {activeTab === 'mcp-templates' && (
                   <McpServerTemplates
-                    onAddServer={(templateId, config, serverName) => {
+                    onAddServer={(_templateId, _config, _serverName) => {
                       // Refresh settings after adding server
                       loadSettings();
                       setActiveTab('mcp');

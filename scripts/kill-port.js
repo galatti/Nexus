@@ -6,7 +6,12 @@
  * variable, falling back to 5173 (the default Vite port).
  */
 
-const { execSync } = require('child_process');
+import { execSync } from 'child_process';
+import net from 'net';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const isMainModule = process.argv[1] === __filename;
 
 function freePort(rawPort) {
   const port = String(rawPort || process.env.DEV_PORT || 5173);
@@ -67,7 +72,6 @@ function freePort(rawPort) {
 }
 
 function waitUntilPortIsFree(port, attempts = 20, delayMs = 250) {
-  const net = require('net');
   const sleep = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 
   for (let i = 0; i < attempts; i++) {
@@ -86,8 +90,8 @@ function waitUntilPortIsFree(port, attempts = 20, delayMs = 250) {
   console.warn(`⚠️  Port ${port} still appears busy after ${attempts * delayMs}ms, continuing anyway.`);
 }
 
-if (require.main === module) {
+if (isMainModule) {
   freePort(process.argv[2]);
 }
 
-module.exports = { freePort }; 
+export { freePort }; 

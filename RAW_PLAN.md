@@ -81,7 +81,7 @@ The MVP includes configuration templates for these priority servers:
 1. **Web Search** (@modelcontextprotocol/server-brave-search)
 2. **Filesystem** (@modelcontextprotocol/server-filesystem)
 3. **Weather** (@modelcontextprotocol/server-weather)
-4. **Pomodoro Timer** (custom integration with Flowkeeper or Pomotroid)
+
 
 #### Server Configuration Interface
 - Visual form for each server type (no raw JSON)

@@ -1,10 +1,9 @@
-import { McpServerTemplate, McpServerTemplateInfo, McpInstallationResult } from './McpServerTemplate';
-import { FilesystemTemplate } from './FilesystemTemplate';
-import { WebSearchTemplate } from './WebSearchTemplate';
-import { WeatherTemplate } from './WeatherTemplate';
-import { PomodoroTemplate } from './PomodoroTemplate';
-import { McpServerConfig } from '../../../shared/types';
-import { logger } from '../../utils/logger';
+import { McpServerTemplate, McpServerTemplateInfo, McpInstallationResult } from './McpServerTemplate.js';
+import { FilesystemTemplate } from './FilesystemTemplate.js';
+import { WebSearchTemplate } from './WebSearchTemplate.js';
+import { WeatherTemplate } from './WeatherTemplate.js';
+import { McpServerConfig } from '../../../shared/types.js';
+import { logger } from '../../utils/logger.js';
 
 export class TemplateManager {
   private templates = new Map<string, McpServerTemplate>();
@@ -17,8 +16,7 @@ export class TemplateManager {
     const templates = [
       new FilesystemTemplate(),
       new WebSearchTemplate(),
-      new WeatherTemplate(),
-      new PomodoroTemplate()
+      new WeatherTemplate()
     ];
 
     for (const template of templates) {
@@ -62,7 +60,7 @@ export class TemplateManager {
 
     // Create server config - use more predictable ID for built-in servers
     const serverId = templateInfo.npmPackage === undefined 
-      ? `builtin-${templateId}` // For built-in servers like Pomodoro
+      ? `builtin-${templateId}` // For built-in servers
       : `${templateId}-${Date.now()}`; // For external servers
     const displayName = serverName || `${templateInfo.name} Server`;
 

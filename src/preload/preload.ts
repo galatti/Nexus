@@ -71,7 +71,7 @@ if (process.contextIsolated) {
     console.error('Failed to expose electronAPI:', error);
   }
 } else {
-  // @ts-ignore (for legacy support)
+  // @ts-expect-error Legacy support for non-isolated contexts
   window.electronAPI = electronAPI;
 }
 

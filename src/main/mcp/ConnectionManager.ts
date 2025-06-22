@@ -1,6 +1,6 @@
-import { spawn, ChildProcess } from 'child_process';
+// import { spawn } from 'child_process'; // Currently unused but may be needed for direct process spawning
 import { EventEmitter } from 'events';
-import { McpServerConfig, McpTool } from '../../shared/types';
+import { McpServerConfig, McpTool } from '../../shared/types.js';
 
 export interface ConnectionStatus {
   serverId: string;

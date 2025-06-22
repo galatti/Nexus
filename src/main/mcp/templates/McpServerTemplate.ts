@@ -103,11 +103,10 @@ export abstract class McpServerTemplate {
           shell: true
         });
         
-        let output = '';
         let errorOutput = '';
         
-        child.stdout?.on('data', (data) => {
-          output += data.toString();
+        child.stdout?.on('data', () => {
+          // stdout captured for installation logging
         });
         
         child.stderr?.on('data', (data) => {

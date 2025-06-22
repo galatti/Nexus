@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events';
-import { BaseProvider, LlmResponse, StreamingResponse } from './providers/BaseProvider';
-import { OllamaProvider } from './providers/OllamaProvider';
-import { OpenRouterProvider } from './providers/OpenRouterProvider';
-import { LlmProviderConfig, LlmModel, ChatMessage } from '../../shared/types';
+import { BaseProvider, LlmResponse, StreamingResponse } from './providers/BaseProvider.js';
+import { OllamaProvider } from './providers/OllamaProvider.js';
+import { OpenRouterProvider } from './providers/OpenRouterProvider.js';
+import { LlmProviderConfig, LlmModel, ChatMessage } from '../../shared/types.js';
 
 export interface LlmManagerStatus {
   currentProvider: string | null;

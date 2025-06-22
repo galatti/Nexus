@@ -1,6 +1,6 @@
-import { BaseProvider, LlmResponse, StreamingResponse } from './BaseProvider';
-import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types';
-import { logger } from '../../utils/logger';
+import { BaseProvider, LlmResponse, StreamingResponse } from './BaseProvider.js';
+import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types.js';
+import { logger } from '../../utils/logger.js';
 
 interface OpenRouterMessage {
   role: string;

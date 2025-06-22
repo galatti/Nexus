@@ -1,4 +1,4 @@
-import { McpServerTemplate, McpServerTemplateInfo } from './McpServerTemplate';
+import { McpServerTemplate, McpServerTemplateInfo } from './McpServerTemplate.js';
 
 export class WebSearchTemplate extends McpServerTemplate {
   constructor() {

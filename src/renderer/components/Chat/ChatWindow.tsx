@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ChatMessage } from '../../../shared/types';
+import { ChatMessage, LlmStatusResponse, LlmModel } from '../../../shared/types';
 
 interface ChatWindowProps {
   className?: string;
@@ -13,11 +13,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [isStreaming, setIsStreaming] = useState(false);
-  const [streamingMessage, setStreamingMessage] = useState('');
+  const [_isStreaming] = useState(false);
+  const [_streamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [llmStatus, setLlmStatus] = useState<any>(null);
-  const [currentModel, setCurrentModel] = useState<any>(null);
+  const [llmStatus, setLlmStatus] = useState<LlmStatusResponse | null>(null);
+  const [currentModel, setCurrentModel] = useState<LlmModel | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -28,7 +28,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, streamingMessage, scrollToBottom]);
+  }, [messages, scrollToBottom]);
 
   // Focus input on mount
   useEffect(() => {
@@ -40,30 +40,30 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
     const loadLlmInfo = async () => {
       try {
         const statusResult = await window.electronAPI.getLlmStatus();
-        if (statusResult.success) {
-          setLlmStatus(statusResult.status);
+        if (statusResult.success && statusResult.data) {
+          setLlmStatus(statusResult.data);
           
           // Get the configured model information
-          if (statusResult.status.currentModel) {
+          if (statusResult.data.currentModel) {
             // Try to get detailed model info from available models
             const modelsResult = await window.electronAPI.getAvailableModels();
-            if (modelsResult.success && modelsResult.models.length > 0) {
+            if (modelsResult.success && modelsResult.data && modelsResult.data.length > 0) {
               // Find the currently configured model in the available models
-              const modelInfo = modelsResult.models.find((m: any) => m.name === statusResult.status.currentModel);
+              const modelInfo = modelsResult.data.find((m: LlmModel) => m.name === statusResult.data!.currentModel);
               if (modelInfo) {
                 setCurrentModel(modelInfo);
               } else {
                 // Fallback: create a basic model object with just the name
                 setCurrentModel({
-                  name: statusResult.status.currentModel,
-                  description: `${statusResult.status.currentProviderType} model`
+                  name: statusResult.data.currentModel,
+                  description: `${statusResult.data.currentProviderType} model`
                 });
               }
             } else {
               // Fallback: create a basic model object with just the name
               setCurrentModel({
-                name: statusResult.status.currentModel,
-                description: `${statusResult.status.currentProviderType} model`
+                name: statusResult.data.currentModel,
+                description: `${statusResult.data.currentProviderType} model`
               });
             }
           }
@@ -93,10 +93,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
     if (savedMessages) {
       try {
         const parsed = JSON.parse(savedMessages);
-        setMessages(parsed.map((msg: any) => ({
+        setMessages(parsed.map((msg: Partial<ChatMessage> & { timestamp: string }) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
-        })));
+        } as ChatMessage)));
       } catch (error) {
         console.error('Failed to load message history:', error);
       }
@@ -111,7 +111,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
   }, [messages]);
 
   const handleSendMessage = async () => {
-    if (!inputMessage.trim() || isLoading || isStreaming) return;
+    if (!inputMessage.trim() || isLoading) return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
@@ -288,7 +288,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 && !isStreaming && (
+        {messages.length === 0 && !_isStreaming && (
           <div className="text-center text-gray-500 dark:text-gray-400 mt-8">
             <div className="mb-4">
               <div className="text-6xl mb-4">🤖</div>
@@ -352,33 +352,33 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
 
         {messages.map(renderMessage)}
 
-        {/* Streaming message */}
-        {isStreaming && streamingMessage && (
+                {/* Streaming message */}
+        {_isStreaming && _streamingMessage && (
           <div className="flex justify-start mb-4">
             <div className="max-w-3xl px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
-                             <ReactMarkdown
-                 remarkPlugins={[remarkGfm]}
-                 components={{
-                   code({ className, children, ...props }) {
-                     const match = /language-(\w+)/.exec(className || '');
-                     const isCodeBlock = match && String(children).includes('\n');
-                     return isCodeBlock ? (
-                       <SyntaxHighlighter
-                         style={oneDark as any}
-                         language={match[1]}
-                         PreTag="div"
-                       >
-                         {String(children).replace(/\n$/, '')}
-                       </SyntaxHighlighter>
-                     ) : (
-                       <code className={className} {...props}>
-                         {children}
-                       </code>
-                     );
-                   }
-                 }}
-               >
-                {streamingMessage}
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={{
+                  code({ className, children, ...props }) {
+                    const match = /language-(\w+)/.exec(className || '');
+                    const isCodeBlock = match && String(children).includes('\n');
+                    return isCodeBlock ? (
+                      <SyntaxHighlighter
+                        style={oneDark as any}
+                        language={match[1]}
+                        PreTag="div"
+                      >
+                        {String(children).replace(/\n$/, '')}
+                      </SyntaxHighlighter>
+                    ) : (
+                      <code className={className} {...props}>
+                        {children}
+                      </code>
+                    );
+                  }
+                }}
+              >
+                {_streamingMessage}
               </ReactMarkdown>
               <div className="text-xs mt-2 opacity-70">
                 <span className="inline-block animate-pulse">●</span> Streaming...
@@ -388,7 +388,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
         )}
 
         {/* Loading indicator */}
-        {isLoading && !isStreaming && (
+        {isLoading && !_isStreaming && (
           <div className="flex justify-start mb-4">
             <div className="max-w-3xl px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
               <div className="flex items-center space-x-2">
@@ -432,7 +432,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
               placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               rows={3}
-              disabled={isLoading || isStreaming}
+              disabled={isLoading || _isStreaming}
             />
             <div className="absolute bottom-2 right-2 text-xs text-gray-400">
               {inputMessage.length}/4000
@@ -440,10 +440,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
           </div>
           <button
             onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading || isStreaming}
+            disabled={!inputMessage.trim() || isLoading || _isStreaming}
             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {isLoading || isStreaming ? (
+            {isLoading || _isStreaming ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                 <span>Sending</span>

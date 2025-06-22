@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
-import { McpServerConfig, McpTool } from '../../shared/types';
-import { logger } from '../utils/logger';
+import { McpServerConfig, McpTool } from '../../shared/types.js';
+import { logger } from '../utils/logger.js';
 
 export interface ToolPermission {
   serverId: string;

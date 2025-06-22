@@ -1,8 +1,8 @@
 import { app } from 'electron';
 import { join } from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { AppSettings, LlmProviderConfig, McpServerConfig } from '../../shared/types';
-import { logger } from '../utils/logger';
+import { AppSettings, LlmProviderConfig, McpServerConfig } from '../../shared/types.js';
+import { logger } from '../utils/logger.js';
 
 export class ConfigManager {
   private configPath: string;

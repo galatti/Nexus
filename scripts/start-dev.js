@@ -7,12 +7,16 @@
  * Stop the whole stack with Ctrl-C – both child processes will be cleaned up.
  */
 
-const { spawn, execSync } = require('child_process');
-const net = require('net');
-const path = require('path');
-const sudo = require('@expo/sudo-prompt');
+import { spawn, execSync } from 'child_process';
+import net from 'net';
+import path from 'path';
+import sudo from '@expo/sudo-prompt';
+import { fileURLToPath } from 'url';
 
-const { freePort } = require('./kill-port');
+import { freePort } from './kill-port.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 async function waitUntilPortIsFree(port, attempts = 20, delayMs = 250) {
   for (let i = 0; i < attempts; i++) {

@@ -78,7 +78,7 @@
 - ✅ **Event System**: Real-time status updates and error handling
 
 **🔥 NEW: Phase 3 - MCP Integration COMPLETED:**
-- ✅ **Server Templates System**: 4 production-ready templates (Filesystem, Web Search, Weather, Pomodoro)
+- ✅ **Server Templates System**: 3 production-ready templates (Filesystem, Web Search, Weather)
 - ✅ **Permission Management**: Comprehensive security system with risk assessment and user approval
 - ✅ **Template Manager**: Installation validation, configuration generation, and template coordination
 - ✅ **UI Integration**: Professional server template selection and configuration interface
@@ -356,7 +356,7 @@ nexus/
 1. **Web Search** (@modelcontextprotocol/server-brave-search)
 2. **Filesystem** (@modelcontextprotocol/server-filesystem)
 3. **Weather** (@modelcontextprotocol/server-weather)
-4. **Pomodoro Timer** (custom integration)
+
 
 **Implementation Steps:**
 
@@ -366,7 +366,7 @@ nexus/
    ├── WebSearchTemplate.ts
    ├── FilesystemTemplate.ts
    ├── WeatherTemplate.ts
-   └── PomodoroTemplate.ts
+   
    ```
 
 2. **Configuration Forms**
