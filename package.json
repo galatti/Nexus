@@ -18,12 +18,13 @@
     "react"
   ],
   "scripts": {
+    "predev": "node scripts/kill-port.js 5173",
     "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite",
     "dev:electron": "npm run build:main && wait-on http://localhost:5173 && cross-env ELECTRON_IS_DEV=1 electron .",
     "build": "npm run build:renderer && npm run build:main",
     "build:renderer": "vite build",
-    "build:main": "tsc -p tsconfig.main.json",
+    "build:main": "npm run clean && tsc -p tsconfig.main.json",
     "dist": "electron-builder",
     "dist:dir": "electron-builder --dir",
     "test": "jest",

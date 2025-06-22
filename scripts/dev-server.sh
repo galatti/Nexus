@@ -14,6 +14,11 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Ensure the chosen Vite dev port is free before we start
+DEV_PORT="${DEV_PORT:-5173}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/kill-port.sh" "${DEV_PORT}" >/dev/null 2>&1 || true
+
 echo -e "${GREEN}🚀 Starting NEXUS MVP Development Server${NC}"
 
 # Check Node.js version

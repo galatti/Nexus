@@ -25,6 +25,10 @@ EXAMPLES:
 
 $ErrorActionPreference = "Stop"
 
+# Ensure the chosen Vite dev port is free before we start
+$devPort = if ($Env:DEV_PORT) { [int]$Env:DEV_PORT } else { 5173 }
+& "$PSScriptRoot/kill-port.ps1" -Port $devPort | Out-Null
+
 # Environment setup
 $env:NODE_ENV = "development"
 $env:ELECTRON_IS_DEV = "1"
