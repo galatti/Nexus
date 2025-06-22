@@ -60,8 +60,10 @@ export class TemplateManager {
     const commandConfig = template.generateConfig(userConfig);
     const templateInfo = template.getInfo();
 
-    // Create server config
-    const serverId = `${templateId}-${Date.now()}`;
+    // Create server config - use more predictable ID for built-in servers
+    const serverId = templateInfo.npmPackage === undefined 
+      ? `builtin-${templateId}` // For built-in servers like Pomodoro
+      : `${templateId}-${Date.now()}`; // For external servers
     const displayName = serverName || `${templateInfo.name} Server`;
 
     const serverConfig: McpServerConfig = {

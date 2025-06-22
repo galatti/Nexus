@@ -31,6 +31,10 @@ const electronAPI = {
     ipcRenderer.invoke('mcp:installTemplate', templateId),
   generateServerFromTemplate: (templateId: string, config: Record<string, any>, serverName: string) =>
     ipcRenderer.invoke('mcp:generateServerFromTemplate', templateId, config, serverName),
+  getMcpServers: () => 
+    ipcRenderer.invoke('mcp:getServers'),
+  testMcpConnection: (serverId: string) => 
+    ipcRenderer.invoke('mcp:testConnection', serverId),
   
   // Permission operations
   getPendingApprovals: () => ipcRenderer.invoke('permissions:getPending'),

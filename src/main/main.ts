@@ -113,8 +113,42 @@ async function initializeServices(): Promise<void> {
       await llmManager.addProvider(settings.llm.provider);
     }
     
+    // Auto-configure built-in Pomodoro server if not already present
+    const existingPomodoroServers = settings.mcp.servers.filter(s => s.templateId === 'pomodoro' || s.id === 'builtin-pomodoro');
+    
+    if (existingPomodoroServers.length === 0) {
+      try {
+        console.log('No Pomodoro server found, adding built-in Pomodoro server');
+        const pomodoroConfig = await templateManager.generateServerConfig('pomodoro', {
+          workDuration: 25,
+          shortBreakDuration: 5,
+          longBreakDuration: 15,
+          longBreakInterval: 4,
+          notifications: true,
+          autoStart: false
+        }, 'Pomodoro Timer');
+        
+        // Enable auto-start for the built-in Pomodoro server
+        pomodoroConfig.autoStart = true;
+        
+        configManager.addMcpServer(pomodoroConfig);
+        console.log('Built-in Pomodoro server configured successfully');
+      } catch (error) {
+        console.error('Failed to auto-configure Pomodoro server:', error);
+      }
+    } else if (existingPomodoroServers.length > 1) {
+      // Clean up duplicates
+      console.log(`Found ${existingPomodoroServers.length} duplicate Pomodoro servers, cleaning up...`);
+      // Keep only the first one, remove the rest
+      for (let i = 1; i < existingPomodoroServers.length; i++) {
+        configManager.removeMcpServer(existingPomodoroServers[i].id);
+      }
+      console.log('Duplicate Pomodoro servers removed');
+    }
+    
     // Connect to configured MCP servers
-    for (const serverConfig of settings.mcp.servers) {
+    const updatedSettings = configManager.getSettings();
+    for (const serverConfig of updatedSettings.mcp.servers) {
       if (serverConfig.enabled && serverConfig.autoStart) {
         try {
           await connectionManager.connectToServer(serverConfig);
@@ -271,6 +305,37 @@ ipcMain.handle('mcp:generateServerFromTemplate', async (_event, templateId, conf
   }
 });
 
+ipcMain.handle('mcp:getServers', async (_event) => {
+  try {
+    const servers = configManager.getMcpServers();
+    // Add current connection status to each server
+    const serversWithStatus = servers.map(server => ({
+      ...server,
+      status: connectionManager.getConnectionStatus(server.id)?.status || 'disconnected'
+    }));
+    return { success: true, servers: serversWithStatus };
+  } catch (error) {
+    console.error('Failed to get MCP servers:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:testConnection', async (_event, serverId) => {
+  try {
+    const servers = configManager.getMcpServers();
+    const server = servers.find(s => s.id === serverId);
+    if (!server) {
+      throw new Error(`Server ${serverId} not found`);
+    }
+    
+    await connectionManager.connectToServer(server);
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to test connection:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 // Permission handlers
 ipcMain.handle('permissions:getPending', () => {
   try {
@@ -302,8 +367,101 @@ ipcMain.handle('llm:sendMessage', async (_event, message, options = {}) => {
       timestamp: new Date() 
     }];
     
+    // Get available MCP tools and add them to the system message
+    const availableTools = connectionManager.getAllAvailableTools();
+    console.log('LLM: Available tools:', availableTools.length, availableTools.map(t => t.name));
+    if (availableTools.length > 0) {
+      const toolsMessage = {
+        id: 'system-tools',
+        role: 'system' as const,
+        content: `You have access to the following tools through the Model Context Protocol (MCP):
+
+${availableTools.map((tool: any) => 
+  `**${tool.name}** (from ${tool.serverId}): ${tool.description}
+  Parameters: ${JSON.stringify(tool.inputSchema, null, 2)}`
+).join('\n\n')}
+
+When the user asks you to perform an action that matches one of these tools, you should:
+1. First respond with what you're going to do
+2. Then call the tool using this format: <tool_call>{"tool": "tool_name", "serverId": "server_id", "args": {...}}</tool_call>
+3. The tool result will be automatically included in your response
+
+For example, if user says "start a timer", respond with:
+"I'll start a Pomodoro timer for you. <tool_call>{"tool": "start_timer", "serverId": "pomodoro-server-id", "args": {"sessionType": "work"}}</tool_call>"`,
+        timestamp: new Date()
+      } as any;
+      
+      // Add system message with tools info before user message
+      messages.unshift(toolsMessage);
+    }
+    
     const response = await llmManager.sendMessage(messages, options);
-    return { success: true, response };
+    
+    // Parse response for tool calls
+    let finalResponse = response;
+    console.log('LLM: Response content before parsing:', response.content);
+    const toolCallRegex = /<tool_call>(.*?)<\/tool_call>/gs; // Added 's' flag for multiline
+    const toolCalls = [];
+    let match;
+    
+    while ((match = toolCallRegex.exec(response.content)) !== null) {
+      console.log('LLM: Found tool call match:', match[0]);
+      try {
+        const toolCall = JSON.parse(match[1]);
+        toolCalls.push({ toolCall, fullMatch: match[0] });
+      } catch (error) {
+        console.error('Failed to parse tool call:', match[1], error);
+      }
+    }
+    
+    // Execute tool calls
+    if (toolCalls.length > 0) {
+      console.log('LLM: Executing tool calls:', toolCalls.length);
+      let updatedContent = response.content;
+      
+      for (const item of toolCalls) {
+        const { toolCall, fullMatch } = item;
+        try {
+          console.log('LLM: Executing tool:', toolCall.tool, 'on server:', toolCall.serverId);
+          const toolResult = await connectionManager.executeTool(
+            toolCall.serverId, 
+            toolCall.tool, 
+            toolCall.args || {}
+          );
+          console.log('LLM: Tool result:', toolResult);
+          
+          // Extract clean text from MCP result
+          let resultText = '';
+          if (toolResult && typeof toolResult === 'object' && 'content' in toolResult && Array.isArray((toolResult as any).content)) {
+            resultText = (toolResult as any).content
+              .filter((item: any) => item.type === 'text')
+              .map((item: any) => item.text)
+              .join('\n');
+          } else if (typeof toolResult === 'string') {
+            resultText = toolResult;
+          } else {
+            resultText = JSON.stringify(toolResult, null, 2);
+          }
+          
+          const cleanResultText = `\n\n${resultText}`;
+          console.log('LLM: Replacing:', fullMatch, 'with:', cleanResultText);
+          updatedContent = updatedContent.replace(fullMatch, cleanResultText);
+          
+        } catch (error) {
+          console.error('LLM: Tool execution failed:', error);
+          const errorText = `\n\n❌ **Tool Error**: ${error instanceof Error ? error.message : String(error)}`;
+          console.log('LLM: Replacing:', fullMatch, 'with error:', errorText);
+          updatedContent = updatedContent.replace(fullMatch, errorText);
+        }
+      }
+      
+      finalResponse = {
+        ...response,
+        content: updatedContent
+      };
+    }
+    
+    return { success: true, response: finalResponse };
   } catch (error) {
     console.error('LLM message failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -332,6 +490,7 @@ ipcMain.handle('llm:getAvailableModels', async (_event, providerId) => {
 
 // Event forwarding from services to renderer
 connectionManager.on('statusChange', (status) => {
+  console.log('Forwarding status change:', status.serverId, status.status, 'mainWindow exists:', !!mainWindow);
   mainWindow?.webContents.send('mcp:serverStatusChange', status.serverId, status.status);
 });
 

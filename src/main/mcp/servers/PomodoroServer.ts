@@ -492,6 +492,14 @@ class PomodoroServer {
   }
 
   async run(): Promise<void> {
+    // Ensure UTF-8 encoding for stdio
+    if (process.stdout.setEncoding) {
+      process.stdout.setEncoding('utf8');
+    }
+    if (process.stderr.setEncoding) {
+      process.stderr.setEncoding('utf8');
+    }
+    
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error('Pomodoro Timer MCP server running on stdio');

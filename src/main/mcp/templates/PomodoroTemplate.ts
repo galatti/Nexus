@@ -88,7 +88,7 @@ export class PomodoroTemplate extends McpServerTemplate {
     return {
       command: 'node',
       args: [
-        join(__dirname, '../servers/PomodoroServer.js') // Will create this custom server
+        join(__dirname, '../servers/PomodoroServer.js') // Will be built from TypeScript
       ],
       env: {
         POMODORO_WORK_DURATION: String(userConfig.workDuration || 25),

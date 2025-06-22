@@ -231,6 +231,16 @@ export class ConnectionManager extends EventEmitter {
     return connection?.status.tools || [];
   }
 
+  getAllAvailableTools(): McpTool[] {
+    const allTools: McpTool[] = [];
+    for (const connection of this.connections.values()) {
+      if (connection.status.status === 'connected' && connection.status.tools) {
+        allTools.push(...connection.status.tools);
+      }
+    }
+    return allTools;
+  }
+
   async disconnectAll(): Promise<void> {
     const disconnectPromises = Array.from(this.connections.keys()).map(serverId =>
       this.disconnectFromServer(serverId)
@@ -241,6 +251,7 @@ export class ConnectionManager extends EventEmitter {
   private async discoverTools(client: any, serverId: string): Promise<McpTool[]> {
     try {
       const toolsList = await client.listTools();
+      console.log(`Discovered tools for ${serverId}:`, toolsList.tools?.length || 0, toolsList.tools?.map((t: any) => t.name) || []);
       
       return toolsList.tools.map((tool: any) => ({
         name: tool.name,
