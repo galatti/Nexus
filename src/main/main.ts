@@ -93,6 +93,8 @@ app.on('web-contents-created', (_event, contents) => {
 import { configManager } from './config/ConfigManager';
 import { connectionManager } from './mcp/ConnectionManager';
 import { llmManager } from './llm/LlmManager';
+import { templateManager } from './mcp/templates/TemplateManager';
+import { permissionManager } from './permissions/PermissionManager';
 
 // Initialize services
 async function initializeServices(): Promise<void> {
@@ -213,6 +215,78 @@ ipcMain.handle('mcp:executeTool', async (_event, serverId, toolName, args) => {
     return { success: true, result };
   } catch (error) {
     console.error('MCP tool execution failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+// MCP Template handlers
+ipcMain.handle('mcp:getTemplates', () => {
+  try {
+    const templates = templateManager.getAllTemplates();
+    return { success: true, templates };
+  } catch (error) {
+    console.error('Failed to get MCP templates:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:checkInstallations', async () => {
+  try {
+    const status = await templateManager.checkAllInstallations();
+    const statusObject = Object.fromEntries(status);
+    return { success: true, status: statusObject };
+  } catch (error) {
+    console.error('Failed to check MCP installations:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:installTemplate', async (_event, templateId) => {
+  try {
+    const result = await templateManager.installTemplate(templateId);
+    return result;
+  } catch (error) {
+    console.error('Failed to install MCP template:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:generateServerFromTemplate', async (_event, templateId, config, serverName) => {
+  try {
+    const serverConfig = await templateManager.generateServerConfig(templateId, config, serverName);
+    
+    // Save the server configuration
+    configManager.addMcpServer(serverConfig);
+    
+    // Auto-connect if enabled
+    if (serverConfig.enabled && serverConfig.autoStart) {
+      await connectionManager.connectToServer(serverConfig);
+    }
+    
+    return { success: true, serverConfig };
+  } catch (error) {
+    console.error('Failed to generate server from template:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+// Permission handlers
+ipcMain.handle('permissions:getPending', () => {
+  try {
+    const pending = permissionManager.getPendingApprovals();
+    return { success: true, pending };
+  } catch (error) {
+    console.error('Failed to get pending approvals:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('permissions:respond', (_event, approvalId, result) => {
+  try {
+    const success = permissionManager.respondToApproval(approvalId, result);
+    return { success };
+  } catch (error) {
+    console.error('Failed to respond to approval:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });

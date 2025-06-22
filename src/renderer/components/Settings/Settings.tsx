@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { AppSettings, LlmProviderConfig, McpServerConfig } from '../../../shared/types';
+import { McpServerTemplates } from '../MCP/McpServerTemplates';
 
 interface SettingsProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-type SettingsTab = 'general' | 'llm' | 'mcp';
+type SettingsTab = 'general' | 'llm' | 'mcp' | 'mcp-templates';
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
@@ -158,6 +159,20 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                 <div className="flex items-center">
                   <span className="mr-2">🔧</span>
                   MCP Servers
+                </div>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('mcp-templates')}
+                className={`w-full text-left px-3 py-2 rounded-md mb-2 transition-colors ${
+                  activeTab === 'mcp-templates'
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <div className="flex items-center">
+                  <span className="mr-2">📦</span>
+                  Server Templates
                 </div>
               </button>
             </nav>
@@ -368,7 +383,10 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                   <div className="space-y-6">
                     <div className="flex items-center justify-between">
                       <h3 className="text-lg font-medium text-gray-900 dark:text-white">MCP Servers</h3>
-                      <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
+                      <button 
+                        onClick={() => setActiveTab('mcp-templates')}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+                      >
                         Add Server
                       </button>
                     </div>
@@ -394,7 +412,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                                     ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
                                     : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                                 }`}>
-                                  {server.status}
+                                  {server.status || 'disconnected'}
                                 </span>
                               </div>
                               <div className="flex items-center space-x-2">
@@ -407,6 +425,17 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
                       </div>
                     )}
                   </div>
+                )}
+
+                {/* MCP Server Templates */}
+                {activeTab === 'mcp-templates' && (
+                  <McpServerTemplates
+                    onAddServer={(templateId, config, serverName) => {
+                      // Refresh settings after adding server
+                      loadSettings();
+                      setActiveTab('mcp');
+                    }}
+                  />
                 )}
               </>
             ) : null}

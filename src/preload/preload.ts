@@ -24,6 +24,19 @@ const electronAPI = {
   executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) =>
     ipcRenderer.invoke('mcp:executeTool', serverId, toolName, args),
   
+  // MCP Template operations
+  getMcpTemplates: () => ipcRenderer.invoke('mcp:getTemplates'),
+  checkMcpInstallations: () => ipcRenderer.invoke('mcp:checkInstallations'),
+  installMcpTemplate: (templateId: string) => 
+    ipcRenderer.invoke('mcp:installTemplate', templateId),
+  generateServerFromTemplate: (templateId: string, config: Record<string, any>, serverName: string) =>
+    ipcRenderer.invoke('mcp:generateServerFromTemplate', templateId, config, serverName),
+  
+  // Permission operations
+  getPendingApprovals: () => ipcRenderer.invoke('permissions:getPending'),
+  respondToApproval: (approvalId: string, result: any) =>
+    ipcRenderer.invoke('permissions:respond', approvalId, result),
+  
   // LLM operations
   sendMessage: (message: string, options?: Record<string, unknown>) =>
     ipcRenderer.invoke('llm:sendMessage', message, options),

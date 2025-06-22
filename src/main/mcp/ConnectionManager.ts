@@ -179,6 +179,21 @@ export class ConnectionManager extends EventEmitter {
       throw new Error(`Server ${serverId} is not in connected state`);
     }
 
+    // Find the tool definition
+    const tool = connection.status.tools?.find(t => t.name === toolName);
+    if (!tool) {
+      throw new Error(`Tool ${toolName} not found on server ${serverId}`);
+    }
+
+    // Import permission manager
+    const { permissionManager } = await import('../permissions/PermissionManager');
+    
+    // Request permission before execution
+    const hasPermission = await permissionManager.requestPermission(connection.config, tool, args);
+    if (!hasPermission) {
+      throw new Error(`Permission denied for tool execution: ${toolName}`);
+    }
+
     try {
       console.log(`Executing tool ${toolName} on server ${serverId}`, { args });
 

@@ -12,6 +12,12 @@ export interface ElectronAPI {
   sendMessage: (message: string, options?: Record<string, unknown>) => Promise<string>;
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => () => void;
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
+  getMcpTemplates: () => Promise<any>;
+  checkMcpInstallations: () => Promise<any>;
+  installMcpTemplate: (templateId: string) => Promise<any>;
+  generateServerFromTemplate: (templateId: string, config: Record<string, any>, serverName: string) => Promise<any>;
+  getPendingApprovals: () => Promise<any>;
+  respondToApproval: (approvalId: string, result: any) => Promise<any>;
 }
 
 // Application settings
@@ -40,7 +46,9 @@ export interface McpServerConfig {
   env?: Record<string, string>;
   enabled: boolean;
   autoStart: boolean;
-  status: 'disconnected' | 'connecting' | 'connected' | 'error';
+  status?: 'disconnected' | 'connecting' | 'connected' | 'error';
+  templateId?: string;
+  userConfig?: Record<string, any>;
 }
 
 // LLM Provider configuration
