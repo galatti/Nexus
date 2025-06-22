@@ -146,6 +146,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
       setError('Failed to communicate with the assistant');
     } finally {
       setIsLoading(false);
+      // Restore focus to input after the message is processed
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
     }
   };
 
