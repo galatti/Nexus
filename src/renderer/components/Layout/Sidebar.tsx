@@ -9,19 +9,23 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const [servers, setServers] = useState<McpServerConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [connectingServers, setConnectingServers] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (isOpen) {
       loadServers();
-      // Also refresh every 2 seconds when sidebar is open to catch status changes
-      const interval = setInterval(loadServers, 2000);
-      return () => clearInterval(interval);
     }
   }, [isOpen]);
 
-  const loadServers = async () => {
+  const loadServers = async (isRefresh = false) => {
     try {
-      setIsLoading(true);
+      if (isRefresh) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
+      
       const result = await (window as any).electronAPI.getMcpServers();
       if (result.success) {
         console.log('Sidebar: Loaded servers:', result.servers);
@@ -30,26 +34,42 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     } catch (error) {
       console.error('Failed to load MCP servers:', error);
     } finally {
-      setIsLoading(false);
+      if (isRefresh) {
+        setIsRefreshing(false);
+      } else {
+        setIsLoading(false);
+      }
     }
   };
 
-  // Listen for server status changes
+  // Listen for server status changes with debouncing
   useEffect(() => {
     if (!isOpen) return;
 
     console.log('Sidebar: Setting up status change listener');
+    let debounceTimer: NodeJS.Timeout;
+    
     const cleanup = (window as any).electronAPI.onMcpServerStatusChange((serverId: string, status: string) => {
       console.log('Sidebar: Received status change:', serverId, status);
-      setServers(prev => {
-        console.log('Sidebar: Current servers:', prev.map(s => s.id));
-        return prev.map(server => 
-          server.id === serverId ? { ...server, status: status as any } : server
-        );
-      });
+      
+      // Debounce rapid status changes to prevent flickering
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        setServers(prev => {
+          console.log('Sidebar: Current servers:', prev.map(s => s.id));
+          const updated = prev.map(server => 
+            server.id === serverId ? { ...server, status: status as any } : server
+          );
+          console.log('Sidebar: Updated servers:', updated.map(s => `${s.id}: ${s.status}`));
+          return updated;
+        });
+      }, 100); // 100ms debounce
     });
 
-    return cleanup;
+    return () => {
+      clearTimeout(debounceTimer);
+      cleanup();
+    };
   }, [isOpen]);
 
   if (!isOpen) return null;
@@ -78,8 +98,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
         <div className="flex items-center justify-between">
           <h2 className="text-sm font-medium text-gray-900 dark:text-white">MCP Servers</h2>
           <button
-            onClick={loadServers}
-            className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            onClick={() => loadServers(true)}
+            disabled={isRefreshing}
+            className={`text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 ${isRefreshing ? 'animate-spin' : ''}`}
             title="Refresh servers"
           >
             ↻
@@ -137,16 +158,25 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
                     <button
                       onClick={async () => {
                         try {
+                          setConnectingServers(prev => new Set(prev).add(server.id));
                           await (window as any).electronAPI.testMcpConnection(server.id);
-                          // Refresh servers after connection attempt
-                          setTimeout(() => loadServers(), 1000);
+                          // Status will be updated via event listener, no need for manual refresh
                         } catch (error) {
                           console.error('Failed to connect to server:', error);
+                        } finally {
+                          setConnectingServers(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(server.id);
+                            return newSet;
+                          });
                         }
                       }}
-                      className="text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                      disabled={connectingServers.has(server.id)}
+                      className={`text-xs px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors ${
+                        connectingServers.has(server.id) ? 'opacity-50 cursor-not-allowed' : ''
+                      }`}
                     >
-                      Connect
+                      {connectingServers.has(server.id) ? 'Connecting...' : 'Connect'}
                     </button>
                   )}
                 </div>

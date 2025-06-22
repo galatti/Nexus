@@ -443,6 +443,23 @@ For example, if user says "start a timer", respond with:
             resultText = JSON.stringify(toolResult, null, 2);
           }
           
+          // Fix corrupted Unicode characters (common encoding issues)
+          const unicodeFixes: Array<[RegExp, string]> = [
+            [/≡ƒìà/g, '🍅'], // Tomato emoji
+            [/ΓÅ░/g, '⏰'],   // Clock emoji  
+            [/≡ƒôè/g, '📊'], // Chart emoji
+            [/≡ƒÄ»/g, '🎯'], // Target emoji
+            [/ΓÅ╕∩╕Å/g, '⏸️'], // Pause emoji
+            [/≡ƒÅ¡/g, '☕'], // Coffee emoji
+            [/≡ƒÅ╗/g, '🧘'], // Meditation emoji
+            [/≡ƒôü/g, '🔄'], // Refresh emoji
+            [/≡ƒôè/g, '⏹️'], // Stop emoji
+          ];
+          
+          for (const [corrupted, fixed] of unicodeFixes) {
+            resultText = resultText.replace(corrupted, fixed);
+          }
+          
           const cleanResultText = `\n\n${resultText}`;
           console.log('LLM: Replacing:', fullMatch, 'with:', cleanResultText);
           updatedContent = updatedContent.replace(fullMatch, cleanResultText);

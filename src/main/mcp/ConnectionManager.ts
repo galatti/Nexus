@@ -80,10 +80,15 @@ export class ConnectionManager extends EventEmitter {
         Object.assign(env, config.env);
       }
       
+      // Force UTF-8 encoding for child process
+      env.LANG = 'en_US.UTF-8';
+      env.LC_ALL = 'en_US.UTF-8';
+      
       const transport = new StdioClientTransport({
         command: config.command,
         args: config.args,
-        env
+        env,
+        encoding: 'utf8' // Explicitly set encoding
       });
 
       const client = new Client({
