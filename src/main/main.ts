@@ -309,6 +309,26 @@ ipcMain.handle('llm:sendMessage', async (_event, message, options = {}) => {
   }
 });
 
+ipcMain.handle('llm:getStatus', () => {
+  try {
+    const status = llmManager.getStatus();
+    return { success: true, status };
+  } catch (error) {
+    console.error('Failed to get LLM status:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('llm:getAvailableModels', async (_event, providerId) => {
+  try {
+    const models = await llmManager.getAvailableModels(providerId);
+    return { success: true, models };
+  } catch (error) {
+    console.error('Failed to get available models:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 // Event forwarding from services to renderer
 connectionManager.on('statusChange', (status) => {
   mainWindow?.webContents.send('mcp:serverStatusChange', status.serverId, status.status);

@@ -6,6 +6,9 @@ import { LlmProviderConfig, LlmModel, ChatMessage } from '../../shared/types';
 
 export interface LlmManagerStatus {
   currentProvider: string | null;
+  currentProviderName: string | null;
+  currentProviderType: string | null;
+  currentModel: string | null;
   isHealthy: boolean;
   availableProviders: string[];
   lastHealthCheck: Date | null;
@@ -250,10 +253,15 @@ export class LlmManager extends EventEmitter {
         return provider?.isEnabled() ?? false;
       });
 
+    const currentConfig = this.currentProvider?.getConfig();
+
     return {
       currentProvider: this.currentProvider 
         ? this.getProviderIdByInstance(this.currentProvider)
         : null,
+      currentProviderName: currentConfig?.name || null,
+      currentProviderType: currentConfig?.type || null,
+      currentModel: currentConfig?.model || null,
       isHealthy: this.currentProvider?.getHealthStatus().isHealthy ?? false,
       availableProviders,
       lastHealthCheck: new Date()

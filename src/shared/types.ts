@@ -10,6 +10,8 @@ export interface ElectronAPI {
   disconnectFromServer: (serverId: string) => Promise<void>;
   executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) => Promise<unknown>;
   sendMessage: (message: string, options?: Record<string, unknown>) => Promise<string>;
+  getLlmStatus: () => Promise<any>;
+  getAvailableModels: (providerId?: string) => Promise<any>;
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => () => void;
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
   getMcpTemplates: () => Promise<any>;

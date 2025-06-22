@@ -16,6 +16,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [llmStatus, setLlmStatus] = useState<any>(null);
+  const [currentModel, setCurrentModel] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -31,6 +33,58 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
   // Focus input on mount
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  // Load LLM status and model information
+  useEffect(() => {
+    const loadLlmInfo = async () => {
+      try {
+        const statusResult = await window.electronAPI.getLlmStatus();
+        if (statusResult.success) {
+          setLlmStatus(statusResult.status);
+          
+          // Get the configured model information
+          if (statusResult.status.currentModel) {
+            // Try to get detailed model info from available models
+            const modelsResult = await window.electronAPI.getAvailableModels();
+            if (modelsResult.success && modelsResult.models.length > 0) {
+              // Find the currently configured model in the available models
+              const modelInfo = modelsResult.models.find((m: any) => m.name === statusResult.status.currentModel);
+              if (modelInfo) {
+                setCurrentModel(modelInfo);
+              } else {
+                // Fallback: create a basic model object with just the name
+                setCurrentModel({
+                  name: statusResult.status.currentModel,
+                  description: `${statusResult.status.currentProviderType} model`
+                });
+              }
+            } else {
+              // Fallback: create a basic model object with just the name
+              setCurrentModel({
+                name: statusResult.status.currentModel,
+                description: `${statusResult.status.currentProviderType} model`
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load LLM info:', error);
+      }
+    };
+
+    loadLlmInfo();
+
+    // Listen for LLM provider changes
+    const handleProviderChange = () => {
+      loadLlmInfo();
+    };
+
+    // Add event listener if available
+    if (window.electronAPI.onSettingsChange) {
+      const cleanup = window.electronAPI.onSettingsChange(handleProviderChange);
+      return cleanup;
+    }
   }, []);
 
   // Load message history from localStorage
@@ -181,9 +235,41 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-          Chat Assistant
-        </h2>
+        <div className="flex flex-col">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Chat Assistant
+          </h2>
+          {llmStatus && llmStatus.currentProvider && (
+            <div className="flex items-center space-x-2 mt-1">
+              <div className="flex items-center space-x-1">
+                <div className={`w-2 h-2 rounded-full ${llmStatus.isHealthy ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  {llmStatus.currentProviderName || llmStatus.currentProvider?.replace(/-/g, ' ')}
+                </span>
+              </div>
+              {currentModel && (
+                <div className="flex items-center space-x-1">
+                  <span className="text-gray-400">•</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {currentModel.name}
+                  </span>
+                  {currentModel.size && (
+                    <span className="text-xs text-gray-500 dark:text-gray-500">
+                      ({currentModel.size})
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          {currentModel && currentModel.description && (
+            <div className="mt-1">
+              <span className="text-xs text-gray-500 dark:text-gray-500">
+                {currentModel.description}
+              </span>
+            </div>
+          )}
+        </div>
         <div className="flex items-center space-x-2">
           {messages.length > 0 && (
             <button
@@ -203,9 +289,33 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
             <div className="mb-4">
               <div className="text-6xl mb-4">🤖</div>
               <h3 className="text-xl font-medium mb-2">Welcome to Nexus MVP</h3>
-              <p className="text-sm">
+              <p className="text-sm mb-4">
                 Start a conversation with your AI assistant powered by MCP tools
               </p>
+              {llmStatus && llmStatus.currentProvider && (
+                <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-full">
+                  <div className={`w-2 h-2 rounded-full ${llmStatus.isHealthy ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <span className="text-sm text-blue-700 dark:text-blue-300">
+                    {llmStatus.currentProviderName || llmStatus.currentProvider?.replace(/-/g, ' ')}
+                  </span>
+                  {currentModel && (
+                    <>
+                      <span className="text-blue-400 dark:text-blue-500">•</span>
+                      <span className="text-sm text-blue-700 dark:text-blue-300">
+                        {currentModel.name}
+                      </span>
+                    </>
+                  )}
+                </div>
+              )}
+              {!llmStatus?.currentProvider && (
+                <div className="inline-flex items-center space-x-2 px-3 py-1 bg-yellow-50 dark:bg-yellow-900/20 rounded-full">
+                  <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                  <span className="text-sm text-yellow-700 dark:text-yellow-300">
+                    No LLM provider configured
+                  </span>
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8 max-w-2xl mx-auto">
               <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">

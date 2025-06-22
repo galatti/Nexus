@@ -40,6 +40,9 @@ const electronAPI = {
   // LLM operations
   sendMessage: (message: string, options?: Record<string, unknown>) =>
     ipcRenderer.invoke('llm:sendMessage', message, options),
+  getLlmStatus: () => ipcRenderer.invoke('llm:getStatus'),
+  getAvailableModels: (providerId?: string) => 
+    ipcRenderer.invoke('llm:getAvailableModels', providerId),
   
   // Event listeners
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => {
