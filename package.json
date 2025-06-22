@@ -36,10 +36,12 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^0.5.0",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "prismjs": "^1.29.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-markdown": "^9.0.1",
+    "react-syntax-highlighter": "^15.6.1",
     "remark-gfm": "^4.0.0",
     "winston": "^3.11.0",
     "zustand": "^4.4.7"
