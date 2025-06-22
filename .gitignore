@@ -116,6 +116,16 @@ dist
 # Serverless directories
 .serverless/
 
+# Electron/Vite specific
+dist/
+out/
+build/
+.vite/
+.cache/
+.DS_Store
+Thumbs.db
+.vscode/
+
 # FuseBox cache
 .fusebox/
 
