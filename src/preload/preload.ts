@@ -1,0 +1,59 @@
+import { contextBridge, ipcRenderer } from 'electron';
+
+// Expose protected methods that allow the renderer process to use
+// the ipcRenderer without exposing the entire object
+const electronAPI = {
+  // App info
+  getAppVersion: () => ipcRenderer.invoke('app:getVersion'),
+  
+  // Window controls
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  maximizeWindow: () => ipcRenderer.invoke('window:maximize'),
+  closeWindow: () => ipcRenderer.invoke('window:close'),
+  
+  // Settings
+  getSettings: () => ipcRenderer.invoke('settings:get'),
+  setSettings: (settings: Record<string, unknown>) => 
+    ipcRenderer.invoke('settings:set', settings),
+  
+  // MCP operations
+  connectToServer: (config: Record<string, unknown>) => 
+    ipcRenderer.invoke('mcp:connect', config),
+  disconnectFromServer: (serverId: string) => 
+    ipcRenderer.invoke('mcp:disconnect', serverId),
+  executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) =>
+    ipcRenderer.invoke('mcp:executeTool', serverId, toolName, args),
+  
+  // LLM operations
+  sendMessage: (message: string, options?: Record<string, unknown>) =>
+    ipcRenderer.invoke('llm:sendMessage', message, options),
+  
+  // Event listeners
+  onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => {
+    ipcRenderer.on('mcp:serverStatusChange', (_event, serverId, status) => 
+      callback(serverId, status));
+    return () => ipcRenderer.removeAllListeners('mcp:serverStatusChange');
+  },
+
+  onSettingsChange: (callback: (settings: Record<string, unknown>) => void) => {
+    ipcRenderer.on('settings:changed', (_event, settings) => callback(settings));
+    return () => ipcRenderer.removeAllListeners('settings:changed');
+  },
+};
+
+// Use `contextBridge` APIs to expose Electron APIs to
+// renderer only if context isolation is enabled, otherwise
+// just add to the DOM global.
+if (process.contextIsolated) {
+  try {
+    contextBridge.exposeInMainWorld('electronAPI', electronAPI);
+  } catch (error) {
+    console.error('Failed to expose electronAPI:', error);
+  }
+} else {
+  // @ts-ignore (for legacy support)
+  window.electronAPI = electronAPI;
+}
+
+// Type definitions for renderer process
+export type ElectronAPI = typeof electronAPI; 
