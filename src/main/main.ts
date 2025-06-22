@@ -30,7 +30,8 @@ const createWindow = (): void => {
   // Load the app
   if (isDev) {
     // Development - load from vite dev server
-    mainWindow.loadURL('http://localhost:5173');
+    const devPort = process.env.DEV_SERVER_PORT || '5173';
+    mainWindow.loadURL(`http://localhost:${devPort}`);
     // Open DevTools in development
     mainWindow.webContents.openDevTools();
   } else {

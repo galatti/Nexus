@@ -18,10 +18,7 @@
     "react"
   ],
   "scripts": {
-    "predev": "node scripts/kill-port.js 5173",
-    "dev": "concurrently \"npm run dev:vite\" \"npm run dev:electron\"",
-    "dev:vite": "vite",
-    "dev:electron": "npm run build:main && wait-on http://localhost:5173 && cross-env ELECTRON_IS_DEV=1 electron .",
+    "dev": "node scripts/start-dev.js",
     "build": "npm run build:renderer && npm run build:main",
     "build:renderer": "vite build",
     "build:main": "npm run clean && tsc -p tsconfig.main.json",
@@ -45,6 +42,7 @@
     "react-syntax-highlighter": "^15.6.1",
     "remark-gfm": "^4.0.0",
     "winston": "^3.11.0",
+    "@expo/sudo-prompt": "^9.3.2",
     "zustand": "^4.4.7"
   },
   "devDependencies": {

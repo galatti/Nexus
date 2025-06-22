@@ -14,8 +14,8 @@ export default defineConfig({
     }
   },
   server: {
-    port: 5173,
-    strictPort: true
+    port: process.env.DEV_SERVER_PORT ? Number(process.env.DEV_SERVER_PORT) : 5173,
+    strictPort: false
   },
   resolve: {
     alias: {

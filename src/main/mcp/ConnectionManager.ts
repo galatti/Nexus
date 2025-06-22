@@ -13,10 +13,16 @@ export interface ConnectionStatus {
 // Dynamic imports for ES modules
 let mcpSdk: any = null;
 
+// Use a runtime dynamic import helper that TypeScript will not transform to require()
+const dynamicImport = (specifier: string): Promise<any> => {
+  // eslint-disable-next-line @typescript-eslint/no-implied-eval
+  return (new Function('s', 'return import(s)'))(specifier);
+};
+
 async function loadMcpSdk() {
   if (!mcpSdk) {
     try {
-      mcpSdk = await import('@modelcontextprotocol/sdk/client/index.js');
+      mcpSdk = await dynamicImport('@modelcontextprotocol/sdk/client/index.js');
     } catch (error) {
       console.error('Failed to load MCP SDK:', error);
       throw error;
@@ -66,7 +72,7 @@ export class ConnectionManager extends EventEmitter {
 
       // Load MCP SDK dynamically
       const { Client } = await loadMcpSdk();
-      const { StdioClientTransport } = await import('@modelcontextprotocol/sdk/client/stdio.js');
+      const { StdioClientTransport } = await dynamicImport('@modelcontextprotocol/sdk/client/stdio.js');
 
       // Create transport and client
       const env = { ...process.env } as Record<string, string>;
