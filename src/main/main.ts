@@ -24,6 +24,7 @@ const createWindow = (): void => {
     },
     // Window configuration
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
+    autoHideMenuBar: true, // Hide menu bar (can still access with Alt key)
     show: false, // Don't show until ready
   });
 
@@ -32,8 +33,8 @@ const createWindow = (): void => {
     // Development - load from vite dev server
     const devPort = process.env.DEV_SERVER_PORT || '5173';
     mainWindow.loadURL(`http://localhost:${devPort}`);
-    // Open DevTools in development
-    mainWindow.webContents.openDevTools();
+    // Open DevTools in development (commented out for cleaner startup)
+    // mainWindow.webContents.openDevTools();
   } else {
     // Production - load from built files
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
