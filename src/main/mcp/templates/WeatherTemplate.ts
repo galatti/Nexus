@@ -66,14 +66,19 @@ export class WeatherTemplate extends McpServerTemplate {
     args: string[];
     env?: Record<string, string>;
   } {
+    // Use the cross-platform npx configuration
+    const { command, args } = this.generateNpxConfig('@modelcontextprotocol/server-weather');
+
     return {
-      command: 'npx',
-      args: ['--yes', '@modelcontextprotocol/server-weather'],
+      command,
+      args,
       env: {
         OPENWEATHERMAP_API_KEY: userConfig.apiKey,
         WEATHER_UNITS: userConfig.units || 'metric',
         WEATHER_LANGUAGE: userConfig.language || 'en',
-        WEATHER_DEFAULT_LOCATION: userConfig.defaultLocation || ''
+        WEATHER_DEFAULT_LOCATION: userConfig.defaultLocation || '',
+        // Ensure PATH is inherited properly on Windows
+        ...(process.platform === 'win32' && { PATH: process.env.PATH })
       }
     };
   }

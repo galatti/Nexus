@@ -52,9 +52,9 @@ export class PermissionManager extends EventEmitter {
     this.setMaxListeners(50);
     
     this.settings = {
-      autoApproveLevel: 'low',
+      autoApproveLevel: 'none', // Require approval for all operations to show permission UI
       requestTimeout: 30,
-      requireApprovalForFileAccess: true,
+      requireApprovalForFileAccess: true, // Require approval for file access to show permission UI
       requireApprovalForNetworkAccess: true,
       requireApprovalForSystemCommands: true,
       trustedServers: []
@@ -349,14 +349,16 @@ export class PermissionManager extends EventEmitter {
   }
 
   removeTrustedServer(serverId: string): void {
-    const index = this.settings.trustedServers.indexOf(serverId);
-    if (index >= 0) {
-      this.settings.trustedServers.splice(index, 1);
-      logger.info(`Server removed from trusted list: ${serverId}`);
-      this.emit('trustedServerRemoved', serverId);
-    }
+    this.settings.trustedServers = this.settings.trustedServers.filter(id => id !== serverId);
+    this.emit('settingsChanged', this.settings);
+  }
+
+  clearAllPermissions(): void {
+    this.permissions.clear();
+    this.sessionPermissions.clear();
+    this.emit('permissionsChanged');
   }
 }
 
-// Export singleton instance
+// Singleton instance
 export const permissionManager = new PermissionManager(); 

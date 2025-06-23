@@ -63,19 +63,27 @@ export class FilesystemTemplate extends McpServerTemplate {
       ? userConfig.allowedDirectories.split(',').map((dir: string) => dir.trim())
       : [join(homedir(), 'Documents')];
 
-    const args = allowedDirs;
-
+    const additionalArgs: string[] = [];
+    
     // Add read-only flag if specified
     if (userConfig.readOnly) {
-      args.unshift('--read-only');
+      additionalArgs.push('--read-only');
     }
+    
+    // Add allowed directories
+    additionalArgs.push(...allowedDirs);
+
+    // Use the cross-platform npx configuration
+    const { command, args } = this.generateNpxConfig('@modelcontextprotocol/server-filesystem', additionalArgs);
 
     return {
-      command: 'npx',
-      args: ['--yes', '@modelcontextprotocol/server-filesystem', ...args],
+      command,
+      args,
       env: {
         MCP_FILESYSTEM_MAX_FILE_SIZE: userConfig.maxFileSize ? 
-          String(userConfig.maxFileSize * 1024 * 1024) : '10485760' // 10MB default
+          String(userConfig.maxFileSize * 1024 * 1024) : '10485760', // 10MB default
+        // Ensure PATH is inherited properly on Windows
+        ...(process.platform === 'win32' && { PATH: process.env.PATH })
       }
     };
   }

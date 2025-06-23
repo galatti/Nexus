@@ -67,14 +67,19 @@ export class WebSearchTemplate extends McpServerTemplate {
     args: string[];
     env?: Record<string, string>;
   } {
+    // Use the cross-platform npx configuration
+    const { command, args } = this.generateNpxConfig('@modelcontextprotocol/server-brave-search');
+
     return {
-      command: 'npx',
-      args: ['--yes', '@modelcontextprotocol/server-brave-search'],
+      command,
+      args,
       env: {
         BRAVE_API_KEY: userConfig.apiKey,
         BRAVE_MAX_RESULTS: userConfig.maxResults ? String(userConfig.maxResults) : '10',
         BRAVE_SAFE_SEARCH: userConfig.safeSearch || 'moderate',
-        BRAVE_COUNTRY: userConfig.country || 'US'
+        BRAVE_COUNTRY: userConfig.country || 'US',
+        // Ensure PATH is inherited properly on Windows
+        ...(process.platform === 'win32' && { PATH: process.env.PATH })
       }
     };
   }

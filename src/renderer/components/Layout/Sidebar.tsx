@@ -3,7 +3,7 @@ import { McpServerConfig } from '../../../shared/types';
 
 interface SidebarProps {
   isOpen: boolean;
-  onToggle: () => void;
+  onToggle?: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {

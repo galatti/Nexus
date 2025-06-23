@@ -80,16 +80,30 @@ export class ConnectionManager extends EventEmitter {
         Object.assign(env, config.env);
       }
       
-      // Force UTF-8 encoding for child process
-      env.LANG = 'en_US.UTF-8';
-      env.LC_ALL = 'en_US.UTF-8';
+      // Set appropriate encoding based on platform
+      if (process.platform === 'win32') {
+        // On Windows, ensure proper console encoding
+        env.CHCP = '65001'; // UTF-8 code page
+      } else {
+        // Force UTF-8 encoding for Unix systems
+        env.LANG = 'en_US.UTF-8';
+        env.LC_ALL = 'en_US.UTF-8';
+      }
       
-      const transport = new StdioClientTransport({
+      // Configure transport options based on platform
+      const transportOptions: any = {
         command: config.command,
         args: config.args,
         env,
         encoding: 'utf8' // Explicitly set encoding
-      });
+      };
+      
+      // On Windows, we need to use shell mode when using cmd.exe
+      if (process.platform === 'win32' && config.command === 'cmd.exe') {
+        transportOptions.shell = true;
+      }
+      
+      const transport = new StdioClientTransport(transportOptions);
 
       const client = new Client({
         name: 'nexus-mvp',
@@ -197,7 +211,7 @@ export class ConnectionManager extends EventEmitter {
     }
 
     // Import permission manager
-    const { permissionManager } = await import('../permissions/PermissionManager');
+    const { permissionManager } = await import('../permissions/PermissionManager.js');
     
     // Request permission before execution
     const hasPermission = await permissionManager.requestPermission(connection.config, tool, args);

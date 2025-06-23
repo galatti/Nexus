@@ -5,12 +5,13 @@ import { McpServerTemplates } from '../MCP/McpServerTemplates';
 interface SettingsProps {
   isOpen: boolean;
   onClose: () => void;
+  initialTab?: string;
 }
 
 type SettingsTab = 'general' | 'llm' | 'mcp' | 'mcp-templates';
 
-export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
-  const [activeTab, setActiveTab] = useState<SettingsTab>('general');
+export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab = 'general' }) => {
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab as SettingsTab);
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -23,6 +24,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose }) => {
       loadSettings();
     }
   }, [isOpen]);
+
+  // Update active tab when initialTab changes
+  useEffect(() => {
+    if (isOpen && initialTab) {
+      setActiveTab(initialTab as SettingsTab);
+    }
+  }, [isOpen, initialTab]);
 
   const loadSettings = async () => {
     setIsLoading(true);

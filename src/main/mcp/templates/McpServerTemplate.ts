@@ -44,6 +44,31 @@ export abstract class McpServerTemplate {
     return { ...this.info };
   }
 
+  /**
+   * Generate cross-platform npx command configuration
+   * This handles the Windows vs Unix differences in executing npx commands
+   */
+  protected generateNpxConfig(npmPackage: string, additionalArgs: string[] = []): {
+    command: string;
+    args: string[];
+  } {
+    const packageArgs = ['--yes', npmPackage, ...additionalArgs];
+    
+    if (process.platform === 'win32') {
+      // On Windows, use cmd.exe with /c to properly handle npx.ps1
+      return {
+        command: 'cmd.exe',
+        args: ['/c', 'npx', ...packageArgs]
+      };
+    } else {
+      // On Unix systems, use npx directly
+      return {
+        command: 'npx',
+        args: packageArgs
+      };
+    }
+  }
+
   abstract generateConfig(userConfig: Record<string, any>): {
     command: string;
     args: string[];
@@ -62,9 +87,16 @@ export abstract class McpServerTemplate {
       const { spawn } = await import('child_process');
       
       return new Promise((resolve) => {
-        const child = spawn('npm', ['list', '--depth=0', this.info.npmPackage!], {
+        // Use cross-platform approach for npm commands
+        const command = process.platform === 'win32' ? 'cmd.exe' : 'npm';
+        const args = process.platform === 'win32' 
+          ? ['/c', 'npm', 'list', '--depth=0', this.info.npmPackage!]
+          : ['list', '--depth=0', this.info.npmPackage!];
+        
+        const child = spawn(command, args, {
           stdio: 'pipe',
-          shell: true
+          shell: process.platform !== 'win32',
+          env: { ...process.env, ...(process.platform === 'win32' && { PATH: process.env.PATH }) }
         });
         
         let output = '';
@@ -98,9 +130,16 @@ export abstract class McpServerTemplate {
           ? `${this.info.npmPackage}@${this.info.version}`
           : this.info.npmPackage!;
         
-        const child = spawn('npm', ['install', '-g', packageSpec], {
+        // Use cross-platform approach for npm commands
+        const command = process.platform === 'win32' ? 'cmd.exe' : 'npm';
+        const args = process.platform === 'win32'
+          ? ['/c', 'npm', 'install', '-g', packageSpec]
+          : ['install', '-g', packageSpec];
+        
+        const child = spawn(command, args, {
           stdio: 'pipe',
-          shell: true
+          shell: process.platform !== 'win32',
+          env: { ...process.env, ...(process.platform === 'win32' && { PATH: process.env.PATH }) }
         });
         
         let errorOutput = '';
@@ -157,9 +196,16 @@ export abstract class McpServerTemplate {
       const { spawn } = await import('child_process');
       
       return new Promise((resolve) => {
-        const child = spawn('npm', ['uninstall', '-g', this.info.npmPackage!], {
+        // Use cross-platform approach for npm commands
+        const command = process.platform === 'win32' ? 'cmd.exe' : 'npm';
+        const args = process.platform === 'win32'
+          ? ['/c', 'npm', 'uninstall', '-g', this.info.npmPackage!]
+          : ['uninstall', '-g', this.info.npmPackage!];
+        
+        const child = spawn(command, args, {
           stdio: 'pipe',
-          shell: true
+          shell: process.platform !== 'win32',
+          env: { ...process.env, ...(process.platform === 'win32' && { PATH: process.env.PATH }) }
         });
         
         let errorOutput = '';

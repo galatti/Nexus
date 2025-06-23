@@ -373,7 +373,19 @@ ipcMain.handle('mcp:testConnection', async (_event, serverId) => {
 ipcMain.handle('permissions:getPending', () => {
   try {
     const pending = permissionManager.getPendingApprovals();
-    return { success: true, pending };
+    // Create serializable versions (remove functions and timeout objects)
+    const serializablePending = pending.map(approval => ({
+      id: approval.id,
+      serverId: approval.serverId,
+      serverName: approval.serverName,
+      toolName: approval.toolName,
+      toolDescription: approval.toolDescription,
+      args: approval.args,
+      riskLevel: approval.riskLevel,
+      riskReasons: approval.riskReasons,
+      requestedAt: approval.requestedAt
+    }));
+    return { success: true, pending: serializablePending };
   } catch (error) {
     console.error('Failed to get pending approvals:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -417,10 +429,13 @@ ${availableTools.map((tool: any) =>
 When the user asks you to perform an action that matches one of these tools, you should:
 1. First respond with what you're going to do
 2. Then call the tool using this format: <tool_call>{"tool": "tool_name", "serverId": "server_id", "args": {...}}</tool_call>
-3. The tool result will be automatically included in your response
+3. After the tool call, continue your response as if the tool result will be inserted
+4. The tool result will be automatically included, so you should provide context and explanation
 
-For example, if user says "start a timer", respond with:
-"I'll start a timer for you. <tool_call>{"tool": "start_timer", "serverId": "timer-server-id", "args": {"sessionType": "work"}}</tool_call>"`,
+For example, if user says "list files", respond with:
+"I'll check the available directories and then list the files for you. <tool_call>{"tool": "list_allowed_directories", "serverId": "filesystem-1750707971824", "args": {}}</tool_call>
+
+Based on the available directories above, I can help you navigate and list files in your accessible locations."`,
         timestamp: new Date()
       } as any;
       
@@ -505,6 +520,13 @@ For example, if user says "start a timer", respond with:
         }
       }
       
+      // If the response ends shortly after tool results, add a helpful conclusion
+      const trimmedContent = updatedContent.trim();
+      if (trimmedContent.split('\n\n').length <= 2) {
+        // Response is too short, add a helpful conclusion
+        updatedContent += '\n\nI\'ve retrieved the information above. Let me know if you need help with anything specific!';
+      }
+      
       finalResponse = {
         ...response,
         content: updatedContent
@@ -550,6 +572,24 @@ llmManager.on('currentProviderChanged', (data) => {
 
 llmManager.on('messageError', (data) => {
   mainWindow?.webContents.send('llm:messageError', data);
+});
+
+// Permission event forwarding
+permissionManager.on('permissionRequest', (pendingApproval) => {
+  console.log('Forwarding permission request:', pendingApproval.toolName, 'mainWindow exists:', !!mainWindow);
+  // Create serializable version for IPC
+  const serializableApproval = {
+    id: pendingApproval.id,
+    serverId: pendingApproval.serverId,
+    serverName: pendingApproval.serverName,
+    toolName: pendingApproval.toolName,
+    toolDescription: pendingApproval.toolDescription,
+    args: pendingApproval.args,
+    riskLevel: pendingApproval.riskLevel,
+    riskReasons: pendingApproval.riskReasons,
+    requestedAt: pendingApproval.requestedAt
+  };
+  mainWindow?.webContents.send('permissions:requestPermission', serializableApproval);
 });
 
 // Cleanup handlers
