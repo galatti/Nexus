@@ -22,7 +22,7 @@
     "dev": "node scripts/start-dev.js",
     "build": "npm run build:renderer && npm run build:main",
     "build:renderer": "vite build",
-    "build:main": "npm run clean && tsc -p tsconfig.main.json && powershell \"mv dist/preload/preload.js dist/preload/preload.mjs\"",
+    "build:main": "npm run clean && tsc -p tsconfig.main.json && node scripts/rename-preload.js",
 
     "dist": "electron-builder",
     "dist:dir": "electron-builder --dir",

@@ -10,7 +10,6 @@
 import { spawn, execSync } from 'child_process';
 import net from 'net';
 import path from 'path';
-import sudo from '@expo/sudo-prompt';
 import { fileURLToPath } from 'url';
 
 import { freePort } from './kill-port.js';
@@ -18,26 +17,6 @@ import { freePort } from './kill-port.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function waitUntilPortIsFree(port, attempts = 20, delayMs = 250) {
-  for (let i = 0; i < attempts; i++) {
-    const inUse = await isPortInUse(port);
-    if (!inUse) return true;
-    await new Promise((res) => setTimeout(res, delayMs));
-  }
-  return false;
-}
-
-function isPortInUse(port) {
-  return new Promise((resolve) => {
-    const socket = net.createConnection({ port }, () => {
-      socket.destroy();
-      resolve(true);
-    });
-    socket.on('error', () => {
-      resolve(false);
-    });
-  });
-}
 
 function waitUntilReachable(port, retries = 40, delay = 250) {
   return new Promise((resolve, reject) => {
@@ -59,40 +38,13 @@ function waitUntilReachable(port, retries = 40, delay = 250) {
   });
 }
 
-function killWithElevation(port) {
-  return new Promise((resolve, reject) => {
-    const cmd = `node \"${path.join(__dirname, 'kill-port.js')}\" ${port}`;
-    sudo.exec(cmd, { name: 'Nexus Dev' }, (error) => {
-      if (error) return reject(error);
-      resolve();
-    });
-  });
-}
 
 (async () => {
   const preferredPort = 5173;
 
   console.log(`🛑 Attempting to free port ${preferredPort}...`);
-  try {
-    freePort(preferredPort);
-  } catch {}
-
-  const freed = await waitUntilPortIsFree(preferredPort);
-  if (!freed) {
-    console.log('⚠️  Port still busy – requesting administrator privileges to free it...');
-    try {
-      await killWithElevation(preferredPort);
-      const freedElevated = await waitUntilPortIsFree(preferredPort);
-      if (!freedElevated) {
-        console.error(`❌ Even with elevation, port ${preferredPort} remains in use.`);
-        process.exit(1);
-      }
-      console.log('✅ Port freed with elevated privileges.');
-    } catch (e) {
-      console.error('❌ Failed to obtain privileges or free the port:', e.message || e);
-      process.exit(1);
-    }
-  }
+  await freePort(preferredPort);
+  console.log(`✅ Port ${preferredPort} freed successfully`);
 
   const port = preferredPort;
   const env = { ...process.env, NODE_ENV: 'development', DEV_SERVER_PORT: String(port) };
@@ -100,9 +52,16 @@ function killWithElevation(port) {
   // Ensure main process is compiled
   console.log('🔧 Compiling main process...');
   execSync('npm run build:main', { stdio: 'inherit', shell: true });
+  
+  // Free port again after build in case build process interfered
+  console.log(`🛑 Re-freeing port ${port} after build...`);
+  await freePort(port);
+  
+  // Give the system a moment to fully release the port
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   console.log(`🚀 Starting Vite dev server on http://localhost:${port}`);
-  const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort', 'true'], {
+  const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort'], {
     cwd: path.resolve(__dirname, '..'),
     shell: true,
     stdio: 'inherit',
@@ -126,4 +85,4 @@ function killWithElevation(port) {
 
   process.on('SIGINT', cleanExit);
   process.on('SIGTERM', cleanExit);
-})(); 
+})();

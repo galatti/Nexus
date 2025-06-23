@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const isMainModule = process.argv[1] === __filename;
 
-function freePort(rawPort) {
+async function freePort(rawPort) {
   const port = String(rawPort || process.env.DEV_PORT || 5173);
 
   try {
@@ -43,9 +43,6 @@ function freePort(rawPort) {
           // Ignore errors if the process disappears between listing and kill attempt
         }
       });
-
-      // Wait until the port is fully released (handles TIME_WAIT state)
-      waitUntilPortIsFree(port);
     } else {
       // macOS / Linux – use lsof if available; fallback to fuser otherwise
       try {
@@ -63,29 +60,38 @@ function freePort(rawPort) {
           // Port may already be free or tools missing – ignore
         }
       }
-
-      waitUntilPortIsFree(port);
     }
+
+    // Wait until the port is fully released
+    await waitUntilPortIsFree(port);
   } catch {
     // Port likely already free – no action needed
   }
 }
 
-function waitUntilPortIsFree(port, attempts = 20, delayMs = 250) {
-  const sleep = (ms) => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
-
+async function waitUntilPortIsFree(port, attempts = 20, delayMs = 250) {
   for (let i = 0; i < attempts; i++) {
-    try {
-      // Try to create a server on the same port. If it succeeds, the port is free.
+    const isFree = await new Promise((resolve) => {
       const server = net.createServer();
       server.unref();
-      server.listen({ port: Number(port), host: '127.0.0.1' });
-      server.close();
+      
+      server.listen({ port: Number(port), host: '127.0.0.1' }, () => {
+        server.close(() => {
+          resolve(true); // Port is free
+        });
+      });
+      
+      server.on('error', () => {
+        resolve(false); // Port is in use
+      });
+    });
+    
+    if (isFree) {
       return; // Port is free
-    } catch {
-      // Still in use – wait and retry
-      sleep(delayMs);
     }
+    
+    // Still in use – wait and retry
+    await new Promise(resolve => setTimeout(resolve, delayMs));
   }
   console.warn(`⚠️  Port ${port} still appears busy after ${attempts * delayMs}ms, continuing anyway.`);
 }
