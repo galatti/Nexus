@@ -477,6 +477,57 @@ ipcMain.handle('mcp:testConnection', async (_event, serverId) => {
   }
 });
 
+ipcMain.handle('mcp:getServerCapabilities', async (_event, serverId) => {
+  try {
+    const connection = connectionManager.getConnectionStatus(serverId);
+    if (!connection || connection.status !== 'connected') {
+      return { success: false, error: 'Server not connected' };
+    }
+
+    const tools = connectionManager.getAvailableTools(serverId);
+    
+    // TODO: Add resources and prompts when implemented
+    const capabilities = {
+      tools: tools.length,
+      resources: 0, // Placeholder until resources are implemented
+      prompts: 0,   // Placeholder until prompts are implemented
+      toolsList: tools
+    };
+    
+    return { success: true, capabilities };
+  } catch (error) {
+    console.error('Failed to get server capabilities:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:getAllCapabilities', async (_event) => {
+  try {
+    const allTools = connectionManager.getAllAvailableTools();
+    
+    // Group tools by server
+    const toolsByServer: Record<string, any[]> = {};
+    allTools.forEach(tool => {
+      if (!toolsByServer[tool.serverId]) {
+        toolsByServer[tool.serverId] = [];
+      }
+      toolsByServer[tool.serverId].push(tool);
+    });
+    
+    const totalCapabilities = {
+      tools: allTools.length,
+      resources: 0, // Placeholder until resources are implemented
+      prompts: 0,   // Placeholder until prompts are implemented
+      toolsByServer
+    };
+    
+    return { success: true, capabilities: totalCapabilities };
+  } catch (error) {
+    console.error('Failed to get all capabilities:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 // Permission handlers
 ipcMain.handle('permissions:getPending', () => {
   try {

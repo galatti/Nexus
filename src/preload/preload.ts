@@ -35,6 +35,10 @@ const electronAPI = {
     ipcRenderer.invoke('mcp:getServers'),
   testMcpConnection: (serverId: string) => 
     ipcRenderer.invoke('mcp:testConnection', serverId),
+  getServerCapabilities: (serverId: string) =>
+    ipcRenderer.invoke('mcp:getServerCapabilities', serverId),
+  getAllCapabilities: () =>
+    ipcRenderer.invoke('mcp:getAllCapabilities'),
   
   // Permission operations
   getPendingApprovals: () => ipcRenderer.invoke('permissions:getPending'),

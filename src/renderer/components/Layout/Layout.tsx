@@ -11,7 +11,7 @@ type ActiveView = 'dashboard' | 'chat';
 export const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [activeView, setActiveView] = useState<ActiveView>('dashboard');
+  const [activeView, setActiveView] = useState<ActiveView>('chat');
   const [settingsTab, setSettingsTab] = useState<string>('general');
   const [permissionModalOpen, setPermissionModalOpen] = useState(false);
 

@@ -4,11 +4,12 @@ import { McpServerConfig } from '../../../shared/types';
 export const Dashboard: React.FC = () => {
   const [servers, setServers] = useState<McpServerConfig[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [connectedTools, setConnectedTools] = useState<Record<string, any[]>>({});
+  const [serverCapabilities, setServerCapabilities] = useState<Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }>>({});
+  const [totalCapabilities, setTotalCapabilities] = useState({ tools: 0, resources: 0, prompts: 0 });
 
   useEffect(() => {
     loadServers();
-    loadConnectedTools();
+    loadCapabilities();
   }, []);
 
   // Listen for server status changes
@@ -18,9 +19,9 @@ export const Dashboard: React.FC = () => {
         server.id === serverId ? { ...server, status: status as any } : server
       ));
       
-      // Reload tools when server connects
+      // Reload capabilities when server connects
       if (status === 'connected') {
-        loadConnectedTools();
+        loadCapabilities();
       }
     });
 
@@ -41,49 +42,37 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const loadConnectedTools = async () => {
+  const loadCapabilities = async () => {
     try {
-      // Get tools for each connected server
-      const toolsData: Record<string, any[]> = {};
+      // Get overall capabilities
+      const allCapabilitiesResult = await (window as any).electronAPI.getAllCapabilities();
+      if (allCapabilitiesResult.success) {
+        setTotalCapabilities(allCapabilitiesResult.capabilities);
+      }
+
+      // Get capabilities for each connected server
+      const capabilitiesData: Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }> = {};
       
       for (const server of servers.filter(s => s.status === 'connected')) {
         try {
-          // This would need to be implemented in the backend
-          // For now, we'll use mock data based on server type
-          const tools = getToolsForServer(server);
-          toolsData[server.id] = tools;
+          const result = await (window as any).electronAPI.getServerCapabilities(server.id);
+          if (result.success) {
+            capabilitiesData[server.id] = result.capabilities;
+          }
         } catch (error) {
-          console.error(`Failed to load tools for server ${server.id}:`, error);
+          console.error(`Failed to load capabilities for server ${server.id}:`, error);
         }
       }
       
-      setConnectedTools(toolsData);
+      setServerCapabilities(capabilitiesData);
     } catch (error) {
-      console.error('Failed to load connected tools:', error);
+      console.error('Failed to load capabilities:', error);
     }
   };
 
-  // Mock tool data based on server type - this would come from the backend in real implementation
-  const getToolsForServer = (server: McpServerConfig) => {
-    if (server.name.includes('Filesystem')) {
-      return [
-        { name: 'read_file', description: 'Read file contents' },
-        { name: 'write_file', description: 'Write file contents' },
-        { name: 'list_directory', description: 'List directory contents' },
-        { name: 'search_files', description: 'Search for files' }
-      ];
-    } else if (server.name.includes('Web Search')) {
-      return [
-        { name: 'search_web', description: 'Search the web' },
-        { name: 'get_page_content', description: 'Get webpage content' }
-      ];
-    } else if (server.name.includes('Weather')) {
-      return [
-        { name: 'get_weather', description: 'Get current weather' },
-        { name: 'get_forecast', description: 'Get weather forecast' }
-      ];
-    }
-    return [];
+  // Get capabilities for a specific server
+  const getServerCapabilities = (serverId: string) => {
+    return serverCapabilities[serverId] || { tools: 0, resources: 0, prompts: 0, toolsList: [] };
   };
 
   const getStatusColor = (status?: string) => {
@@ -144,7 +133,7 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
               <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
@@ -182,9 +171,41 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {Object.values(connectedTools).flat().length}
+                  {totalCapabilities.tools}
                 </p>
                 <p className="text-gray-600 dark:text-gray-400">Available Tools</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900">
+                <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {totalCapabilities.resources}
+                </p>
+                <p className="text-gray-600 dark:text-gray-400">Resources</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center">
+              <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900">
+                <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+              </div>
+              <div className="ml-4">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {totalCapabilities.prompts}
+                </p>
+                <p className="text-gray-600 dark:text-gray-400">Prompts</p>
               </div>
             </div>
           </div>
@@ -260,27 +281,52 @@ export const Dashboard: React.FC = () => {
                       </p>
                     )}
 
-                    {/* Tools */}
-                    {server.status === 'connected' && connectedTools[server.id] && (
+                    {/* MCP Capabilities */}
+                    {server.status === 'connected' && (
                       <div className="mb-4">
-                        <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                          Available Tools ({connectedTools[server.id].length})
-                        </h4>
-                        <div className="space-y-1">
-                          {connectedTools[server.id].slice(0, 3).map((tool, index) => (
-                            <div key={index} className="text-xs text-gray-600 dark:text-gray-400">
-                              <span className="font-medium">{tool.name}</span>
-                              {tool.description && (
-                                <span className="ml-2">- {tool.description}</span>
+                        <div className="grid grid-cols-3 gap-4 text-center">
+                          <div>
+                            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                              {getServerCapabilities(server.id).tools}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Tools</p>
+                          </div>
+                          <div>
+                            <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                              {getServerCapabilities(server.id).resources}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Resources</p>
+                          </div>
+                          <div>
+                            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                              {getServerCapabilities(server.id).prompts}
+                            </p>
+                            <p className="text-xs text-gray-600 dark:text-gray-400">Prompts</p>
+                          </div>
+                        </div>
+                        
+                        {getServerCapabilities(server.id).toolsList.length > 0 && (
+                          <div className="mt-3">
+                            <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                              Available Tools
+                            </h4>
+                            <div className="space-y-1">
+                              {getServerCapabilities(server.id).toolsList.slice(0, 3).map((tool: any, index: number) => (
+                                <div key={index} className="text-xs text-gray-600 dark:text-gray-400">
+                                  <span className="font-medium">{tool.name}</span>
+                                  {tool.description && (
+                                    <span className="ml-2">- {tool.description}</span>
+                                  )}
+                                </div>
+                              ))}
+                              {getServerCapabilities(server.id).toolsList.length > 3 && (
+                                <div className="text-xs text-gray-500 dark:text-gray-500">
+                                  +{getServerCapabilities(server.id).toolsList.length - 3} more tools
+                                </div>
                               )}
                             </div>
-                          ))}
-                          {connectedTools[server.id].length > 3 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-500">
-                              +{connectedTools[server.id].length - 3} more tools
-                            </div>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
