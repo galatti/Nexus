@@ -8,6 +8,34 @@ import { isDev } from '../shared/utils.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+// Detect if running in WSL
+const isWSL = process.platform === 'linux' && (
+  process.env.WSL_DISTRO_NAME || 
+  process.env.WSLENV ||
+  require('fs').existsSync('/proc/version') && 
+  require('fs').readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft')
+);
+
+// Apply WSL-specific fixes only when running in WSL
+if (isWSL) {
+  console.log('🐧 WSL detected - applying compatibility fixes');
+  
+  // Force software rendering for WSL compatibility
+  app.disableHardwareAcceleration();
+  
+  // Add WSL-specific command line switches
+  app.commandLine.appendSwitch('--no-sandbox');
+  app.commandLine.appendSwitch('--disable-setuid-sandbox');
+  app.commandLine.appendSwitch('--disable-dev-shm-usage');
+  app.commandLine.appendSwitch('--disable-accelerated-2d-canvas');
+  app.commandLine.appendSwitch('--disable-gpu');
+  app.commandLine.appendSwitch('--disable-gpu-compositing');
+  app.commandLine.appendSwitch('--disable-shared-memory');
+  app.commandLine.appendSwitch('--in-process-gpu');
+} else if (process.platform === 'linux') {
+  console.log('🐧 Native Linux detected - using hardware acceleration');
+}
+
 // Keep a global reference of the window object
 let mainWindow: BrowserWindow | null = null;
 
@@ -25,26 +53,51 @@ const createWindow = (): void => {
       contextIsolation: true,
       // Preload script path
       preload: join(__dirname, '../preload/preload.mjs'),
-      // Enable web security
-      webSecurity: true,
+      // Disable web security in dev for debugging
+      webSecurity: !isDev,
       // Enable ES modules support in sandbox
       sandbox: false,
       // Enable ES modules in preload
-      additionalArguments: ['--enable-experimental-web-platform-features'],
+      additionalArguments: [
+        '--enable-experimental-web-platform-features',
+        // WSL-specific flags to help with rendering
+        '--disable-gpu-sandbox',
+        '--disable-software-rasterizer',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding'
+      ],
+      // Enable DevTools in development
+      devTools: isDev,
     },
     // Window configuration
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
-    autoHideMenuBar: true, // Hide menu bar (can still access with Alt key)
-    show: false, // Don't show until ready
+    autoHideMenuBar: !isDev, // Show menu bar in dev for debugging
+    show: true, // Show immediately for debugging
   });
 
   // Load the app
   if (isDev) {
     // Development - load from vite dev server
     const devPort = process.env.DEV_SERVER_PORT || '5173';
-    mainWindow.loadURL(`http://localhost:${devPort}`);
-    // Open DevTools in development (commented out for cleaner startup)
-    // mainWindow.webContents.openDevTools();
+    const url = `http://localhost:${devPort}`;
+    console.log(`🌐 Loading URL: ${url}`);
+    console.log(`🔧 isDev: ${isDev}, NODE_ENV: ${process.env.NODE_ENV}`);
+    
+    mainWindow.loadURL(url);
+    
+    // Add error handling for load failures
+    mainWindow.webContents.on('did-fail-load', (event, errorCode, errorDescription, validatedURL) => {
+      console.error(`❌ Failed to load: ${validatedURL}`);
+      console.error(`❌ Error: ${errorCode} - ${errorDescription}`);
+    });
+    
+    mainWindow.webContents.on('did-finish-load', () => {
+      console.log('✅ Page loaded successfully');
+    });
+    
+    // Open DevTools in development to debug loading issues
+    mainWindow.webContents.openDevTools();
   } else {
     // Production - load from built files
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));
