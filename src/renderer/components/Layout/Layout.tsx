@@ -73,7 +73,7 @@ export const Layout: React.FC = () => {
           {activeView === 'dashboard' ? (
             <Dashboard />
           ) : (
-            <ChatWindow />
+            <ChatWindow isActive={activeView === 'chat'} />
           )}
         </main>
       </div>

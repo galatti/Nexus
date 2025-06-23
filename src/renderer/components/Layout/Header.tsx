@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
-import { LlmModel, LlmStatusResponse } from '../../../shared/types';
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -11,60 +10,6 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ onMenuToggle, onSettingsOpen, activeView = 'dashboard', onViewChange }) => {
   const { theme, setTheme } = useTheme();
-  const [currentModel, setCurrentModel] = useState<LlmModel | null>(null);
-  const [llmStatus, setLlmStatus] = useState<LlmStatusResponse | null>(null);
-
-  // Load LLM status and model information
-  useEffect(() => {
-    const loadLlmInfo = async () => {
-      try {
-        const statusResult = await window.electronAPI.getLlmStatus();
-        if (statusResult.success && statusResult.data) {
-          setLlmStatus(statusResult.data);
-          
-          // Get the configured model information
-          if (statusResult.data.currentModel) {
-            // Try to get detailed model info from available models
-            const modelsResult = await window.electronAPI.getAvailableModels();
-            if (modelsResult.success && modelsResult.data && modelsResult.data.length > 0) {
-              // Find the currently configured model in the available models
-              const modelInfo = modelsResult.data.find((m: LlmModel) => m.name === statusResult.data!.currentModel);
-              if (modelInfo) {
-                setCurrentModel(modelInfo);
-              } else {
-                // Fallback: create a basic model object with just the name
-                setCurrentModel({
-                  name: statusResult.data.currentModel,
-                  description: `${statusResult.data.currentProviderType} model`
-                });
-              }
-            } else {
-              // Fallback: create a basic model object with just the name
-              setCurrentModel({
-                name: statusResult.data.currentModel,
-                description: `${statusResult.data.currentProviderType} model`
-              });
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Failed to load LLM info:', error);
-      }
-    };
-
-    loadLlmInfo();
-
-    // Listen for LLM provider changes
-    const handleProviderChange = () => {
-      loadLlmInfo();
-    };
-
-    // Add event listener if available
-    if (window.electronAPI.onSettingsChange) {
-      const cleanup = window.electronAPI.onSettingsChange(handleProviderChange);
-      return cleanup;
-    }
-  }, []);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : theme === 'dark' ? 'system' : 'light';
@@ -123,44 +68,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, onSettingsOpen, ac
           )}
         </div>
         
-        {/* LLM Status - only show in chat view */}
-        {activeView === 'chat' && (
-          <div className="ml-4">
-            {llmStatus && llmStatus.currentProvider && (
-              <div className="flex items-center space-x-2 mt-0.5">
-                <div className="flex items-center space-x-1">
-                  <div className={`w-1.5 h-1.5 rounded-full ${llmStatus.isHealthy ? 'bg-green-500' : 'bg-red-500'}`} />
-                  <span className="text-xs text-gray-600 dark:text-gray-400">
-                    {/* Auto-detect provider based on model name */}
-                    {(llmStatus.currentModel && (
-                      llmStatus.currentModel.includes('deepseek') || 
-                      llmStatus.currentModel.includes('/') ||
-                      llmStatus.currentModel.includes('gpt-') ||
-                      llmStatus.currentModel.includes('claude-') ||
-                      llmStatus.currentModel.includes('llama-')
-                    )) ? 'OpenRouter' :
-                     llmStatus.currentProviderType === 'openrouter' ? 'OpenRouter' : 
-                     llmStatus.currentProviderType === 'ollama' ? 'Ollama' : 
-                     llmStatus.currentProviderName || llmStatus.currentProvider?.replace(/-/g, ' ')}
-                  </span>
-                </div>
-                {currentModel && (
-                  <div className="flex items-center space-x-1">
-                    <span className="text-gray-400 text-xs">•</span>
-                    <span className="text-xs text-gray-600 dark:text-gray-400">
-                      {currentModel.name}
-                    </span>
-                    {currentModel.size && (
-                      <span className="text-xs text-gray-500 dark:text-gray-500">
-                        ({currentModel.size})
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        )}
+
       </div>
 
       <div className="flex items-center space-x-2">

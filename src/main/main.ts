@@ -161,6 +161,114 @@ import { llmManager } from './llm/LlmManager.js';
 import { templateManager } from './mcp/templates/TemplateManager.js';
 import { permissionManager } from './permissions/PermissionManager.js';
 
+// Smart formatting functions
+function formatToolResult(toolName: string, resultText: string): string {
+  // Detect data types and format accordingly
+  if (resultText.startsWith('Error:')) {
+    return `❌ **Error**: ${resultText.replace('Error:', '').trim()}`;
+  }
+  
+  // Format directory listings
+  if (toolName.includes('list') || toolName.includes('directory')) {
+    if (resultText.includes('Allowed directories:')) {
+      return `📂 **Accessible Directories:**\n\`\`\`\n${resultText.replace('Allowed directories:\n', '')}\n\`\`\``;
+    }
+    
+    // Format file/directory listings
+    const lines = resultText.split('\n').filter(line => line.trim());
+    if (lines.length > 1) {
+      let formatted = '📁 **Directory Contents:**\n';
+      lines.forEach(line => {
+        if (line.includes('[DIR]')) {
+          formatted += `📁 ${line.replace('[DIR]', '').trim()}\n`;
+        } else if (line.includes('[FILE]')) {
+          formatted += `📄 ${line.replace('[FILE]', '').trim()}\n`;
+        } else if (line.trim()) {
+          formatted += `• ${line.trim()}\n`;
+        }
+      });
+      return formatted.trim();
+    }
+  }
+  
+  // Format JSON data
+  if (resultText.trim().startsWith('{') || resultText.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(resultText);
+      return `📊 **Data:**\n\`\`\`json\n${JSON.stringify(parsed, null, 2)}\n\`\`\``;
+    } catch {
+      // Not valid JSON, continue with other formatting
+    }
+  }
+  
+  // Format file content
+  if (toolName.includes('read_file')) {
+    return `📄 **File Content:**\n\`\`\`\n${resultText}\n\`\`\``;
+  }
+  
+  // Format search results
+  if (toolName.includes('search')) {
+    const lines = resultText.split('\n').filter(line => line.trim());
+    if (lines.length > 1) {
+      let formatted = '🔍 **Search Results:**\n';
+      lines.forEach(line => {
+        if (line.trim()) {
+          formatted += `• ${line.trim()}\n`;
+        }
+      });
+      return formatted.trim();
+    }
+  }
+  
+  // Default formatting with appropriate icon
+  const icon = getToolIcon(toolName);
+  return `${icon} **Result:**\n${resultText}`;
+}
+
+function formatAIResponse(content: string): string {
+  // Split content into paragraphs
+  let formatted = content;
+  
+  // Add proper spacing and structure
+  formatted = formatted.replace(/\n{3,}/g, '\n\n'); // Normalize multiple newlines
+  
+  // Format lists better
+  formatted = formatted.replace(/^(\d+\.\s)/gm, '\n$1'); // Add space before numbered lists
+  formatted = formatted.replace(/^(-\s|\*\s|•\s)/gm, '\n$1'); // Add space before bullet lists
+  
+  // Improve code block formatting
+  formatted = formatted.replace(/```(\w+)?\n/g, '\n```$1\n');
+  formatted = formatted.replace(/\n```\n/g, '\n```\n\n');
+  
+  // Add visual separators for long responses
+  const paragraphs = formatted.split('\n\n');
+  if (paragraphs.length > 4) {
+    // Add subtle visual breaks for readability
+    formatted = paragraphs.map((para, index) => {
+      if (index > 0 && index % 3 === 0 && para.length > 100) {
+        return `---\n\n${para}`;
+      }
+      return para;
+    }).join('\n\n');
+  }
+  
+  return formatted.trim();
+}
+
+function getToolIcon(toolName: string): string {
+  if (toolName.includes('read')) return '📖';
+  if (toolName.includes('write') || toolName.includes('create')) return '✏️';
+  if (toolName.includes('list') || toolName.includes('directory')) return '📋';
+  if (toolName.includes('search') || toolName.includes('find')) return '🔍';
+  if (toolName.includes('delete') || toolName.includes('remove')) return '🗑️';
+  if (toolName.includes('move') || toolName.includes('copy')) return '📦';
+  if (toolName.includes('info') || toolName.includes('status')) return 'ℹ️';
+  if (toolName.includes('edit') || toolName.includes('modify')) return '📝';
+  if (toolName.includes('weather')) return '🌤️';
+  if (toolName.includes('web') || toolName.includes('search')) return '🌐';
+  return '🔧'; // Default tool icon
+}
+
 // Initialize services
 async function initializeServices(): Promise<void> {
   try {

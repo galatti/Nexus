@@ -7,9 +7,10 @@ import { ChatMessage, LlmStatusResponse, LlmModel } from '../../../shared/types'
 
 interface ChatWindowProps {
   className?: string;
+  isActive?: boolean;
 }
 
-export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
+export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive = false }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -29,6 +30,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '' }) => {
   useEffect(() => {
     scrollToBottom();
   }, [messages, scrollToBottom]);
+
+  // Auto-scroll when chat view becomes active
+  useEffect(() => {
+    if (isActive && messages.length > 0) {
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100); // Small delay to ensure the view has rendered
+    }
+  }, [isActive, scrollToBottom, messages.length]);
 
   // Focus input on mount
   useEffect(() => {
