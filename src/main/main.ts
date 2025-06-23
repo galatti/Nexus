@@ -96,8 +96,8 @@ const createWindow = (): void => {
       console.log('✅ Page loaded successfully');
     });
     
-    // Open DevTools in development to debug loading issues
-    mainWindow.webContents.openDevTools();
+    // DevTools available via menu or Ctrl+Shift+I, but don't auto-open
+    // mainWindow.webContents.openDevTools();
   } else {
     // Production - load from built files
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'));

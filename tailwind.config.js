@@ -22,8 +22,26 @@ module.exports = {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'Consolas', 'monospace'],
+        sans: [
+          'Inter', 
+          'system-ui', 
+          'sans-serif',
+          // Emoji font support for cross-platform compatibility
+          'Apple Color Emoji',
+          'Segoe UI Emoji', 
+          'Segoe UI Symbol',
+          'Noto Color Emoji'
+        ],
+        mono: [
+          'JetBrains Mono', 
+          'Consolas', 
+          'monospace',
+          // Emoji support for monospace
+          'Apple Color Emoji',
+          'Segoe UI Emoji',
+          'Segoe UI Symbol', 
+          'Noto Color Emoji'
+        ],
       }
     },
   },

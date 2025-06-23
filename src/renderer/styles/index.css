@@ -10,6 +10,8 @@
   body {
     @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
     font-feature-settings: "rlig" 1, "calt" 1;
+    /* Ensure emoji rendering */
+    font-variant-emoji: emoji;
   }
   
   html, body, #root {
@@ -22,6 +24,20 @@
 }
 
 @layer components {
+  /* Emoji support utility class */
+  .emoji-support {
+    font-family: 'Inter', system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Twemoji Mozilla', 'EmojiOne Color', 'Android Emoji';
+    font-variant-emoji: emoji;
+    /* Force emoji rendering */
+    -webkit-font-feature-settings: "liga" off;
+    font-feature-settings: "liga" off;
+  }
+  
+  /* Apply emoji support globally */
+  * {
+    font-family: inherit, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  }
+  
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: rgb(148 163 184) transparent;
