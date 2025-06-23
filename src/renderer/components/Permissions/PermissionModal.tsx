@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface PendingApproval {
   id: string;
@@ -26,6 +26,7 @@ interface PermissionModalProps {
 export const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClose }) => {
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const modalContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -36,6 +37,19 @@ export const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClos
       return () => clearInterval(interval);
     }
   }, [isOpen]);
+
+  // Auto-scroll to bottom when modal opens or pending approvals change
+  useEffect(() => {
+    if (isOpen && pendingApprovals.length > 0 && modalContentRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        modalContentRef.current?.scrollTo({
+          top: modalContentRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [isOpen, pendingApprovals]);
 
   const loadPendingApprovals = async () => {
     try {
@@ -106,7 +120,10 @@ export const PermissionModal: React.FC<PermissionModalProps> = ({ isOpen, onClos
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div 
+        ref={modalContentRef}
+        className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center space-x-3">

@@ -508,7 +508,10 @@ Based on the available directories above, I can help you navigate and list files
             resultText = resultText.replace(corrupted, fixed);
           }
           
-          const cleanResultText = `\n\n${resultText}`;
+          // Smart format the tool result
+          const formattedResultText = formatToolResult(toolCall.tool, resultText);
+          
+          const cleanResultText = `\n\n${formattedResultText}`;
           console.log('LLM: Replacing:', fullMatch, 'with:', cleanResultText);
           updatedContent = updatedContent.replace(fullMatch, cleanResultText);
           
@@ -520,11 +523,34 @@ Based on the available directories above, I can help you navigate and list files
         }
       }
       
-      // If the response ends shortly after tool results, add a helpful conclusion
+      // If the response ends abruptly after tool results, add a helpful conclusion
       const trimmedContent = updatedContent.trim();
-      if (trimmedContent.split('\n\n').length <= 2) {
-        // Response is too short, add a helpful conclusion
-        updatedContent += '\n\nI\'ve retrieved the information above. Let me know if you need help with anything specific!';
+      const lines = trimmedContent.split('\n');
+      const lastLine = lines[lines.length - 1];
+      
+      console.log('LLM: Checking for follow-up. Last line:', lastLine);
+      console.log('LLM: Total lines:', lines.length, 'Content length:', trimmedContent.length);
+      
+      // Check if response ends abruptly
+      const endsAbruptly = (
+        lastLine.includes('Error:') || 
+        lastLine.includes('Allowed directories:') ||
+        lastLine.match(/^[A-Z]:\\/) || // Windows path
+        lastLine.endsWith('check...') || // Common incomplete ending
+        lastLine.endsWith('...') || // Any ellipsis ending
+        lines.length <= 4 || // Increased from 3
+        trimmedContent.length < 150 // Increased threshold
+      );
+      
+      console.log('LLM: Ends abruptly?', endsAbruptly);
+      
+      if (endsAbruptly) {
+        if (lastLine.includes('Error:')) {
+          updatedContent += '\n\nI encountered an error. Let me know if you need help with the correct path or a different approach!';
+        } else {
+          updatedContent += '\n\nLet me know if you need help with anything specific!';
+        }
+        console.log('LLM: Added follow-up text');
       }
       
       finalResponse = {
@@ -532,6 +558,12 @@ Based on the available directories above, I can help you navigate and list files
         content: updatedContent
       };
     }
+    
+    // Apply smart formatting to the entire response
+    finalResponse = {
+      ...finalResponse,
+      content: formatAIResponse(finalResponse.content)
+    };
     
     return { success: true, response: finalResponse };
   } catch (error) {
