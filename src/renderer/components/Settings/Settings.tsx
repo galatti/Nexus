@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AppSettings, LlmProviderConfig } from '../../../shared/types';
-import { McpServerTemplates } from '../MCP/McpServerTemplates';
+import { McpIntegration } from '../MCP/McpIntegration';
 import { ToolPermissionsOverview } from './ToolPermissionsOverview';
 
 interface SettingsProps {
@@ -9,7 +9,7 @@ interface SettingsProps {
   initialTab?: string;
 }
 
-type SettingsTab = 'general' | 'llm' | 'mcp' | 'mcp-templates' | 'permissions';
+type SettingsTab = 'general' | 'llm' | 'mcp' | 'permissions';
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab = 'general' }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab as SettingsTab);
@@ -205,21 +205,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
               >
                 <div className="flex items-center">
                   <span className="mr-2">🔧</span>
-                  MCP Servers
-                </div>
-              </button>
-              
-              <button
-                onClick={() => setActiveTab('mcp-templates')}
-                className={`w-full text-left px-3 py-2 rounded-md mb-2 transition-colors ${
-                  activeTab === 'mcp-templates'
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                }`}
-              >
-                <div className="flex items-center">
-                  <span className="mr-2">📦</span>
-                  Server Templates
+                  MCP Integration
                 </div>
               </button>
               
@@ -439,63 +425,11 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                   </div>
                 )}
 
-                {/* MCP Servers */}
+                {/* MCP Integration */}
                 {activeTab === 'mcp' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">MCP Servers</h3>
-                      <button 
-                        onClick={() => setActiveTab('mcp-templates')}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-                      >
-                        Add Server
-                      </button>
-                    </div>
-                    
-                    {settings.mcp.servers.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                        <div className="text-4xl mb-4">🔧</div>
-                        <p>No MCP servers configured</p>
-                        <p className="text-sm mt-1">Add servers to extend functionality with tools and resources</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {settings.mcp.servers.map((server) => (
-                          <div key={server.id} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <h4 className="font-medium text-gray-900 dark:text-white">{server.name}</h4>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{server.command}</p>
-                                <span className={`inline-block px-2 py-1 text-xs rounded-full mt-2 ${
-                                  server.status === 'connected' 
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                                    : server.status === 'error'
-                                    ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                                }`}>
-                                  {server.status || 'disconnected'}
-                                </span>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <button className="text-blue-600 hover:text-blue-800 text-sm">Edit</button>
-                                <button className="text-red-600 hover:text-red-800 text-sm">Remove</button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* MCP Server Templates */}
-                {activeTab === 'mcp-templates' && (
-                  <McpServerTemplates
-                    onAddServer={(_templateId, _config, _serverName) => {
-                      // Refresh settings after adding server
-                      loadSettings();
-                      setActiveTab('mcp');
-                    }}
+                  <McpIntegration
+                    settings={settings}
+                    onSettingsUpdate={loadSettings}
                   />
                 )}
 
