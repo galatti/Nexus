@@ -108,6 +108,16 @@ export const Dashboard: React.FC = () => {
     }
   };
 
+  const handleToggleEnabled = async (serverId: string, enabled: boolean) => {
+    try {
+      await (window as any).electronAPI.updateMcpServerEnabled(serverId, enabled);
+      // Reload servers to reflect the change
+      loadServers();
+    } catch (error) {
+      console.error('Failed to toggle server enabled status:', error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -349,14 +359,32 @@ export const Dashboard: React.FC = () => {
                         )}
                       </div>
 
-                      {server.status !== 'connected' && server.enabled && (
-                        <button
-                          onClick={() => handleConnect(server.id)}
-                          className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-                        >
-                          Connect
-                        </button>
-                      )}
+                      <div className="flex items-center space-x-2">
+                        {!server.enabled && (
+                          <button
+                            onClick={() => handleToggleEnabled(server.id, true)}
+                            className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
+                          >
+                            Enable
+                          </button>
+                        )}
+                        {server.enabled && server.status !== 'connected' && (
+                          <button
+                            onClick={() => handleConnect(server.id)}
+                            className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
+                          >
+                            Connect
+                          </button>
+                        )}
+                        {server.enabled && server.status === 'connected' && (
+                          <button
+                            onClick={() => handleToggleEnabled(server.id, false)}
+                            className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
+                          >
+                            Disable
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -18,6 +18,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     }
   }, [isOpen]);
 
+  // Also refresh when component mounts to get current status
+  useEffect(() => {
+    loadServers();
+  }, []);
+
   const loadServers = async (isRefresh = false) => {
     try {
       if (isRefresh) {
@@ -42,10 +47,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     }
   };
 
-  // Listen for server status changes with debouncing
+  // Listen for server status changes with debouncing (always listen, not just when open)
   useEffect(() => {
-    if (!isOpen) return;
-
     console.log('Sidebar: Setting up status change listener');
     let debounceTimer: NodeJS.Timeout;
     
@@ -56,11 +59,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
         setServers(prev => {
-          console.log('Sidebar: Current servers:', prev.map(s => s.id));
+          console.log('Sidebar: Current servers before update:', prev.map(s => `${s.id}: ${s.status}`));
           const updated = prev.map(server => 
             server.id === serverId ? { ...server, status: status as any } : server
           );
-          console.log('Sidebar: Updated servers:', updated.map(s => `${s.id}: ${s.status}`));
+          console.log('Sidebar: Updated servers after update:', updated.map(s => `${s.id}: ${s.status}`));
           return updated;
         });
       }, 100); // 100ms debounce
@@ -70,7 +73,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       clearTimeout(debounceTimer);
       cleanup();
     };
-  }, [isOpen]);
+  }, []); // Remove isOpen dependency so it always listens
 
   if (!isOpen) return null;
 

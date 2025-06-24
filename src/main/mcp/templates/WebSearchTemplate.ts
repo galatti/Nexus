@@ -10,7 +10,7 @@ export class WebSearchTemplate extends McpServerTemplate {
       icon: '🔍',
       npmPackage: '@modelcontextprotocol/server-brave-search',
       version: 'latest',
-      defaultEnabled: false,
+      defaultEnabled: true,
       requiresConfig: true,
       configFields: [
         {

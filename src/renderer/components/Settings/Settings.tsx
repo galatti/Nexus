@@ -32,13 +32,51 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
     }
   }, [isOpen, initialTab]);
 
+  // Listen for server status changes
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const cleanup = (window as any).electronAPI.onMcpServerStatusChange?.((serverId: string, status: string) => {
+      setSettings(prev => {
+        if (!prev) return prev;
+        
+        return {
+          ...prev,
+          mcp: {
+            ...prev.mcp,
+            servers: prev.mcp.servers.map(server => 
+              server.id === serverId ? { ...server, status: status as any } : server
+            )
+          }
+        };
+      });
+    });
+
+    return cleanup;
+  }, [isOpen]);
+
   const loadSettings = async () => {
     setIsLoading(true);
     setError(null);
     
     try {
       const currentSettings = await window.electronAPI.getSettings();
-      setSettings(currentSettings);
+      
+      // Get real-time server status
+      const serversResult = await (window as any).electronAPI.getMcpServers();
+      if (serversResult.success) {
+        // Update settings with current server status
+        const updatedSettings = {
+          ...currentSettings,
+          mcp: {
+            ...currentSettings.mcp,
+            servers: serversResult.servers
+          }
+        };
+        setSettings(updatedSettings);
+      } else {
+        setSettings(currentSettings);
+      }
     } catch (error) {
       console.error('Failed to load settings:', error);
       setError('Failed to load settings');

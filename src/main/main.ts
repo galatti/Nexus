@@ -162,6 +162,68 @@ import { templateManager } from './mcp/templates/TemplateManager.js';
 import { permissionManager } from './permissions/PermissionManager.js';
 
 // Smart formatting functions
+// Clean up corrupted Unicode and HTML entities
+function cleanupText(text: string): string {
+  let cleaned = text;
+  
+  // HTML entities - fix these first
+  cleaned = cleaned.replace(/&quot;/g, '"');
+  cleaned = cleaned.replace(/&#x27;/g, "'");
+  cleaned = cleaned.replace(/&lt;strong&gt;/g, '**');
+  cleaned = cleaned.replace(/&lt;\/strong&gt;/g, '**');
+  cleaned = cleaned.replace(/&lt;/g, '<');
+  cleaned = cleaned.replace(/&gt;/g, '>');
+  cleaned = cleaned.replace(/&amp;/g, '&');
+  cleaned = cleaned.replace(/&nbsp;/g, ' ');
+  
+  // Portuguese and special characters - most common issues
+  cleaned = cleaned.replace(/S├úo Paulo/g, 'São Paulo');
+  cleaned = cleaned.replace(/S├úo/g, 'São');
+  cleaned = cleaned.replace(/├úo/g, 'ão');
+  cleaned = cleaned.replace(/├¡/g, 'á');
+  cleaned = cleaned.replace(/├¬/g, 'ì');
+  cleaned = cleaned.replace(/├⌐/g, 'é');
+  cleaned = cleaned.replace(/├¢/g, 'â');
+  cleaned = cleaned.replace(/├┤/g, 'ô');
+  cleaned = cleaned.replace(/├╡/g, 'õ');
+  cleaned = cleaned.replace(/├º/g, 'ú');
+  cleaned = cleaned.replace(/├ç/g, 'ç');
+  
+  // Degree symbols and coordinates
+  cleaned = cleaned.replace(/┬░/g, '°');
+  cleaned = cleaned.replace(/┬┤/g, "'");
+  cleaned = cleaned.replace(/┬│/g, '"');
+  
+  // Corrupted emojis and symbols - replace with proper ones
+  cleaned = cleaned.replace(/≡ƒöì/g, '🔍');
+  cleaned = cleaned.replace(/≡ƒôä/g, '📄');
+  cleaned = cleaned.replace(/≡ƒô¥/g, '📝');
+  cleaned = cleaned.replace(/≡ƒöù/g, '🔗');
+  cleaned = cleaned.replace(/≡ƒìà/g, '🍅');
+  cleaned = cleaned.replace(/ΓÅ░/g, '⏰');
+  cleaned = cleaned.replace(/≡ƒôè/g, '📊');
+  cleaned = cleaned.replace(/≡ƒÄ»/g, '🎯');
+  
+  // Text symbols and punctuation
+  cleaned = cleaned.replace(/ΓÇó/g, '•');
+  cleaned = cleaned.replace(/ΓÇª/g, '...');
+  cleaned = cleaned.replace(/ΓçÉ/g, '⇌');
+  cleaned = cleaned.replace(/ΓçÆ/g, '⇆');
+  cleaned = cleaned.replace(/┬╖/g, '·');
+  
+  // Phonetic symbols (for pronunciation) - simplify
+  cleaned = cleaned.replace(/╔É╠â╦êpin╔És/g, 'Campinas');
+  cleaned = cleaned.replace(/k╔É╠â╦êpin╔És/g, 'Campinas');
+  cleaned = cleaned.replace(/\[k╔É╠â╦êpin╔És\]/g, '[Campinas]');
+  cleaned = cleaned.replace(/╔É/g, 'a');
+  cleaned = cleaned.replace(/╠â/g, '');
+  cleaned = cleaned.replace(/╦ê/g, '');
+  cleaned = cleaned.replace(/pin╔És/g, 'pinas');
+  cleaned = cleaned.replace(/╔ç/g, 'e');
+  
+  return cleaned;
+}
+
 function formatToolResult(toolName: string, resultText: string): string {
   // Detect data types and format accordingly
   if (resultText.startsWith('Error:')) {
@@ -206,18 +268,43 @@ function formatToolResult(toolName: string, resultText: string): string {
     return `📄 **File Content:**\n\`\`\`\n${resultText}\n\`\`\``;
   }
   
-  // Format search results
-  if (toolName.includes('search')) {
-    const lines = resultText.split('\n').filter(line => line.trim());
-    if (lines.length > 1) {
-      let formatted = '🔍 **Search Results:**\n';
-      lines.forEach(line => {
-        if (line.trim()) {
-          formatted += `• ${line.trim()}\n`;
+  // Format search results with better structure
+  if (toolName.includes('search') || toolName.includes('brave_')) {
+    // Clean up the search results with comprehensive Unicode fixing
+    let cleaned = cleanupText(resultText);
+    
+    // Remove HTML tags but preserve content
+    cleaned = cleaned.replace(/<\/?strong>/g, '**');
+    cleaned = cleaned.replace(/<[^>]*>/g, '');
+    
+    // Structure the search results better
+    const entries = cleaned.split('\n\n').filter(entry => entry.trim());
+    let formatted = '🔍 **Search Results:**\n\n';
+    
+    entries.forEach((entry, index) => {
+      if (entry.trim()) {
+        const lines = entry.split('\n').filter(line => line.trim());
+        if (lines.length > 0) {
+          formatted += `**Result ${index + 1}:**\n`;
+          lines.forEach(line => {
+            const trimmed = line.trim();
+            if (trimmed.startsWith('Title:')) {
+              formatted += `📄 **${trimmed}**\n`;
+            } else if (trimmed.startsWith('URL:')) {
+              const url = trimmed.replace('URL:', '').trim();
+              formatted += `🔗 **URL:** [${url}](${url})\n`;
+            } else if (trimmed.startsWith('Description:')) {
+              formatted += `📝 **${trimmed}**\n`;
+            } else if (trimmed) {
+              formatted += `${trimmed}\n`;
+            }
+          });
+          formatted += '\n---\n\n';
         }
-      });
-      return formatted.trim();
-    }
+      }
+    });
+    
+    return formatted.trim();
   }
   
   // Default formatting with appropriate icon
@@ -226,33 +313,118 @@ function formatToolResult(toolName: string, resultText: string): string {
 }
 
 function formatAIResponse(content: string): string {
-  // Split content into paragraphs
-  let formatted = content;
+  // First, clean up corrupted Unicode and HTML entities
+  let formatted = cleanupText(content);
   
-  // Add proper spacing and structure
-  formatted = formatted.replace(/\n{3,}/g, '\n\n'); // Normalize multiple newlines
+  // Then, normalize spacing
+  formatted = formatted.replace(/\n{3,}/g, '\n\n');
   
-  // Format lists better
-  formatted = formatted.replace(/^(\d+\.\s)/gm, '\n$1'); // Add space before numbered lists
-  formatted = formatted.replace(/^(-\s|\*\s|•\s)/gm, '\n$1'); // Add space before bullet lists
+  // Format search results with bullet points and better structure
+  formatted = formatted.replace(/^•\s*(.+)$/gm, (match, content) => {
+    // Extract key information from search results
+    if (content.includes('Title:') && content.includes('URL:')) {
+      return `\n**🔍 Search Result:**\n${content}`;
+    }
+    return `• ${content}`;
+  });
+  
+  // Format coordinate and geographic information - handle multiple formats
+  formatted = formatted.replace(/latitude[:\s]*(-?\d+(?:\.\d+)?)[°\s]*([NS])?/gi, '🌍 **Latitude:** $1°$2');
+  formatted = formatted.replace(/longitude[:\s]*(-?\d+(?:\.\d+)?)[°\s]*([EW])?/gi, '🌍 **Longitude:** $1°$2');
+  
+  // Handle coordinate pairs in descriptions (common format: "coordinates are: -22.907104, -47.063240")
+  formatted = formatted.replace(/coordinates are:\s*(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/gi, 
+    '🌍 **Coordinates:** $1°, $2°');
+  
+  // Handle "Latitude: X Longitude: Y" format
+  formatted = formatted.replace(/Latitude:\s*(-?\d+(?:\.\d+)?)\s*Longitude:\s*(-?\d+(?:\.\d+)?)/gi,
+    '🌍 **Latitude:** $1° 🌍 **Longitude:** $2°');
+    
+  formatted = formatted.replace(/elevation[:\s]*(\d+(?:\.\d+)?)\s*(m|meters?|ft|feet?)?/gi, '⛰️ **Elevation:** $1 $2');
+  
+  // Format URLs better
+  formatted = formatted.replace(/URL:\s*(https?:\/\/[^\s]+)/g, '🔗 **URL:** [$1]($1)');
+  
+  // Format titles with proper emphasis
+  formatted = formatted.replace(/Title:\s*(.+?)(?=\n|$)/g, '📄 **Title:** $1');
+  
+  // Format descriptions with better spacing
+  formatted = formatted.replace(/Description:\s*(.+?)(?=\n•|\n$)/gs, (match, desc) => {
+    // Clean up description formatting
+    const cleanDesc = desc.replace(/<\/?strong>/g, '**').trim();
+    return `📝 **Description:** ${cleanDesc}`;
+  });
+  
+  // Format weather information
+  formatted = formatted.replace(/temperature[:\s]*(-?\d+(?:\.\d+)?)[°\s]*([CF])?/gi, '🌡️ **Temperature:** $1°$2');
+  formatted = formatted.replace(/humidity[:\s]*(\d+(?:\.\d+)?)%?/gi, '💧 **Humidity:** $1%');
+  formatted = formatted.replace(/wind[:\s]*(\d+(?:\.\d+)?)\s*(mph|km\/h|m\/s)?/gi, '💨 **Wind:** $1 $2');
+  
+  // Format location information
+  formatted = formatted.replace(/city[:\s]*([^,\n]+)/gi, '🏙️ **City:** $1');
+  formatted = formatted.replace(/country[:\s]*([^,\n]+)/gi, '🌎 **Country:** $1');
+  formatted = formatted.replace(/state[:\s]*([^,\n]+)/gi, '🗺️ **State:** $1');
+  
+  // Add proper list formatting
+  formatted = formatted.replace(/^(\d+\.\s)/gm, '\n$1');
+  formatted = formatted.replace(/^(-\s|\*\s)/gm, '\n$1');
   
   // Improve code block formatting
   formatted = formatted.replace(/```(\w+)?\n/g, '\n```$1\n');
   formatted = formatted.replace(/\n```\n/g, '\n```\n\n');
   
-  // Add visual separators for long responses
-  const paragraphs = formatted.split('\n\n');
-  if (paragraphs.length > 4) {
-    // Add subtle visual breaks for readability
-    formatted = paragraphs.map((para, index) => {
-      if (index > 0 && index % 3 === 0 && para.length > 100) {
-        return `---\n\n${para}`;
+  // Format coordinates in a more readable way
+  formatted = formatted.replace(/(\d+)°\s*(\d+)'\s*(\d+(?:\.\d+)?)"?\s*([NSEW])/g, '$1° $2′ $3″ $4');
+  
+  // Add section breaks for long responses with multiple search results
+  const lines = formatted.split('\n');
+  let resultCount = 0;
+  const processedLines = lines.map((line, index) => {
+    if (line.includes('🔍 Search Result:')) {
+      resultCount++;
+      if (resultCount > 1 && index > 0) {
+        return `\n---\n\n${line}`;
       }
-      return para;
-    }).join('\n\n');
+    }
+    return line;
+  });
+  
+  formatted = processedLines.join('\n');
+  
+  // Add summary section for coordinate searches
+  if (formatted.includes('🌍') && (formatted.includes('Search Result') || formatted.includes('search'))) {
+    // Try multiple coordinate extraction patterns
+    let lat = '', lng = '', latDir = '', lngDir = '';
+    
+    // Pattern 1: "🌍 **Coordinates:** -22.907104°, -47.063240°"
+    const coordPairMatch = formatted.match(/🌍 \*\*Coordinates:\*\* (-?\d+(?:\.\d+)?)°,\s*(-?\d+(?:\.\d+)?)°/);
+    if (coordPairMatch) {
+      lat = coordPairMatch[1];
+      lng = coordPairMatch[2];
+    } else {
+      // Pattern 2: Separate latitude and longitude
+      const latMatch = formatted.match(/🌍 \*\*Latitude:\*\* (-?\d+(?:\.\d+)?)[°\s]*([NS])?/);
+      const lngMatch = formatted.match(/🌍 \*\*Longitude:\*\* (-?\d+(?:\.\d+)?)[°\s]*([EW])?/);
+      
+      if (latMatch && lngMatch) {
+        lat = latMatch[1];
+        latDir = latMatch[2] || '';
+        lng = lngMatch[1];
+        lngDir = lngMatch[2] || '';
+      }
+    }
+    
+    if (lat && lng) {
+      const summary = `## 📍 **Quick Summary**\n**Coordinates:** ${lat}°${latDir}, ${lng}°${lngDir}\n\n---\n\n## 🔍 **Detailed Search Results**\n\n`;
+      formatted = summary + formatted;
+    }
   }
   
-  return formatted.trim();
+  // Clean up extra whitespace and normalize
+  formatted = formatted.replace(/\n{3,}/g, '\n\n');
+  formatted = formatted.replace(/^\n+|\n+$/g, '');
+  
+  return formatted;
 }
 
 function getToolIcon(toolName: string): string {
@@ -528,6 +700,42 @@ ipcMain.handle('mcp:getAllCapabilities', async (_event) => {
   }
 });
 
+ipcMain.handle('mcp:updateServerEnabled', async (_event, serverId, enabled) => {
+  try {
+    const servers = configManager.getMcpServers();
+    const serverIndex = servers.findIndex(s => s.id === serverId);
+    
+    if (serverIndex === -1) {
+      throw new Error(`Server ${serverId} not found`);
+    }
+
+    // Update the server configuration
+    configManager.updateMcpServer(serverId, { 
+      enabled: enabled,
+      autoStart: enabled // Also update autoStart to match
+    });
+    
+    // If disabling, disconnect the server
+    if (!enabled) {
+      await connectionManager.disconnectFromServer(serverId);
+    }
+    // If enabling and autoStart is true, connect the server
+    else if (enabled && servers[serverIndex].autoStart) {
+      try {
+        await connectionManager.connectToServer(servers[serverIndex]);
+      } catch (error) {
+        console.error(`Failed to auto-connect server ${serverId} after enabling:`, error);
+        // Don't fail the enable operation if connection fails
+      }
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update server enabled status:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 // Permission handlers
 ipcMain.handle('permissions:getPending', () => {
   try {
@@ -594,7 +802,17 @@ When the user asks you to perform an action that matches one of these tools, you
 For example, if user says "list files", respond with:
 "I'll check the available directories and then list the files for you. <tool_call>{"tool": "list_allowed_directories", "serverId": "filesystem-1750707971824", "args": {}}</tool_call>
 
-Based on the available directories above, I can help you navigate and list files in your accessible locations."`,
+Based on the available directories above, I can help you navigate and list files in your accessible locations."
+
+IMPORTANT: Always provide clear, well-structured responses. When presenting search results or complex information:
+- Use clear headings and sections
+- Break up long text into digestible chunks
+- Highlight key information (coordinates, temperatures, etc.)
+- Provide context and explanations
+- Use bullet points for lists
+- Include relevant emojis for visual clarity
+
+Your responses will be automatically formatted for better readability, but you should still structure your content logically.`,
         timestamp: new Date()
       } as any;
       
@@ -650,8 +868,9 @@ Based on the available directories above, I can help you navigate and list files
             resultText = JSON.stringify(toolResult, null, 2);
           }
           
-          // Fix corrupted Unicode characters (common encoding issues)
+          // Fix corrupted Unicode characters and HTML entities
           const unicodeFixes: Array<[RegExp, string]> = [
+            // Common corrupted emojis
             [/≡ƒìà/g, '🍅'], // Tomato emoji
             [/ΓÅ░/g, '⏰'],   // Clock emoji  
             [/≡ƒôè/g, '📊'], // Chart emoji
@@ -660,7 +879,26 @@ Based on the available directories above, I can help you navigate and list files
             [/≡ƒÅ¡/g, '☕'], // Coffee emoji
             [/≡ƒÅ╗/g, '🧘'], // Meditation emoji
             [/≡ƒôü/g, '🔄'], // Refresh emoji
-            [/≡ƒôè/g, '⏹️'], // Stop emoji
+            [/≡ƒöì/g, '🔍'], // Search emoji
+            [/ΓÇó/g, '•'],   // Bullet point
+            [/├úo/g, 'ão'],  // Portuguese ão
+            [/╔É╠â╦êpin╔És/g, 'kɐ̃ˈpinɐs'], // Campinas pronunciation
+            [/ΓÇª/g, '...'], // Ellipsis
+            [/┬░/g, '°'],    // Degree symbol
+            [/├úo Paulo/g, 'São Paulo'], // São Paulo
+            [/S├úo/g, 'São'], // São
+            [/╔É/g, 'ɐ'],    // Schwa
+            [/╠â/g, '̃'],     // Tilde combining
+            [/╦ê/g, 'ˈ'],    // Primary stress
+            [/pin╔És/g, 'pinɐs'], // Campinas ending
+            [/╔ç/g, 'ɛ'],    // Open-mid front unrounded vowel
+            [/ΓçÉ/g, '→'],   // Right arrow
+            [/ΓçÆ/g, '←'],   // Left arrow
+            [/&#x27;/g, "'"], // Apostrophe
+            [/&quot;/g, '"'], // Quote
+            [/&lt;/g, '<'],   // Less than
+            [/&gt;/g, '>'],   // Greater than
+            [/&amp;/g, '&'],  // Ampersand
           ];
           
           for (const [corrupted, fixed] of unicodeFixes) {

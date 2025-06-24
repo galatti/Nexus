@@ -8,53 +8,16 @@ export class WeatherTemplate extends McpServerTemplate {
       description: 'Get current weather conditions and forecasts using OpenWeatherMap API',
       category: 'weather',
       icon: '🌤️',
-      npmPackage: '@modelcontextprotocol/server-weather',
+      npmPackage: '@h1deya/mcp-server-weather',
       version: 'latest',
       defaultEnabled: false,
-      requiresConfig: true,
-      configFields: [
-        {
-          key: 'apiKey',
-          label: 'OpenWeatherMap API Key',
-          type: 'password',
-          required: true,
-          placeholder: 'your-openweathermap-api-key',
-          description: 'Get your free API key from https://openweathermap.org/api'
-        },
-        {
-          key: 'units',
-          label: 'Temperature Units',
-          type: 'select',
-          required: false,
-          options: ['standard', 'metric', 'imperial'],
-          description: 'Temperature units: standard (Kelvin), metric (Celsius), imperial (Fahrenheit)',
-          defaultValue: 'metric'
-        },
-        {
-          key: 'language',
-          label: 'Language',
-          type: 'text',
-          required: false,
-          placeholder: 'en',
-          description: 'Language code for weather descriptions (e.g., en, es, fr, de)',
-          defaultValue: 'en',
-          validation: /^[a-z]{2}$/
-        },
-        {
-          key: 'defaultLocation',
-          label: 'Default Location',
-          type: 'text',
-          required: false,
-          placeholder: 'New York, NY',
-          description: 'Default city/location for weather queries when not specified'
-        }
-      ],
+      requiresConfig: false,
+      configFields: [],
       documentation: 'https://github.com/modelcontextprotocol/servers/tree/main/src/weather',
       examples: [
-        'Current weather: "What\'s the weather like in Paris today?"',
-        'Weather forecast: "Give me the 5-day forecast for Tokyo"',
-        'Compare weather: "Compare the weather in London and Berlin"',
-        'Weather alerts: "Are there any weather warnings for Miami?"'
+        'Weather forecast: "Tomorrow\'s weather in Palo Alto?"',
+        'Weather alerts: "Any weather alerts in California?"',
+        'State weather: "What\'s the weather situation in New York state?"'
       ]
     };
 
@@ -67,16 +30,12 @@ export class WeatherTemplate extends McpServerTemplate {
     env?: Record<string, string>;
   } {
     // Use the cross-platform npx configuration
-    const { command, args } = this.generateNpxConfig('@modelcontextprotocol/server-weather');
+    const { command, args } = this.generateNpxConfig('@h1deya/mcp-server-weather');
 
     return {
       command,
       args,
       env: {
-        OPENWEATHERMAP_API_KEY: userConfig.apiKey,
-        WEATHER_UNITS: userConfig.units || 'metric',
-        WEATHER_LANGUAGE: userConfig.language || 'en',
-        WEATHER_DEFAULT_LOCATION: userConfig.defaultLocation || '',
         // Ensure PATH is inherited properly on Windows
         ...(process.platform === 'win32' && { PATH: process.env.PATH })
       }
@@ -87,28 +46,10 @@ export class WeatherTemplate extends McpServerTemplate {
     valid: boolean;
     errors: string[];
   } {
-    const errors: string[] = [];
-
-    // Validate API key
-    if (!config.apiKey || typeof config.apiKey !== 'string') {
-      errors.push('OpenWeatherMap API key is required');
-    } else if (config.apiKey.length < 10) {
-      errors.push('OpenWeatherMap API key appears to be invalid (too short)');
-    }
-
-    // Validate units
-    if (config.units && !['standard', 'metric', 'imperial'].includes(config.units)) {
-      errors.push('Temperature units must be one of: standard, metric, imperial');
-    }
-
-    // Validate language code
-    if (config.language && !/^[a-z]{2}$/.test(config.language)) {
-      errors.push('Language code must be a two-letter code (e.g., en, es, fr)');
-    }
-
+    // No configuration required for this weather server
     return {
-      valid: errors.length === 0,
-      errors
+      valid: true,
+      errors: []
     };
   }
 } 
