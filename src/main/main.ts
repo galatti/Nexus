@@ -770,19 +770,24 @@ ipcMain.handle('permissions:respond', (_event, approvalId, result) => {
 });
 
 // LLM handlers
-ipcMain.handle('llm:sendMessage', async (_event, message, options = {}) => {
+ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = {}) => {
   try {
-    const messages = [{ 
-      id: Date.now().toString(), 
-      role: 'user' as const, 
-      content: message, 
-      timestamp: new Date() 
-    }];
+    // conversationHistory is now an array of ChatMessage objects
+    const messages = conversationHistory.map((msg: any) => ({
+      id: msg.id,
+      role: msg.role as 'user' | 'assistant' | 'system',
+      content: msg.content,
+      timestamp: new Date(msg.timestamp)
+    }));
     
     // Get available MCP tools and add them to the system message
     const availableTools = connectionManager.getAllAvailableTools();
     console.log('LLM: Available tools:', availableTools.length, availableTools.map(t => t.name));
-    if (availableTools.length > 0) {
+    
+    // Check if we already have a system message with tools, if not add one
+    const hasSystemMessage = messages.some((msg: any) => msg.role === 'system' && msg.content.includes('Model Context Protocol'));
+    
+    if (availableTools.length > 0 && !hasSystemMessage) {
       const toolsMessage = {
         id: 'system-tools',
         role: 'system' as const,
@@ -816,7 +821,7 @@ Your responses will be automatically formatted for better readability, but you s
         timestamp: new Date()
       } as any;
       
-      // Add system message with tools info before user message
+      // Add system message with tools info at the beginning
       messages.unshift(toolsMessage);
     }
     

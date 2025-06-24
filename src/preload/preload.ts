@@ -48,8 +48,8 @@ const electronAPI = {
     ipcRenderer.invoke('permissions:respond', approvalId, result),
   
   // LLM operations
-  sendMessage: (message: string, options?: Record<string, unknown>) =>
-    ipcRenderer.invoke('llm:sendMessage', message, options),
+  sendMessage: (messages: Record<string, unknown>[], options?: Record<string, unknown>) =>
+    ipcRenderer.invoke('llm:sendMessage', messages, options),
   getLlmStatus: () => ipcRenderer.invoke('llm:getStatus'),
   getAvailableModels: (providerId?: string) => 
     ipcRenderer.invoke('llm:getAvailableModels', providerId),

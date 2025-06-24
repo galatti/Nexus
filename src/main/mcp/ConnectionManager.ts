@@ -228,10 +228,28 @@ export class ConnectionManager extends EventEmitter {
       });
 
       console.log(`Tool execution completed for ${toolName}`, { result });
+      
+      // Successful tool execution indicates the server is healthy
+      // Reset reconnect attempts and update last connected time
+      connection.reconnectAttempts = 0;
+      connection.status.lastConnected = new Date();
+      
       return result;
 
     } catch (error) {
       console.error(`Tool execution failed for ${toolName} on ${serverId}:`, error);
+      
+      // For STDIO servers, tool execution failure might indicate process issues
+      const isStdioTransport = connection.config.command.includes('npx') || 
+                             connection.config.command.includes('node') ||
+                             connection.config.command === 'cmd.exe';
+      
+      if (isStdioTransport && (error instanceof Error) && 
+          (error.message.includes('EPIPE') || error.message.includes('ENOTCONN'))) {
+        console.warn(`STDIO transport error detected for ${serverId}, marking as error`);
+        this.handleConnectionError(serverId, 'Process communication lost');
+      }
+      
       throw error;
     }
   }
@@ -289,19 +307,41 @@ export class ConnectionManager extends EventEmitter {
     const connection = this.connections.get(serverId);
     if (!connection) return;
 
-    connection.healthCheckInterval = setInterval(async () => {
-      try {
-        // Simple ping to check if connection is alive
-        await connection.client.ping();
-        
-        // Reset reconnect attempts on successful health check
-        connection.reconnectAttempts = 0;
+    // Determine transport type based on command - STDIO servers use npx/node commands
+    const isStdioTransport = connection.config.command.includes('npx') || 
+                           connection.config.command.includes('node') ||
+                           connection.config.command === 'cmd.exe';
 
-      } catch (error) {
-        console.warn(`Health check failed for server ${serverId}:`, error);
-        this.handleConnectionError(serverId, 'Health check failed');
-      }
-    }, this.HEALTH_CHECK_INTERVAL);
+    if (isStdioTransport) {
+      // For STDIO transport, health is determined by successful tool execution
+      // No periodic ping needed - the process is alive as long as tools work
+      console.log(`STDIO transport detected for ${serverId} - using tool-based health monitoring`);
+      
+      // Optional: Very infrequent health check using listTools instead of ping
+      connection.healthCheckInterval = setInterval(async () => {
+        try {
+          // Use listTools as a lightweight health check for STDIO servers
+          await connection.client.listTools();
+          connection.reconnectAttempts = 0;
+        } catch (error) {
+          console.warn(`STDIO health check failed for server ${serverId}:`, error);
+          this.handleConnectionError(serverId, 'Process communication failed');
+        }
+      }, this.HEALTH_CHECK_INTERVAL * 3); // Much less frequent for STDIO
+      
+    } else {
+      // For HTTP/SSE transport, use ping-based health checks
+      connection.healthCheckInterval = setInterval(async () => {
+        try {
+          // Use ping for HTTP-based servers
+          await connection.client.ping();
+          connection.reconnectAttempts = 0;
+        } catch (error) {
+          console.warn(`HTTP health check failed for server ${serverId}:`, error);
+          this.handleConnectionError(serverId, 'Health check failed');
+        }
+      }, this.HEALTH_CHECK_INTERVAL);
+    }
   }
 
   private handleConnectionError(serverId: string, errorMessage: string): void {

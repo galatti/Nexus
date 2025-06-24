@@ -136,7 +136,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     setError(null);
 
     try {
-      const result = await window.electronAPI.sendMessage(userMessage.content) as any;
+      // Send the full conversation history including the new user message
+      const conversationHistory = [...messages, userMessage];
+      const result = await window.electronAPI.sendMessage(conversationHistory) as any;
       
       if (result.success) {
         const assistantMessage: ChatMessage = {
