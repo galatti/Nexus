@@ -17,8 +17,7 @@ export interface LlmManagerStatus {
 export class LlmManager extends EventEmitter {
   private providers = new Map<string, BaseProvider>();
   private currentProvider: BaseProvider | null = null;
-  private healthCheckInterval: NodeJS.Timeout | null = null;
-  private readonly HEALTH_CHECK_INTERVAL = 60000; // 1 minute
+
 
   constructor() {
     super();
@@ -27,10 +26,6 @@ export class LlmManager extends EventEmitter {
 
   async initialize(): Promise<void> {
     console.log('Initializing LLM Manager');
-    
-    // Start health monitoring
-    this.startHealthMonitoring();
-    
     console.log('LLM Manager initialized successfully');
   }
 
@@ -291,12 +286,6 @@ export class LlmManager extends EventEmitter {
   async shutdown(): Promise<void> {
     console.log('Shutting down LLM Manager');
     
-    // Stop health monitoring
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-      this.healthCheckInterval = null;
-    }
-
     // Clear current provider
     this.currentProvider = null;
     
@@ -318,15 +307,7 @@ export class LlmManager extends EventEmitter {
     console.warn('No available LLM providers found');
   }
 
-  private startHealthMonitoring(): void {
-    this.healthCheckInterval = setInterval(async () => {
-      try {
-        await this.checkAllProvidersHealth();
-      } catch (error) {
-        console.error('Health monitoring error:', error);
-      }
-    }, this.HEALTH_CHECK_INTERVAL);
-  }
+
 
   private getProviderId(config: LlmProviderConfig): string {
     return `${config.type}-${config.name.toLowerCase().replace(/\s+/g, '-')}`;

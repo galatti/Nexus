@@ -14,15 +14,20 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   useEffect(() => {
     if (isOpen) {
       loadServers();
-      loadCapabilities();
     }
   }, [isOpen]);
 
   // Also refresh when component mounts to get current status
   useEffect(() => {
     loadServers();
-    loadCapabilities();
   }, []);
+
+  // Load capabilities when servers change
+  useEffect(() => {
+    if (servers.length > 0) {
+      loadCapabilitiesForServers(servers);
+    }
+  }, [servers]);
 
   const loadServers = async (isRefresh = false) => {
     try {
@@ -44,16 +49,37 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     }
   };
 
-  const loadCapabilities = async () => {
+  const loadCapabilitiesForServers = async (serversToUse: McpServerConfig[]) => {
     try {
-      const result = await (window as any).electronAPI.getAllMcpCapabilities();
-      if (result.success) {
-        setServerCapabilities(result.capabilities);
+      console.log('Sidebar: Loading capabilities for servers:', serversToUse.length);
+      
+      // Get capabilities for each ready server (same as Dashboard)
+      const capabilitiesData: Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }> = {};
+      const readyServers = serversToUse.filter(s => s.state === 'ready');
+      console.log('Sidebar: Ready servers:', readyServers.length, readyServers.map(s => s.name));
+      
+      for (const server of readyServers) {
+        try {
+          console.log(`Sidebar: Getting capabilities for ${server.name} (${server.id})`);
+          const result = await (window as any).electronAPI.getServerCapabilities(server.id);
+          console.log(`Sidebar: Capabilities result for ${server.name}:`, result);
+          if (result.success) {
+            capabilitiesData[server.id] = result.capabilities;
+          }
+        } catch (error) {
+          console.error(`Failed to load capabilities for server ${server.id}:`, error);
+        }
       }
+      
+      console.log('Sidebar: Final capabilities data:', capabilitiesData);
+      setServerCapabilities(capabilitiesData);
     } catch (error) {
       console.error('Failed to load server capabilities:', error);
     }
   };
+
+  // Convenience wrapper for loading capabilities with current servers
+  const loadCapabilities = () => loadCapabilitiesForServers(servers);
 
   // Listen for server state changes
   useEffect(() => {
@@ -62,14 +88,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     const cleanup = (window as any).electronAPI.onMcpServerStateChange?.((serverId: string, state: string) => {
       console.log('Sidebar: Received state change:', serverId, state);
       
-      setServers(prev => prev.map(server => 
-        server.id === serverId ? { ...server, state: state as any } : server
-      ));
-      
-      // Reload capabilities when server becomes ready
-      if (state === 'ready') {
-        loadCapabilities();
-      }
+      setServers(prev => {
+        const updatedServers = prev.map(server => 
+          server.id === serverId ? { ...server, state: state as any } : server
+        );
+        
+        // Reload capabilities when server becomes ready, using updated servers
+        if (state === 'ready') {
+          loadCapabilitiesForServers(updatedServers);
+        }
+        
+        return updatedServers;
+      });
     });
 
     return cleanup;

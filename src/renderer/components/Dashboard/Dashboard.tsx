@@ -14,21 +14,25 @@ export const Dashboard: React.FC = () => {
   // Load capabilities when servers change
   useEffect(() => {
     if (servers.length > 0) {
-      loadCapabilities();
+      loadCapabilitiesForServers(servers);
     }
   }, [servers]);
 
   // Listen for server state changes
   useEffect(() => {
     const cleanup = (window as any).electronAPI.onMcpServerStateChange?.((serverId: string, state: string) => {
-      setServers(prev => prev.map(server => 
-        server.id === serverId ? { ...server, state: state as any } : server
-      ));
-      
-      // Reload capabilities when server becomes ready
-      if (state === 'ready') {
-        setTimeout(() => loadCapabilities(), 100); // Small delay to ensure state is updated
-      }
+      setServers(prev => {
+        const updatedServers = prev.map(server => 
+          server.id === serverId ? { ...server, state: state as any } : server
+        );
+        
+        // Reload capabilities when server becomes ready, using updated servers
+        if (state === 'ready') {
+          loadCapabilitiesForServers(updatedServers);
+        }
+        
+        return updatedServers;
+      });
     });
 
     return cleanup;
@@ -48,9 +52,9 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  const loadCapabilities = async () => {
+  const loadCapabilitiesForServers = async (serversToUse: McpServerConfig[]) => {
     try {
-      console.log('Dashboard: Loading capabilities, servers:', servers.length, servers.map(s => `${s.name}:${s.state}`));
+      console.log('Dashboard: Loading capabilities, servers:', serversToUse.length, serversToUse.map(s => `${s.name}:${s.state}`));
       
       // Get overall capabilities
       const allCapabilitiesResult = await (window as any).electronAPI.getAllCapabilities();
@@ -61,7 +65,7 @@ export const Dashboard: React.FC = () => {
 
       // Get capabilities for each connected server
       const capabilitiesData: Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }> = {};
-      const readyServers = servers.filter(s => s.state === 'ready');
+      const readyServers = serversToUse.filter(s => s.state === 'ready');
       console.log('Dashboard: Ready servers:', readyServers.length, readyServers.map(s => s.name));
       
       for (const server of readyServers) {
@@ -83,6 +87,9 @@ export const Dashboard: React.FC = () => {
       console.error('Failed to load capabilities:', error);
     }
   };
+
+  // Convenience wrapper for loading capabilities with current servers
+  const loadCapabilities = () => loadCapabilitiesForServers(servers);
 
   // Get capabilities for a specific server
   const getServerCapabilities = (serverId: string) => {
