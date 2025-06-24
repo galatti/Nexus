@@ -1,6 +1,4 @@
 import { McpServerTemplate, McpServerTemplateInfo } from './McpServerTemplate.js';
-import { join } from 'path';
-import { homedir } from 'os';
 
 export class FilesystemTemplate extends McpServerTemplate {
   constructor() {
@@ -22,7 +20,7 @@ export class FilesystemTemplate extends McpServerTemplate {
           required: true,
           placeholder: 'C:\\Users\\username\\Documents,C:\\Projects',
           description: 'Comma-separated list of directory paths that the server can access. Use absolute paths.',
-          defaultValue: join(homedir(), 'Documents')
+          defaultValue: '${CWD}'
         },
         {
           key: 'readOnly',
@@ -60,8 +58,12 @@ export class FilesystemTemplate extends McpServerTemplate {
     env?: Record<string, string>;
   } {
     const allowedDirs = userConfig.allowedDirectories
-      ? userConfig.allowedDirectories.split(',').map((dir: string) => dir.trim())
-      : [join(homedir(), 'Documents')];
+      ? userConfig.allowedDirectories.split(',').map((dir: string) => {
+          const trimmed = dir.trim();
+          // Replace ${CWD} with current working directory at runtime
+          return trimmed === '${CWD}' ? process.cwd() : trimmed;
+        })
+      : [process.cwd()];
 
     const additionalArgs: string[] = [];
     
