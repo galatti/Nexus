@@ -1,10 +1,10 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
-  roots: ['<rootDir>/src'],
+  roots: ['<rootDir>/tests'],
   testMatch: [
-    '**/__tests__/**/*.ts?(x)',
-    '**/?(*.)+(spec|test).ts?(x)'
+    '<rootDir>/tests/**/*.test.ts?(x)',
+    '<rootDir>/tests/**/*.spec.ts?(x)'
   ],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
@@ -21,7 +21,7 @@ module.exports = {
     'src/**/*.{ts,tsx}',
     '!src/**/*.d.ts',
     '!src/**/*.stories.{ts,tsx}',
-    '!src/**/__tests__/**',
+    '!tests/**',
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],

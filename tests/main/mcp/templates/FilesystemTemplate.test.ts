@@ -1,4 +1,4 @@
-import { FilesystemTemplate } from './FilesystemTemplate.js';
+import { FilesystemTemplate } from '../../../../src/main/mcp/templates/FilesystemTemplate.js';
 import { describe, it, expect } from 'vitest';
 
 describe('FilesystemTemplate', () => {

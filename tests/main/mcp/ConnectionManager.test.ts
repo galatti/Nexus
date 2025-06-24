@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { serverManager, ServerManager, type ServerState } from './ConnectionManager.js';
-import type { McpServerConfig } from '../../shared/types.js';
+import { serverManager, ServerManager, type ServerState } from '../../../src/main/mcp/ConnectionManager.js';
+import type { McpServerConfig } from '../../../src/shared/types.js';
 
 describe('ServerManager', () => {
   const mockConfig: McpServerConfig = {

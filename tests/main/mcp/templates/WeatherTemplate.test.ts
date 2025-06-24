@@ -1,4 +1,4 @@
-import { WeatherTemplate } from './WeatherTemplate.js';
+import { WeatherTemplate } from '../../../../src/main/mcp/templates/WeatherTemplate.js';
 import { describe, it, expect } from 'vitest';
 
 describe('WeatherTemplate', () => {

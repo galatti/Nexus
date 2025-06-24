@@ -1,4 +1,4 @@
-import { TemplateManager } from './TemplateManager.js';
+import { TemplateManager } from '../../../../src/main/mcp/templates/TemplateManager.js';
 import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('TemplateManager', () => {

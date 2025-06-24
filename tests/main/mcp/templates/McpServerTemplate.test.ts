@@ -1,4 +1,4 @@
-import { McpServerTemplate } from './McpServerTemplate.js';
+import { McpServerTemplate } from '../../../../src/main/mcp/templates/McpServerTemplate.js';
 import { describe, it, expect } from 'vitest';
 
 describe('McpServerTemplate', () => {

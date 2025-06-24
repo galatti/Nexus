@@ -1,4 +1,4 @@
-import { AnubisTemplate } from './AnubisTemplate.js';
+import { AnubisTemplate } from '../../../../src/main/mcp/templates/AnubisTemplate.js';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 describe('AnubisTemplate', () => {

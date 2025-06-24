@@ -1,4 +1,4 @@
-import { WebSearchTemplate } from './WebSearchTemplate.js';
+import { WebSearchTemplate } from '../../../../src/main/mcp/templates/WebSearchTemplate.js';
 import { describe, it, expect } from 'vitest';
 
 describe('WebSearchTemplate', () => {
