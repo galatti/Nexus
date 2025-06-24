@@ -167,8 +167,10 @@ export class ServerManager extends EventEmitter {
     console.log(`Stopping MCP server: ${server.config.name}`);
 
     try {
-      // Close client connection (terminates the process)
-      await server.client.close();
+      // Close client connection if it exists and has close method
+      if (server.client && typeof server.client.close === 'function') {
+        await server.client.close();
+      }
 
       // Remove from servers
       this.servers.delete(serverId);
