@@ -114,6 +114,23 @@ export const McpServerTemplates: React.FC<McpServerTemplatesProps> = ({ onAddSer
           error: result.success ? undefined : result.error
         }
       }));
+
+      // Auto-create server for templates that don't require configuration
+      if (result.success) {
+        const template = templates.find(t => t.id === templateId);
+        if (template && !template.requiresConfig && template.configFields.length === 0) {
+          const serverResult = await window.electronAPI.generateServerFromTemplate(
+            templateId, 
+            {}, 
+            `${template.name} Server`
+          ) as any;
+          
+          if (serverResult.success) {
+            // Notify parent that a server was added
+            onAddServer(templateId, {}, `${template.name} Server`);
+          }
+        }
+      }
     } catch (error) {
       setInstallationStatus(prev => ({
         ...prev,
