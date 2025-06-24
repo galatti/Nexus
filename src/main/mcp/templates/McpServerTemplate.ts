@@ -87,11 +87,11 @@ export abstract class McpServerTemplate {
       const { spawn } = await import('child_process');
       
       return new Promise((resolve) => {
-        // Use cross-platform approach for npm commands
+        // Use cross-platform approach for npm commands - check globally since MCP servers are installed globally
         const command = process.platform === 'win32' ? 'cmd.exe' : 'npm';
         const args = process.platform === 'win32' 
-          ? ['/c', 'npm', 'list', '--depth=0', this.info.npmPackage!]
-          : ['list', '--depth=0', this.info.npmPackage!];
+          ? ['/c', 'npm', 'list', '-g', '--depth=0', this.info.npmPackage!]
+          : ['list', '-g', '--depth=0', this.info.npmPackage!];
         
         const child = spawn(command, args, {
           stdio: 'pipe',
@@ -106,6 +106,7 @@ export abstract class McpServerTemplate {
         
         child.on('close', (code) => {
           const isInstalled = code === 0 && output.includes(this.info.npmPackage!);
+          console.log(`Installation check for ${this.info.npmPackage}: code=${code}, installed=${isInstalled}`);
           resolve(isInstalled);
         });
         

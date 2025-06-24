@@ -126,7 +126,7 @@ export interface McpServerConfig {
   env?: Record<string, string>;
   enabled: boolean;
   autoStart: boolean;
-  status?: 'disconnected' | 'connecting' | 'connected' | 'error';
+  state?: 'configured' | 'starting' | 'ready' | 'stopped' | 'failed';
   templateId?: string;
   userConfig?: Record<string, unknown>;
 }

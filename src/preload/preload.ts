@@ -55,10 +55,10 @@ const electronAPI = {
     ipcRenderer.invoke('llm:getAvailableModels', providerId),
   
   // Event listeners
-  onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => {
-    ipcRenderer.on('mcp:serverStatusChange', (_event, serverId, status) => 
-      callback(serverId, status));
-    return () => ipcRenderer.removeAllListeners('mcp:serverStatusChange');
+  onMcpServerStateChange: (callback: (serverId: string, state: string) => void) => {
+    ipcRenderer.on('mcp:serverStateChange', (_event, serverId, state) => 
+      callback(serverId, state));
+    return () => ipcRenderer.removeAllListeners('mcp:serverStateChange');
   },
 
   onSettingsChange: (callback: (settings: Record<string, unknown>) => void) => {

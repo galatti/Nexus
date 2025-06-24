@@ -2,74 +2,62 @@
 import { EventEmitter } from 'events';
 import { McpServerConfig, McpTool } from '../../shared/types.js';
 
-export interface ConnectionStatus {
+export interface ServerState {
   serverId: string;
-  status: 'disconnected' | 'connecting' | 'connected' | 'error';
+  state: 'configured' | 'starting' | 'ready' | 'stopped' | 'failed';
   error?: string;
-  lastConnected?: Date;
+  lastReady?: Date;
   tools?: McpTool[];
 }
 
-// Dynamic imports for ES modules
-let mcpSdk: any = null;
-
-// Use a runtime dynamic import helper that TypeScript will not transform to require()
 const dynamicImport = (specifier: string): Promise<any> => {
-  // eslint-disable-next-line @typescript-eslint/no-implied-eval
-  return (new Function('s', 'return import(s)'))(specifier);
+  return Function('specifier', 'return import(specifier)')(specifier);
 };
 
 async function loadMcpSdk() {
-  if (!mcpSdk) {
-    try {
-      mcpSdk = await dynamicImport('@modelcontextprotocol/sdk/client/index.js');
-    } catch (error) {
-      console.error('Failed to load MCP SDK:', error);
-      throw error;
-    }
+  try {
+    return await dynamicImport('@modelcontextprotocol/sdk/client/index.js');
+  } catch (error) {
+    console.error('Failed to load MCP SDK:', error);
+    throw new Error('MCP SDK not available. Please install @modelcontextprotocol/sdk');
   }
-  return mcpSdk;
 }
 
-export class ConnectionManager extends EventEmitter {
-  private connections = new Map<string, {
+export class ServerManager extends EventEmitter {
+  private servers = new Map<string, {
     client: any;
     transport: any;
     config: McpServerConfig;
-    status: ConnectionStatus;
-    reconnectAttempts: number;
-    healthCheckInterval?: NodeJS.Timeout;
+    state: ServerState;
+    process?: any;
   }>();
 
-  private readonly MAX_CONNECTIONS = 8;
-  private readonly RECONNECT_DELAY = 5000;
-  private readonly MAX_RECONNECT_ATTEMPTS = 3;
-  private readonly HEALTH_CHECK_INTERVAL = 30000;
+  private readonly MAX_SERVERS = 8;
 
   constructor() {
     super();
-    this.setMaxListeners(50); // Allow many listeners for server status updates
+    this.setMaxListeners(50);
   }
 
-  async connectToServer(config: McpServerConfig): Promise<void> {
-    if (this.connections.size >= this.MAX_CONNECTIONS) {
-      throw new Error(`Maximum number of connections (${this.MAX_CONNECTIONS}) reached`);
+  async startServer(config: McpServerConfig): Promise<void> {
+    if (this.servers.size >= this.MAX_SERVERS) {
+      throw new Error(`Maximum number of servers (${this.MAX_SERVERS}) reached`);
     }
 
-    if (this.connections.has(config.id)) {
-      throw new Error(`Server ${config.id} is already connected`);
+    if (this.servers.has(config.id)) {
+      throw new Error(`Server ${config.id} is already running`);
     }
 
-    console.log(`Connecting to MCP server: ${config.name} (${config.id})`);
+    console.log(`Starting MCP server: ${config.name} (${config.id})`);
+
+    // Emit starting state
+    const startingState: ServerState = {
+      serverId: config.id,
+      state: 'starting'
+    };
+    this.emit('stateChange', startingState);
 
     try {
-      // Update status to connecting
-      const status: ConnectionStatus = {
-        serverId: config.id,
-        status: 'connecting'
-      };
-      this.emit('statusChange', status);
-
       // Load MCP SDK dynamically
       const { Client } = await loadMcpSdk();
       const { StdioClientTransport } = await dynamicImport('@modelcontextprotocol/sdk/client/stdio.js');
@@ -82,10 +70,8 @@ export class ConnectionManager extends EventEmitter {
       
       // Set appropriate encoding based on platform
       if (process.platform === 'win32') {
-        // On Windows, ensure proper console encoding
         env.CHCP = '65001'; // UTF-8 code page
       } else {
-        // Force UTF-8 encoding for Unix systems
         env.LANG = 'en_US.UTF-8';
         env.LC_ALL = 'en_US.UTF-8';
       }
@@ -95,7 +81,7 @@ export class ConnectionManager extends EventEmitter {
         command: config.command,
         args: config.args,
         env,
-        encoding: 'utf8' // Explicitly set encoding
+        encoding: 'utf8'
       };
       
       // On Windows, we need to use shell mode when using cmd.exe
@@ -115,97 +101,97 @@ export class ConnectionManager extends EventEmitter {
         }
       });
 
-      // Connect the client
+      // Connect the client (start the process)
       await client.connect(transport);
 
-      // List available tools
+      // List available tools to verify server is ready
       const result = await client.listTools();
-      console.log(`MCP server initialized: ${config.name}`, result);
+      console.log(`MCP server ready: ${config.name}`, result);
 
       // Discover tools
       const tools = await this.discoverTools(client, config.id);
 
-      // Store connection info
-      const connectionInfo = {
+      // Store server info
+      const serverInfo = {
         client,
         transport,
         config,
-        status: {
+        state: {
           serverId: config.id,
-          status: 'connected' as const,
-          lastConnected: new Date(),
+          state: 'ready' as const,
+          lastReady: new Date(),
           tools
         },
-        reconnectAttempts: 0
+        process: transport.process // Store process reference if available
       };
 
-      this.connections.set(config.id, connectionInfo);
+      this.servers.set(config.id, serverInfo);
 
-      // Start health monitoring
-      this.startHealthCheck(config.id);
+      // Emit ready state
+      this.emit('stateChange', serverInfo.state);
 
-      // Emit connected status
-      this.emit('statusChange', connectionInfo.status);
-
-      console.log(`Successfully connected to MCP server: ${config.name}`);
+      console.log(`Successfully started MCP server: ${config.name}`);
 
     } catch (error) {
-      console.error(`Failed to connect to MCP server ${config.name}:`, error);
+      console.error(`Failed to start MCP server ${config.name}:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.handleConnectionError(config.id, errorMessage);
+      
+      // Emit failed state
+      const failedState: ServerState = {
+        serverId: config.id,
+        state: 'failed',
+        error: errorMessage
+      };
+      this.emit('stateChange', failedState);
+      
       throw error;
     }
   }
 
-  async disconnectFromServer(serverId: string): Promise<void> {
-    const connection = this.connections.get(serverId);
-    if (!connection) {
-      console.warn(`Attempted to disconnect non-existent server: ${serverId}`);
+  async stopServer(serverId: string): Promise<void> {
+    const server = this.servers.get(serverId);
+    if (!server) {
+      console.warn(`Attempted to stop non-existent server: ${serverId}`);
       return;
     }
 
-    console.log(`Disconnecting from MCP server: ${connection.config.name}`);
+    console.log(`Stopping MCP server: ${server.config.name}`);
 
     try {
-      // Stop health check
-      if (connection.healthCheckInterval) {
-        clearInterval(connection.healthCheckInterval);
-      }
+      // Close client connection (terminates the process)
+      await server.client.close();
 
-      // Close client connection
-      await connection.client.close();
+      // Remove from servers
+      this.servers.delete(serverId);
 
-      // Remove from connections
-      this.connections.delete(serverId);
-
-      // Emit disconnected status
-      const status: ConnectionStatus = {
+      // Emit stopped state
+      const stoppedState: ServerState = {
         serverId,
-        status: 'disconnected'
+        state: 'stopped'
       };
-      this.emit('statusChange', status);
+      this.emit('stateChange', stoppedState);
 
-      console.log(`Successfully disconnected from MCP server: ${connection.config.name}`);
+      console.log(`Successfully stopped MCP server: ${server.config.name}`);
 
     } catch (error) {
-      console.error(`Error disconnecting from server ${serverId}:`, error);
-      // Still remove from connections even if there was an error
-      this.connections.delete(serverId);
+      console.error(`Error stopping server ${serverId}:`, error);
+      // Still remove from servers even if there was an error
+      this.servers.delete(serverId);
     }
   }
 
   async executeTool(serverId: string, toolName: string, args: Record<string, unknown>): Promise<unknown> {
-    const connection = this.connections.get(serverId);
-    if (!connection) {
-      throw new Error(`Server ${serverId} is not connected`);
+    const server = this.servers.get(serverId);
+    if (!server) {
+      throw new Error(`Server ${serverId} is not running`);
     }
 
-    if (connection.status.status !== 'connected') {
-      throw new Error(`Server ${serverId} is not in connected state`);
+    if (server.state.state !== 'ready') {
+      throw new Error(`Server ${serverId} is not ready (current state: ${server.state.state})`);
     }
 
     // Find the tool definition
-    const tool = connection.status.tools?.find(t => t.name === toolName);
+    const tool = server.state.tools?.find(t => t.name === toolName);
     if (!tool) {
       throw new Error(`Tool ${toolName} not found on server ${serverId}`);
     }
@@ -214,7 +200,7 @@ export class ConnectionManager extends EventEmitter {
     const { permissionManager } = await import('../permissions/PermissionManager.js');
     
     // Request permission before execution
-    const hasPermission = await permissionManager.requestPermission(connection.config, tool, args);
+    const hasPermission = await permissionManager.requestPermission(server.config, tool, args);
     if (!hasPermission) {
       throw new Error(`Permission denied for tool execution: ${toolName}`);
     }
@@ -222,67 +208,53 @@ export class ConnectionManager extends EventEmitter {
     try {
       console.log(`Executing tool ${toolName} on server ${serverId}`, { args });
 
-      const result = await connection.client.callTool({
+      const result = await server.client.callTool({
         name: toolName,
         arguments: args
       });
 
       console.log(`Tool execution completed for ${toolName}`, { result });
       
-      // Successful tool execution indicates the server is healthy
-      // Reset reconnect attempts and update last connected time
-      connection.reconnectAttempts = 0;
-      connection.status.lastConnected = new Date();
+      // Update last ready time on successful execution
+      server.state.lastReady = new Date();
       
       return result;
 
     } catch (error) {
       console.error(`Tool execution failed for ${toolName} on ${serverId}:`, error);
-      
-      // For STDIO servers, tool execution failure might indicate process issues
-      const isStdioTransport = connection.config.command.includes('npx') || 
-                             connection.config.command.includes('node') ||
-                             connection.config.command === 'cmd.exe';
-      
-      if (isStdioTransport && (error instanceof Error) && 
-          (error.message.includes('EPIPE') || error.message.includes('ENOTCONN'))) {
-        console.warn(`STDIO transport error detected for ${serverId}, marking as error`);
-        this.handleConnectionError(serverId, 'Process communication lost');
-      }
-      
       throw error;
     }
   }
 
-  getConnectionStatus(serverId: string): ConnectionStatus | null {
-    const connection = this.connections.get(serverId);
-    return connection ? connection.status : null;
+  getServerState(serverId: string): ServerState | null {
+    const server = this.servers.get(serverId);
+    return server ? server.state : null;
   }
 
-  getAllConnections(): ConnectionStatus[] {
-    return Array.from(this.connections.values()).map(conn => conn.status);
+  getAllServerStates(): ServerState[] {
+    return Array.from(this.servers.values()).map(server => server.state);
   }
 
   getAvailableTools(serverId: string): McpTool[] {
-    const connection = this.connections.get(serverId);
-    return connection?.status.tools || [];
+    const server = this.servers.get(serverId);
+    return server?.state.tools || [];
   }
 
   getAllAvailableTools(): McpTool[] {
     const allTools: McpTool[] = [];
-    for (const connection of this.connections.values()) {
-      if (connection.status.status === 'connected' && connection.status.tools) {
-        allTools.push(...connection.status.tools);
+    for (const server of this.servers.values()) {
+      if (server.state.state === 'ready' && server.state.tools) {
+        allTools.push(...server.state.tools);
       }
     }
     return allTools;
   }
 
-  async disconnectAll(): Promise<void> {
-    const disconnectPromises = Array.from(this.connections.keys()).map(serverId =>
-      this.disconnectFromServer(serverId)
+  async stopAllServers(): Promise<void> {
+    const stopPromises = Array.from(this.servers.keys()).map(serverId =>
+      this.stopServer(serverId)
     );
-    await Promise.all(disconnectPromises);
+    await Promise.all(stopPromises);
   }
 
   private async discoverTools(client: any, serverId: string): Promise<McpTool[]> {
@@ -302,82 +274,7 @@ export class ConnectionManager extends EventEmitter {
       return [];
     }
   }
-
-  private startHealthCheck(serverId: string): void {
-    const connection = this.connections.get(serverId);
-    if (!connection) return;
-
-    // Determine transport type based on command - STDIO servers use npx/node commands
-    const isStdioTransport = connection.config.command.includes('npx') || 
-                           connection.config.command.includes('node') ||
-                           connection.config.command === 'cmd.exe';
-
-    if (isStdioTransport) {
-      // For STDIO transport, health is determined by successful tool execution
-      // No periodic ping needed - the process is alive as long as tools work
-      console.log(`STDIO transport detected for ${serverId} - using tool-based health monitoring`);
-      
-      // Optional: Very infrequent health check using listTools instead of ping
-      connection.healthCheckInterval = setInterval(async () => {
-        try {
-          // Use listTools as a lightweight health check for STDIO servers
-          await connection.client.listTools();
-          connection.reconnectAttempts = 0;
-        } catch (error) {
-          console.warn(`STDIO health check failed for server ${serverId}:`, error);
-          this.handleConnectionError(serverId, 'Process communication failed');
-        }
-      }, this.HEALTH_CHECK_INTERVAL * 3); // Much less frequent for STDIO
-      
-    } else {
-      // For HTTP/SSE transport, use ping-based health checks
-      connection.healthCheckInterval = setInterval(async () => {
-        try {
-          // Use ping for HTTP-based servers
-          await connection.client.ping();
-          connection.reconnectAttempts = 0;
-        } catch (error) {
-          console.warn(`HTTP health check failed for server ${serverId}:`, error);
-          this.handleConnectionError(serverId, 'Health check failed');
-        }
-      }, this.HEALTH_CHECK_INTERVAL);
-    }
-  }
-
-  private handleConnectionError(serverId: string, errorMessage: string): void {
-    const connection = this.connections.get(serverId);
-    if (!connection) return;
-
-    // Update status to error
-    connection.status = {
-      ...connection.status,
-      status: 'error',
-      error: errorMessage
-    };
-
-    this.emit('statusChange', connection.status);
-
-    // Attempt reconnection if enabled and under max attempts
-    if (connection.config.autoStart && connection.reconnectAttempts < this.MAX_RECONNECT_ATTEMPTS) {
-      connection.reconnectAttempts++;
-      
-      console.log(`Attempting reconnection ${connection.reconnectAttempts}/${this.MAX_RECONNECT_ATTEMPTS} for server ${serverId}`);
-      
-      setTimeout(async () => {
-        try {
-          // Remove the failed connection
-          this.connections.delete(serverId);
-          
-          // Attempt to reconnect
-          await this.connectToServer(connection.config);
-          
-        } catch (error) {
-          console.error(`Reconnection attempt failed for server ${serverId}:`, error);
-        }
-      }, this.RECONNECT_DELAY);
-    }
-  }
 }
 
 // Singleton instance
-export const connectionManager = new ConnectionManager(); 
+export const serverManager = new ServerManager(); 

@@ -9,19 +9,25 @@ export const Dashboard: React.FC = () => {
 
   useEffect(() => {
     loadServers();
-    loadCapabilities();
   }, []);
 
-  // Listen for server status changes
+  // Load capabilities when servers change
   useEffect(() => {
-    const cleanup = (window as any).electronAPI.onMcpServerStatusChange?.((serverId: string, status: string) => {
+    if (servers.length > 0) {
+      loadCapabilities();
+    }
+  }, [servers]);
+
+  // Listen for server state changes
+  useEffect(() => {
+    const cleanup = (window as any).electronAPI.onMcpServerStateChange?.((serverId: string, state: string) => {
       setServers(prev => prev.map(server => 
-        server.id === serverId ? { ...server, status: status as any } : server
+        server.id === serverId ? { ...server, state: state as any } : server
       ));
       
-      // Reload capabilities when server connects
-      if (status === 'connected') {
-        loadCapabilities();
+      // Reload capabilities when server becomes ready
+      if (state === 'ready') {
+        setTimeout(() => loadCapabilities(), 100); // Small delay to ensure state is updated
       }
     });
 
@@ -44,18 +50,25 @@ export const Dashboard: React.FC = () => {
 
   const loadCapabilities = async () => {
     try {
+      console.log('Dashboard: Loading capabilities, servers:', servers.length, servers.map(s => `${s.name}:${s.state}`));
+      
       // Get overall capabilities
       const allCapabilitiesResult = await (window as any).electronAPI.getAllCapabilities();
+      console.log('Dashboard: All capabilities result:', allCapabilitiesResult);
       if (allCapabilitiesResult.success) {
         setTotalCapabilities(allCapabilitiesResult.capabilities);
       }
 
       // Get capabilities for each connected server
       const capabilitiesData: Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }> = {};
+      const readyServers = servers.filter(s => s.state === 'ready');
+      console.log('Dashboard: Ready servers:', readyServers.length, readyServers.map(s => s.name));
       
-      for (const server of servers.filter(s => s.status === 'connected')) {
+      for (const server of readyServers) {
         try {
+          console.log(`Dashboard: Getting capabilities for ${server.name} (${server.id})`);
           const result = await (window as any).electronAPI.getServerCapabilities(server.id);
+          console.log(`Dashboard: Capabilities result for ${server.name}:`, result);
           if (result.success) {
             capabilitiesData[server.id] = result.capabilities;
           }
@@ -64,6 +77,7 @@ export const Dashboard: React.FC = () => {
         }
       }
       
+      console.log('Dashboard: Final capabilities data:', capabilitiesData);
       setServerCapabilities(capabilitiesData);
     } catch (error) {
       console.error('Failed to load capabilities:', error);
@@ -75,21 +89,23 @@ export const Dashboard: React.FC = () => {
     return serverCapabilities[serverId] || { tools: 0, resources: 0, prompts: 0, toolsList: [] };
   };
 
-  const getStatusColor = (status?: string) => {
-    switch (status) {
-      case 'connected': return 'bg-green-500';
-      case 'connecting': return 'bg-yellow-500';
-      case 'error': return 'bg-red-500';
-      default: return 'bg-gray-400';
+  const getStateColor = (state?: string) => {
+    switch (state) {
+      case 'ready': return 'bg-green-500';
+      case 'starting': return 'bg-yellow-500';
+      case 'failed': return 'bg-red-500';
+      case 'stopped': return 'bg-gray-400';
+      default: return 'bg-gray-300'; // configured
     }
   };
 
-  const getStatusText = (status?: string) => {
-    switch (status) {
-      case 'connected': return 'Connected';
-      case 'connecting': return 'Connecting';
-      case 'error': return 'Error';
-      default: return 'Disconnected';
+  const getStateText = (state?: string) => {
+    switch (state) {
+      case 'ready': return 'Ready';
+      case 'starting': return 'Starting';
+      case 'failed': return 'Failed';
+      case 'stopped': return 'Stopped';
+      default: return 'Configured';
     }
   };
 
@@ -98,6 +114,38 @@ export const Dashboard: React.FC = () => {
     if (server.name.includes('Web Search')) return '🔍';
     if (server.name.includes('Weather')) return '🌤️';
     return '🔧';
+  };
+
+  const getTransportType = (server: McpServerConfig) => {
+    const command = server.command.toLowerCase();
+    const args = server.args.map(arg => arg.toLowerCase());
+    
+    // Check for HTTP/HTTPS URLs in command or args
+    if (command.includes('http') || command.includes('https') || 
+        args.some(arg => arg.includes('http'))) {
+      return { type: 'HTTP', icon: '🌐', color: 'text-blue-600 dark:text-blue-400' };
+    }
+    
+    // Check for STDIO patterns (most common for MCP servers)
+    if (command === 'cmd.exe' || command === 'npx' || command === 'node' || 
+        args.includes('npx') || args.some(arg => arg.includes('node')) ||
+        args.some(arg => arg.startsWith('@'))) { // npm packages start with @
+      return { type: 'STDIO', icon: '💬', color: 'text-green-600 dark:text-green-400' };
+    }
+    
+    // Check for SSH/TCP patterns
+    if (command.includes('ssh') || command.includes('tcp') || 
+        args.some(arg => arg.includes('ssh') || arg.includes('tcp'))) {
+      return { type: 'SSH/TCP', icon: '🔒', color: 'text-purple-600 dark:text-purple-400' };
+    }
+    
+    // Check for WebSocket patterns
+    if (command.includes('ws') || args.some(arg => arg.includes('ws://'))) {
+      return { type: 'WebSocket', icon: '⚡', color: 'text-yellow-600 dark:text-yellow-400' };
+    }
+    
+    // Default to STDIO for most MCP servers
+    return { type: 'STDIO', icon: '💬', color: 'text-green-600 dark:text-green-400' };
   };
 
   const handleConnect = async (serverId: string) => {
@@ -165,7 +213,7 @@ export const Dashboard: React.FC = () => {
               </div>
               <div className="ml-4">
                 <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {servers.filter(s => s.status === 'connected').length}
+                  {servers.filter(s => s.state === 'ready').length}
                 </p>
                 <p className="text-gray-600 dark:text-gray-400">Connected</p>
               </div>
@@ -224,9 +272,29 @@ export const Dashboard: React.FC = () => {
         {/* MCP Servers Grid */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              MCP Servers
-            </h2>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                MCP Servers
+              </h2>
+              <div className="flex items-center space-x-4 mt-2 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-1">
+                  <span>💬</span>
+                  <span>STDIO</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>🌐</span>
+                  <span>HTTP</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>🔒</span>
+                  <span>SSH/TCP</span>
+                </div>
+                <div className="flex items-center space-x-1">
+                  <span>⚡</span>
+                  <span>WebSocket</span>
+                </div>
+              </div>
+            </div>
             <button
               onClick={() => {
                 // This would open settings to the MCP tab
@@ -263,22 +331,38 @@ export const Dashboard: React.FC = () => {
               {servers.map((server) => (
                 <div
                   key={server.id}
-                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-shadow"
+                  className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all hover:border-blue-300 dark:hover:border-blue-600"
                 >
+                  {/* Server Card Header */}
+                  <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-lg">{getServerIcon(server)}</span>
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">MCP Server</span>
+                    </div>
+                  </div>
+                  
                   <div className="p-6">
                     {/* Server Header */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <span className="text-2xl">{getServerIcon(server)}</span>
-                        <div>
+                        <div className="flex-1">
                           <h3 className="font-medium text-gray-900 dark:text-white">
                             {server.name}
                           </h3>
-                          <div className="flex items-center space-x-2 mt-1">
-                            <div className={`w-2 h-2 rounded-full ${getStatusColor(server.status)}`}></div>
-                            <span className="text-sm text-gray-600 dark:text-gray-400">
-                              {getStatusText(server.status)}
-                            </span>
+                          <div className="flex items-center space-x-3 mt-1">
+                            <div className="flex items-center space-x-2">
+                                                      <div className={`w-2 h-2 rounded-full ${getStateColor(server.state)}`}></div>
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {getStateText(server.state)}
+                        </span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <span className="text-base">{getTransportType(server).icon}</span>
+                              <span className={`text-sm font-medium ${getTransportType(server).color}`}>
+                                {getTransportType(server).type}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -292,7 +376,7 @@ export const Dashboard: React.FC = () => {
                     )}
 
                     {/* MCP Capabilities */}
-                    {server.status === 'connected' && (
+                                          {server.state === 'ready' && (
                       <div className="mb-4">
                         <div className="grid grid-cols-3 gap-4 text-center">
                           <div>
@@ -368,7 +452,7 @@ export const Dashboard: React.FC = () => {
                             Enable
                           </button>
                         )}
-                        {server.enabled && server.status !== 'connected' && (
+                        {server.enabled && server.state !== 'ready' && getTransportType(server).type === 'HTTP' && (
                           <button
                             onClick={() => handleConnect(server.id)}
                             className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
@@ -376,7 +460,12 @@ export const Dashboard: React.FC = () => {
                             Connect
                           </button>
                         )}
-                        {server.enabled && server.status === 'connected' && (
+                        {server.enabled && server.state !== 'ready' && getTransportType(server).type === 'STDIO' && (
+                          <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                            Auto-managed process
+                          </span>
+                        )}
+                        {server.enabled && server.state === 'ready' && (
                           <button
                             onClick={() => handleToggleEnabled(server.id, false)}
                             className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"

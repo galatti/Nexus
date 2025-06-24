@@ -156,7 +156,7 @@ app.on('web-contents-created', (_event, contents) => {
 
 // Import services
 import { configManager } from './config/ConfigManager.js';
-import { connectionManager } from './mcp/ConnectionManager.js';
+import { serverManager } from './mcp/ConnectionManager.js';
 import { llmManager } from './llm/LlmManager.js';
 import { templateManager } from './mcp/templates/TemplateManager.js';
 import { permissionManager } from './permissions/PermissionManager.js';
@@ -459,14 +459,14 @@ async function initializeServices(): Promise<void> {
     
 
     
-    // Connect to configured MCP servers
+    // Start configured MCP servers
     const updatedSettings = configManager.getSettings();
     for (const serverConfig of updatedSettings.mcp.servers) {
       if (serverConfig.enabled && serverConfig.autoStart) {
         try {
-          await connectionManager.connectToServer(serverConfig);
+          await serverManager.startServer(serverConfig);
         } catch (error) {
-          console.error(`Failed to auto-connect to MCP server ${serverConfig.name}:`, error);
+          console.error(`Failed to auto-start MCP server ${serverConfig.name}:`, error);
         }
       }
     }
@@ -533,33 +533,33 @@ ipcMain.handle('settings:set', async (_event, settings) => {
 });
 
 // MCP handlers
-ipcMain.handle('mcp:connect', async (_event, config) => {
+ipcMain.handle('mcp:start', async (_event, config) => {
   try {
-    await connectionManager.connectToServer(config);
+    await serverManager.startServer(config);
     
     // Save server configuration
     configManager.addMcpServer(config);
     
     return { success: true };
   } catch (error) {
-    console.error('MCP connection failed:', error);
+    console.error('MCP server start failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });
 
-ipcMain.handle('mcp:disconnect', async (_event, serverId) => {
+ipcMain.handle('mcp:stop', async (_event, serverId) => {
   try {
-    await connectionManager.disconnectFromServer(serverId);
+    await serverManager.stopServer(serverId);
     return { success: true };
   } catch (error) {
-    console.error('MCP disconnection failed:', error);
+    console.error('MCP server stop failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });
 
 ipcMain.handle('mcp:executeTool', async (_event, serverId, toolName, args) => {
   try {
-    const result = await connectionManager.executeTool(serverId, toolName, args);
+    const result = await serverManager.executeTool(serverId, toolName, args);
     return { success: true, result };
   } catch (error) {
     console.error('MCP tool execution failed:', error);
@@ -606,9 +606,9 @@ ipcMain.handle('mcp:generateServerFromTemplate', async (_event, templateId, conf
     // Save the server configuration
     configManager.addMcpServer(serverConfig);
     
-    // Auto-connect if enabled
+    // Auto-start if enabled
     if (serverConfig.enabled && serverConfig.autoStart) {
-      await connectionManager.connectToServer(serverConfig);
+      await serverManager.startServer(serverConfig);
     }
     
     return { success: true, serverConfig };
@@ -621,12 +621,12 @@ ipcMain.handle('mcp:generateServerFromTemplate', async (_event, templateId, conf
 ipcMain.handle('mcp:getServers', async (_event) => {
   try {
     const servers = configManager.getMcpServers();
-    // Add current connection status to each server
-    const serversWithStatus = servers.map(server => ({
+    // Add current server state to each server
+    const serversWithState = servers.map(server => ({
       ...server,
-      status: connectionManager.getConnectionStatus(server.id)?.status || 'disconnected'
+      state: serverManager.getServerState(server.id)?.state || 'configured'
     }));
-    return { success: true, servers: serversWithStatus };
+    return { success: true, servers: serversWithState };
   } catch (error) {
     console.error('Failed to get MCP servers:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -641,22 +641,22 @@ ipcMain.handle('mcp:testConnection', async (_event, serverId) => {
       throw new Error(`Server ${serverId} not found`);
     }
     
-    await connectionManager.connectToServer(server);
+    await serverManager.startServer(server);
     return { success: true };
   } catch (error) {
-    console.error('Failed to test connection:', error);
+    console.error('Failed to start server:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });
 
 ipcMain.handle('mcp:getServerCapabilities', async (_event, serverId) => {
   try {
-    const connection = connectionManager.getConnectionStatus(serverId);
-    if (!connection || connection.status !== 'connected') {
-      return { success: false, error: 'Server not connected' };
+    const serverState = serverManager.getServerState(serverId);
+    if (!serverState || serverState.state !== 'ready') {
+      return { success: false, error: 'Server not ready' };
     }
 
-    const tools = connectionManager.getAvailableTools(serverId);
+    const tools = serverManager.getAvailableTools(serverId);
     
     // TODO: Add resources and prompts when implemented
     const capabilities = {
@@ -675,7 +675,7 @@ ipcMain.handle('mcp:getServerCapabilities', async (_event, serverId) => {
 
 ipcMain.handle('mcp:getAllCapabilities', async (_event) => {
   try {
-    const allTools = connectionManager.getAllAvailableTools();
+    const allTools = serverManager.getAllAvailableTools();
     
     // Group tools by server
     const toolsByServer: Record<string, any[]> = {};
@@ -715,17 +715,17 @@ ipcMain.handle('mcp:updateServerEnabled', async (_event, serverId, enabled) => {
       autoStart: enabled // Also update autoStart to match
     });
     
-    // If disabling, disconnect the server
+    // If disabling, stop the server
     if (!enabled) {
-      await connectionManager.disconnectFromServer(serverId);
+      await serverManager.stopServer(serverId);
     }
-    // If enabling and autoStart is true, connect the server
+    // If enabling and autoStart is true, start the server
     else if (enabled && servers[serverIndex].autoStart) {
       try {
-        await connectionManager.connectToServer(servers[serverIndex]);
+        await serverManager.startServer(servers[serverIndex]);
       } catch (error) {
-        console.error(`Failed to auto-connect server ${serverId} after enabling:`, error);
-        // Don't fail the enable operation if connection fails
+        console.error(`Failed to auto-start server ${serverId} after enabling:`, error);
+        // Don't fail the enable operation if start fails
       }
     }
     
@@ -781,7 +781,7 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
     }));
     
     // Get available MCP tools and add them to the system message
-    const availableTools = connectionManager.getAllAvailableTools();
+    const availableTools = serverManager.getAllAvailableTools();
     console.log('LLM: Available tools:', availableTools.length, availableTools.map(t => t.name));
     
     // Check if we already have a system message with tools, if not add one
@@ -831,7 +831,7 @@ Your responses will be automatically formatted for better readability, but you s
     let finalResponse = response;
     console.log('LLM: Response content before parsing:', response.content);
     const toolCallRegex = /<tool_call>(.*?)<\/tool_call>/gs; // Added 's' flag for multiline
-    const toolCalls = [];
+    const toolCalls: Array<{ toolCall: any; fullMatch: string }> = [];
     let match;
     
     while ((match = toolCallRegex.exec(response.content)) !== null) {
@@ -844,21 +844,22 @@ Your responses will be automatically formatted for better readability, but you s
       }
     }
     
-    // Execute tool calls
+    // Execute tool calls in parallel for better performance
     if (toolCalls.length > 0) {
-      console.log('LLM: Executing tool calls:', toolCalls.length);
+      console.log('LLM: Executing tool calls in parallel:', toolCalls.length);
       let updatedContent = response.content;
       
-      for (const item of toolCalls) {
+      // Execute all tools in parallel
+      const toolExecutionPromises = toolCalls.map(async (item) => {
         const { toolCall, fullMatch } = item;
         try {
           console.log('LLM: Executing tool:', toolCall.tool, 'on server:', toolCall.serverId);
-          const toolResult = await connectionManager.executeTool(
+          const toolResult = await serverManager.executeTool(
             toolCall.serverId, 
             toolCall.tool, 
             toolCall.args || {}
           );
-          console.log('LLM: Tool result:', toolResult);
+          console.log('LLM: Tool result for', toolCall.tool, ':', toolResult);
           
           // Extract clean text from MCP result
           let resultText = '';
@@ -912,18 +913,43 @@ Your responses will be automatically formatted for better readability, but you s
           
           // Smart format the tool result
           const formattedResultText = formatToolResult(toolCall.tool, resultText);
-          
           const cleanResultText = `\n\n${formattedResultText}`;
-          console.log('LLM: Replacing:', fullMatch, 'with:', cleanResultText);
-          updatedContent = updatedContent.replace(fullMatch, cleanResultText);
+          
+          return {
+            fullMatch,
+            cleanResultText,
+            success: true
+          };
           
         } catch (error) {
-          console.error('LLM: Tool execution failed:', error);
+          console.error('LLM: Tool execution failed for', toolCall.tool, ':', error);
           const errorText = `\n\n❌ **Tool Error**: ${error instanceof Error ? error.message : String(error)}`;
-          console.log('LLM: Replacing:', fullMatch, 'with error:', errorText);
+          
+          return {
+            fullMatch,
+            cleanResultText: errorText,
+            success: false
+          };
+        }
+      });
+      
+      // Wait for all tool executions to complete
+      const toolResults = await Promise.allSettled(toolExecutionPromises);
+      
+      // Process results and update content
+      toolResults.forEach((result, index) => {
+        if (result.status === 'fulfilled') {
+          const { fullMatch, cleanResultText } = result.value;
+          console.log('LLM: Replacing:', fullMatch, 'with:', cleanResultText);
+          updatedContent = updatedContent.replace(fullMatch, cleanResultText);
+        } else {
+          // Handle promise rejection
+          const { fullMatch } = toolCalls[index];
+          const errorText = `\n\n❌ **Tool Error**: ${result.reason}`;
+          console.log('LLM: Replacing (promise rejected):', fullMatch, 'with error:', errorText);
           updatedContent = updatedContent.replace(fullMatch, errorText);
         }
-      }
+      });
       
       // If the response ends abruptly after tool results, add a helpful conclusion
       const trimmedContent = updatedContent.trim();
@@ -995,9 +1021,9 @@ ipcMain.handle('llm:getAvailableModels', async (_event, providerId) => {
 });
 
 // Event forwarding from services to renderer
-connectionManager.on('statusChange', (status) => {
-  console.log('Forwarding status change:', status.serverId, status.status, 'mainWindow exists:', !!mainWindow);
-  mainWindow?.webContents.send('mcp:serverStatusChange', status.serverId, status.status);
+serverManager.on('stateChange', (serverState) => {
+  console.log('Forwarding state change:', serverState.serverId, serverState.state, 'mainWindow exists:', !!mainWindow);
+  mainWindow?.webContents.send('mcp:serverStateChange', serverState.serverId, serverState.state);
 });
 
 llmManager.on('currentProviderChanged', (data) => {
@@ -1031,7 +1057,7 @@ const cleanup = async () => {
   console.log('Application cleanup started');
   
   try {
-    await connectionManager.disconnectAll();
+    await serverManager.stopAllServers();
     await llmManager.shutdown();
     console.log('Application cleanup completed');
   } catch (error) {
