@@ -2,6 +2,7 @@ import { McpServerTemplate, McpServerTemplateInfo, McpInstallationResult } from 
 import { FilesystemTemplate } from './FilesystemTemplate.js';
 import { WebSearchTemplate } from './WebSearchTemplate.js';
 import { WeatherTemplate } from './WeatherTemplate.js';
+import { AnubisTemplate } from './AnubisTemplate.js';
 import { McpServerConfig } from '../../../shared/types.js';
 import { logger } from '../../utils/logger.js';
 
@@ -16,7 +17,8 @@ export class TemplateManager {
     const templates = [
       new FilesystemTemplate(),
       new WebSearchTemplate(),
-      new WeatherTemplate()
+      new WeatherTemplate(),
+      new AnubisTemplate()
     ];
 
     for (const template of templates) {
