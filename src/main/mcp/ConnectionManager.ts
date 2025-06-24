@@ -136,13 +136,22 @@ export class ServerManager extends EventEmitter {
       console.error(`Failed to start MCP server ${config.name}:`, error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       
-      // Emit failed state
-      const failedState: ServerState = {
-        serverId: config.id,
-        state: 'failed',
-        error: errorMessage
+      // Store failed server info
+      const failedServer = {
+        client: null,
+        transport: null,
+        config,
+        state: {
+          serverId: config.id,
+          state: 'failed' as const,
+          error: errorMessage,
+          tools: []
+        }
       };
-      this.emit('stateChange', failedState);
+      this.servers.set(config.id, failedServer);
+      
+      // Emit failed state
+      this.emit('stateChange', failedServer.state);
       
       throw error;
     }
