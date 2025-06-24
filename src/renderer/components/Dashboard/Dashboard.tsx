@@ -198,79 +198,47 @@ export const Dashboard: React.FC = () => {
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                <svg className="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
-                </svg>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900">
+                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">MCP Servers</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Manage your integrations</p>
               </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">{servers.length}</p>
-                <p className="text-gray-600 dark:text-gray-400">Total Servers</p>
+              <div className="text-right">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{servers.length}</p>
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  {servers.filter(s => s.state === 'ready').length} active
+                </p>
               </div>
             </div>
           </div>
 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100 dark:bg-green-900">
-                <div className="w-6 h-6 bg-green-500 rounded-full"></div>
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center space-x-2 mb-2">
+                  <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-900">
+                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Capabilities</h3>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Available tools & resources</p>
               </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {servers.filter(s => s.state === 'ready').length}
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">Connected</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100 dark:bg-purple-900">
-                <svg className="w-6 h-6 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {totalCapabilities.tools}
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">Available Tools</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-orange-100 dark:bg-orange-900">
-                <svg className="w-6 h-6 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {totalCapabilities.resources}
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">Resources</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900">
-                <svg className="w-6 h-6 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {totalCapabilities.prompts}
-                </p>
-                <p className="text-gray-600 dark:text-gray-400">Prompts</p>
+              <div className="text-right">
+                <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalCapabilities.tools}</p>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  <span>{totalCapabilities.resources} resources</span> • <span>{totalCapabilities.prompts} prompts</span>
+                </div>
               </div>
             </div>
           </div>
@@ -334,38 +302,30 @@ export const Dashboard: React.FC = () => {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {servers.map((server) => (
                 <div
                   key={server.id}
                   className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all hover:border-blue-300 dark:hover:border-blue-600"
                 >
-                  {/* Server Card Header */}
-                  <div className="bg-gray-50 dark:bg-gray-700 px-4 py-2 border-b border-gray-200 dark:border-gray-600">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-lg">{getServerIcon(server)}</span>
-                      <span className="text-sm font-medium text-gray-900 dark:text-white">MCP Server</span>
-                    </div>
-                  </div>
-                  
                   <div className="p-6">
                     {/* Server Header */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-start justify-between mb-4">
                       <div className="flex items-center space-x-3">
-                        <span className="text-2xl">{getServerIcon(server)}</span>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
+                        <span className="text-3xl">{getServerIcon(server)}</span>
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                             {server.name}
                           </h3>
-                          <div className="flex items-center space-x-3 mt-1">
+                          <div className="flex items-center space-x-4 mt-2">
                             <div className="flex items-center space-x-2">
-                                                      <div className={`w-2 h-2 rounded-full ${getStateColor(server.state)}`}></div>
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          {getStateText(server.state)}
-                        </span>
+                              <div className={`w-3 h-3 rounded-full ${getStateColor(server.state)}`}></div>
+                              <span className="text-sm text-gray-600 dark:text-gray-400">
+                                {getStateText(server.state)}
+                              </span>
                             </div>
                             <div className="flex items-center space-x-1">
-                              <span className="text-base">{getTransportType(server).icon}</span>
+                              <span className="text-lg">{getTransportType(server).icon}</span>
                               <span className={`text-sm font-medium ${getTransportType(server).color}`}>
                                 {getTransportType(server).type}
                               </span>
@@ -383,47 +343,46 @@ export const Dashboard: React.FC = () => {
                     )}
 
                     {/* MCP Capabilities */}
-                                          {server.state === 'ready' && (
+                    {server.state === 'ready' && (
                       <div className="mb-4">
-                        <div className="grid grid-cols-3 gap-4 text-center">
-                          <div>
-                            <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
-                              {getServerCapabilities(server.id).tools}
-                            </p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">Tools</p>
-                          </div>
-                          <div>
-                            <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                              {getServerCapabilities(server.id).resources}
-                            </p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">Resources</p>
-                          </div>
-                          <div>
-                            <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                              {getServerCapabilities(server.id).prompts}
-                            </p>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">Prompts</p>
+                        <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 rounded-lg p-3 mb-3">
+                          <div className="flex items-center space-x-6">
+                            <div className="text-center">
+                              <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                                {getServerCapabilities(server.id).tools}
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">Tools</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                                {getServerCapabilities(server.id).resources}
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">Resources</p>
+                            </div>
+                            <div className="text-center">
+                              <p className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                                {getServerCapabilities(server.id).prompts}
+                              </p>
+                              <p className="text-xs text-gray-600 dark:text-gray-400">Prompts</p>
+                            </div>
                           </div>
                         </div>
                         
                         {getServerCapabilities(server.id).toolsList.length > 0 && (
-                          <div className="mt-3">
+                          <div>
                             <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
-                              Available Tools
+                              Available Tools ({getServerCapabilities(server.id).toolsList.length})
                             </h4>
-                            <div className="space-y-1">
-                              {getServerCapabilities(server.id).toolsList.slice(0, 3).map((tool: any, index: number) => (
-                                <div key={index} className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">{tool.name}</span>
-                                  {tool.description && (
-                                    <span className="ml-2">- {tool.description}</span>
-                                  )}
-                                </div>
+                            <div className="flex flex-wrap gap-1">
+                              {getServerCapabilities(server.id).toolsList.slice(0, 4).map((tool: any, index: number) => (
+                                <span key={index} className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-xs rounded-full">
+                                  {tool.name}
+                                </span>
                               ))}
-                              {getServerCapabilities(server.id).toolsList.length > 3 && (
-                                <div className="text-xs text-gray-500 dark:text-gray-500">
-                                  +{getServerCapabilities(server.id).toolsList.length - 3} more tools
-                                </div>
+                              {getServerCapabilities(server.id).toolsList.length > 4 && (
+                                <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded-full">
+                                  +{getServerCapabilities(server.id).toolsList.length - 4} more
+                                </span>
                               )}
                             </div>
                           </div>
@@ -432,54 +391,56 @@ export const Dashboard: React.FC = () => {
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-2 text-xs">
-                        {server.enabled ? (
-                          <span className="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full">
-                            Enabled
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full">
-                            Disabled
-                          </span>
-                        )}
-                        {server.autoStart && (
-                          <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full">
-                            Auto-start
-                          </span>
-                        )}
-                      </div>
+                    <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {server.enabled ? (
+                            <span className="px-3 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full text-sm font-medium">
+                              ✓ Enabled
+                            </span>
+                          ) : (
+                            <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-full text-sm">
+                              Disabled
+                            </span>
+                          )}
+                          {server.autoStart && (
+                            <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
+                              Auto-start
+                            </span>
+                          )}
+                        </div>
 
-                      <div className="flex items-center space-x-2">
-                        {!server.enabled && (
-                          <button
-                            onClick={() => handleToggleEnabled(server.id, true)}
-                            className="px-3 py-1 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors"
-                          >
-                            Enable
-                          </button>
-                        )}
-                        {server.enabled && server.state !== 'ready' && getTransportType(server).type === 'HTTP' && (
-                          <button
-                            onClick={() => handleConnect(server.id)}
-                            className="px-3 py-1 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-                          >
-                            Connect
-                          </button>
-                        )}
-                        {server.enabled && server.state !== 'ready' && getTransportType(server).type === 'STDIO' && (
-                          <span className="text-sm text-gray-500 dark:text-gray-400 italic">
-                            Auto-managed process
-                          </span>
-                        )}
-                        {server.enabled && server.state === 'ready' && (
-                          <button
-                            onClick={() => handleToggleEnabled(server.id, false)}
-                            className="px-3 py-1 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors"
-                          >
-                            Disable
-                          </button>
-                        )}
+                        <div className="flex items-center space-x-2">
+                          {!server.enabled && (
+                            <button
+                              onClick={() => handleToggleEnabled(server.id, true)}
+                              className="px-4 py-2 bg-green-600 text-white text-sm rounded-md hover:bg-green-700 transition-colors font-medium"
+                            >
+                              Enable
+                            </button>
+                          )}
+                          {server.enabled && server.state !== 'ready' && getTransportType(server).type === 'HTTP' && (
+                            <button
+                              onClick={() => handleConnect(server.id)}
+                              className="px-4 py-2 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors font-medium"
+                            >
+                              Connect
+                            </button>
+                          )}
+                          {server.enabled && server.state !== 'ready' && getTransportType(server).type === 'STDIO' && (
+                            <span className="text-sm text-gray-500 dark:text-gray-400 italic">
+                              Auto-managed
+                            </span>
+                          )}
+                          {server.enabled && server.state === 'ready' && (
+                            <button
+                              onClick={() => handleToggleEnabled(server.id, false)}
+                              className="px-4 py-2 bg-gray-600 text-white text-sm rounded-md hover:bg-gray-700 transition-colors font-medium"
+                            >
+                              Disable
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
