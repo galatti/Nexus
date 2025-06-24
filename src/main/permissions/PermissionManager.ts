@@ -10,6 +10,12 @@ export interface ToolPermission {
   expiresAt?: Date;
   grantedAt?: Date;
   riskLevel: 'low' | 'medium' | 'high';
+  // Security improvements
+  allowedPaths?: string[];     // For file operations
+  allowedDomains?: string[];   // For web operations
+  argumentPattern?: string;    // Hash of approved argument pattern
+  usageCount?: number;         // Track how many times used
+  lastUsed?: Date;            // Track last usage
 }
 
 export interface PendingApproval {
@@ -39,6 +45,11 @@ export interface PermissionSettings {
   requireApprovalForNetworkAccess: boolean;
   requireApprovalForSystemCommands: boolean;
   trustedServers: string[];
+  // Security improvements
+  alwaysPermissionDuration: number; // days (default 7 instead of 30)
+  enableArgumentValidation: boolean;
+  enablePermissionExpireNotifications: boolean;
+  maxSessionPermissions: number; // Limit number of session permissions
 }
 
 export class PermissionManager extends EventEmitter {
@@ -57,7 +68,12 @@ export class PermissionManager extends EventEmitter {
       requireApprovalForFileAccess: true, // Require approval for file access to show permission UI
       requireApprovalForNetworkAccess: true,
       requireApprovalForSystemCommands: true,
-      trustedServers: []
+      trustedServers: [],
+      // Security improvements
+      alwaysPermissionDuration: 7, // 7 days instead of 30
+      enableArgumentValidation: true,
+      enablePermissionExpireNotifications: true,
+      maxSessionPermissions: 50 // Reasonable limit
     };
   }
 
@@ -73,12 +89,17 @@ export class PermissionManager extends EventEmitter {
     if (existingPermission) {
       if (existingPermission.permission === 'allow') {
         // Check if permission is still valid
-        if (this.isPermissionValid(existingPermission)) {
-          logger.info(`Tool execution approved by existing permission: ${tool.name}`);
+        if (this.isPermissionValid(existingPermission, args)) {
+          // Update usage statistics
+          existingPermission.usageCount = (existingPermission.usageCount || 0) + 1;
+          existingPermission.lastUsed = new Date();
+          
+          logger.info(`Tool execution approved by existing permission: ${tool.name} (used ${existingPermission.usageCount} times)`);
           return true;
         } else {
-          // Permission expired, remove it
+          // Permission expired or invalid arguments, remove it
           this.permissions.delete(permissionKey);
+          logger.info(`Removed invalid/expired permission: ${tool.name}`);
         }
       } else if (existingPermission.permission === 'deny') {
         logger.info(`Tool execution denied by existing permission: ${tool.name}`);
@@ -136,7 +157,7 @@ export class PermissionManager extends EventEmitter {
           if (result.approved) {
             // Store permission based on scope
             if (result.scope && result.scope !== 'once') {
-              this.storePermission(serverConfig.id, tool.name, result.scope, riskAssessment.level);
+              this.storePermission(serverConfig.id, tool.name, result.scope, riskAssessment.level, args);
             }
           }
           
@@ -261,7 +282,8 @@ export class PermissionManager extends EventEmitter {
     serverId: string,
     toolName: string,
     scope: 'session' | 'always',
-    riskLevel: 'low' | 'medium' | 'high'
+    riskLevel: 'low' | 'medium' | 'high',
+    args?: Record<string, unknown>
   ): void {
     const permissionKey = this.getPermissionKey(serverId, toolName);
     
@@ -271,27 +293,75 @@ export class PermissionManager extends EventEmitter {
       permission: 'allow',
       scope,
       riskLevel,
-      grantedAt: new Date()
+      grantedAt: new Date(),
+      usageCount: 0,
+      lastUsed: new Date()
     };
 
-    if (scope === 'session') {
-      this.sessionPermissions.add(permissionKey);
-    } else {
-      // For 'always' scope, set expiration to 30 days
-      permission.expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      this.permissions.set(permissionKey, permission);
+    // Extract security context from arguments
+    if (args && this.settings.enableArgumentValidation) {
+      permission.argumentPattern = this.hashArguments(args);
+      
+      // Extract allowed paths for file operations
+      if (args.path && typeof args.path === 'string') {
+        permission.allowedPaths = [args.path];
+      }
+      
+      // Extract allowed domains for web operations
+      if (args.url && typeof args.url === 'string') {
+        try {
+          const url = new URL(args.url);
+          permission.allowedDomains = [url.hostname];
+        } catch {
+          // Invalid URL, no domain restriction
+        }
+      }
     }
 
-    logger.info(`Permission stored: ${toolName} (${scope})`);
+    if (scope === 'session') {
+      // Check session permission limits
+      if (this.sessionPermissions.size >= this.settings.maxSessionPermissions) {
+        logger.warn(`Session permission limit reached (${this.settings.maxSessionPermissions}), clearing oldest`);
+        this.clearOldestSessionPermission();
+      }
+      
+      const sessionKey = args 
+        ? this.getSessionKey(serverId, toolName, this.hashArguments(args))
+        : this.getSessionKey(serverId, toolName);
+      
+      this.sessionPermissions.add(sessionKey);
+    } else {
+      // For 'always' scope, use configurable duration
+      const durationMs = this.settings.alwaysPermissionDuration * 24 * 60 * 60 * 1000;
+      permission.expiresAt = new Date(Date.now() + durationMs);
+      this.permissions.set(permissionKey, permission);
+      
+      // Schedule expiration notification
+      if (this.settings.enablePermissionExpireNotifications) {
+        this.scheduleExpirationNotification(permission);
+      }
+    }
+
+    logger.info(`Permission stored: ${toolName} (${scope}) for server ${serverId}${args ? ' with argument validation' : ''}`);
   }
 
-  private isPermissionValid(permission: ToolPermission): boolean {
+  private isPermissionValid(permission: ToolPermission, args?: Record<string, unknown>): boolean {
     if (permission.scope === 'session') {
-      const permissionKey = this.getPermissionKey(permission.serverId, permission.toolName);
-      return this.sessionPermissions.has(permissionKey);
+      // Check session permissions with server-specific keys
+      const argsHash = args ? this.hashArguments(args) : undefined;
+      const sessionKey = this.getSessionKey(permission.serverId, permission.toolName, argsHash);
+      const baseSessionKey = this.getSessionKey(permission.serverId, permission.toolName);
+      
+      // Allow both specific argument pattern and general tool permission
+      return this.sessionPermissions.has(sessionKey) || this.sessionPermissions.has(baseSessionKey);
     }
 
     if (permission.expiresAt && permission.expiresAt < new Date()) {
+      return false;
+    }
+
+    // Validate arguments against stored permission
+    if (args && !this.validateArguments(permission, args)) {
       return false;
     }
 
@@ -300,6 +370,22 @@ export class PermissionManager extends EventEmitter {
 
   private getPermissionKey(serverId: string, toolName: string): string {
     return `${serverId}:${toolName}`;
+  }
+
+  private getSessionKey(serverId: string, toolName: string, argsHash?: string): string {
+    // More specific session keys to prevent cross-server permission sharing
+    const baseKey = `session:${serverId}:${toolName}`;
+    return argsHash ? `${baseKey}:${argsHash}` : baseKey;
+  }
+
+  private hashArguments(args: Record<string, unknown>): string {
+    // Create a simple hash of arguments for pattern matching
+    try {
+      const sortedArgs = JSON.stringify(args, Object.keys(args).sort());
+      return Buffer.from(sortedArgs).toString('base64').substring(0, 16);
+    } catch {
+      return 'unknown';
+    }
   }
 
   // Public API methods
@@ -353,10 +439,119 @@ export class PermissionManager extends EventEmitter {
     this.emit('settingsChanged', this.settings);
   }
 
+  clearExpiredPermissions(): number {
+    const now = new Date();
+    let clearedCount = 0;
+    
+    // Remove expired permissions
+    for (const [key, permission] of this.permissions.entries()) {
+      if (permission.expiresAt && permission.expiresAt < now) {
+        this.permissions.delete(key);
+        clearedCount++;
+        logger.info(`Cleared expired permission: ${permission.toolName} for ${permission.serverId}`);
+      }
+    }
+    
+    if (clearedCount > 0) {
+      this.emit('expiredPermissionsCleared', clearedCount);
+    }
+    
+    return clearedCount;
+  }
+
   clearAllPermissions(): void {
     this.permissions.clear();
     this.sessionPermissions.clear();
     this.emit('permissionsChanged');
+  }
+
+  private clearOldestSessionPermission(): void {
+    // Remove the first (oldest) session permission
+    const firstKey = this.sessionPermissions.values().next().value;
+    if (firstKey) {
+      this.sessionPermissions.delete(firstKey);
+      logger.info(`Removed oldest session permission: ${firstKey}`);
+    }
+  }
+
+  private scheduleExpirationNotification(permission: ToolPermission): void {
+    if (!permission.expiresAt) return;
+    
+    const timeUntilExpiration = permission.expiresAt.getTime() - Date.now();
+    const oneDayBeforeExpiration = timeUntilExpiration - (24 * 60 * 60 * 1000);
+    
+    if (oneDayBeforeExpiration > 0) {
+      setTimeout(() => {
+        logger.warn(`Permission expiring soon: ${permission.toolName} for server ${permission.serverId}`);
+        this.emit('permissionExpiringSoon', permission);
+      }, oneDayBeforeExpiration);
+    }
+  }
+
+  // Security improvement: Validate arguments against stored permission
+  private validateArguments(permission: ToolPermission, args: Record<string, unknown>): boolean {
+    if (!this.settings.enableArgumentValidation || !permission.argumentPattern) {
+      return true; // No validation required
+    }
+
+    const argsHash = this.hashArguments(args);
+    if (permission.argumentPattern !== argsHash) {
+      logger.warn(`Argument pattern mismatch for ${permission.toolName}: expected ${permission.argumentPattern}, got ${argsHash}`);
+      return false;
+    }
+
+    // Validate allowed paths
+    if (permission.allowedPaths && args.path) {
+      const requestedPath = String(args.path);
+      const isAllowed = permission.allowedPaths.some(allowedPath => 
+        requestedPath.startsWith(allowedPath)
+      );
+      if (!isAllowed) {
+        logger.warn(`Path not allowed: ${requestedPath} (allowed: ${permission.allowedPaths.join(', ')})`);
+        return false;
+      }
+    }
+
+    // Validate allowed domains
+    if (permission.allowedDomains && args.url) {
+      try {
+        const url = new URL(String(args.url));
+        const isAllowed = permission.allowedDomains.includes(url.hostname);
+        if (!isAllowed) {
+          logger.warn(`Domain not allowed: ${url.hostname} (allowed: ${permission.allowedDomains.join(', ')})`);
+          return false;
+        }
+      } catch {
+        logger.warn(`Invalid URL in arguments: ${args.url}`);
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  // Get permission usage statistics
+  getPermissionStats(): { total: number; session: number; expired: number; expiringSoon: number } {
+    const now = new Date();
+    const oneDayFromNow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    
+    let expired = 0;
+    let expiringSoon = 0;
+    
+    for (const permission of this.permissions.values()) {
+      if (permission.expiresAt && permission.expiresAt < now) {
+        expired++;
+      } else if (permission.expiresAt && permission.expiresAt < oneDayFromNow) {
+        expiringSoon++;
+      }
+    }
+    
+    return {
+      total: this.permissions.size,
+      session: this.sessionPermissions.size,
+      expired,
+      expiringSoon
+    };
   }
 }
 

@@ -441,6 +441,67 @@ function getToolIcon(toolName: string): string {
   return '🔧'; // Default tool icon
 }
 
+function generateToolSummary(toolName: string, result: unknown): string {
+  try {
+    if (!result) return 'No result';
+    
+    // Handle MCP result format
+    if (typeof result === 'object' && result !== null && 'content' in result) {
+      const content = (result as any).content;
+      if (Array.isArray(content)) {
+        const textContent = content
+          .filter((item: any) => item.type === 'text')
+          .map((item: any) => item.text)
+          .join(' ');
+        
+        // Generate summary based on tool type
+        switch (toolName) {
+          case 'list_allowed_directories':
+          case 'list_directory':
+            const lines = textContent.split('\n').filter(line => line.trim());
+            return `Found ${lines.length} items`;
+          
+          case 'read_file':
+            const lineCount = textContent.split('\n').length;
+            const charCount = textContent.length;
+            return `Read ${lineCount} lines (${charCount} characters)`;
+          
+          case 'search_files':
+            const matches = textContent.split('\n').filter(line => line.trim());
+            return `Found ${matches.length} matches`;
+          
+          case 'web_search':
+            if (textContent.includes('results')) {
+              const resultCount = (textContent.match(/\d+\.\s/g) || []).length;
+              return `Found ${resultCount} search results`;
+            }
+            return 'Search completed';
+          
+          case 'get_weather':
+          case 'weather':
+            if (textContent.includes('temperature') || textContent.includes('°')) {
+              return 'Weather data retrieved';
+            }
+            return 'Weather lookup completed';
+          
+          default:
+            return 'Completed successfully';
+        }
+      }
+    }
+    
+    // Handle simple string results
+    if (typeof result === 'string') {
+      const lines = result.split('\n').filter(line => line.trim());
+      return `Returned ${lines.length} lines`;
+    }
+    
+    return 'Operation completed';
+  } catch (error) {
+    return 'Result processed';
+  }
+}
+
 // Initialize services
 async function initializeServices(): Promise<void> {
   try {
@@ -769,97 +830,230 @@ ipcMain.handle('permissions:respond', (_event, approvalId, result) => {
   }
 });
 
+// Additional permission management handlers
+ipcMain.handle('permissions:getAll', () => {
+  try {
+    const permissions = permissionManager.getAllPermissions();
+    // Convert dates to strings for serialization
+    const serializable = permissions.map(permission => ({
+      ...permission,
+      grantedAt: permission.grantedAt?.toISOString(),
+      expiresAt: permission.expiresAt?.toISOString(),
+      lastUsed: permission.lastUsed?.toISOString()
+    }));
+    return { success: true, data: serializable };
+  } catch (error) {
+    console.error('Failed to get all permissions:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('permissions:getStats', () => {
+  try {
+    const stats = permissionManager.getPermissionStats();
+    return { success: true, data: stats };
+  } catch (error) {
+    console.error('Failed to get permission stats:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('permissions:revoke', (_event, serverId, toolName) => {
+  try {
+    const success = permissionManager.revokePermission(serverId, toolName);
+    return { success };
+  } catch (error) {
+    console.error('Failed to revoke permission:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('permissions:clearSession', () => {
+  try {
+    permissionManager.clearSessionPermissions();
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to clear session permissions:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('permissions:clearAll', () => {
+  try {
+    permissionManager.clearAllPermissions();
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to clear all permissions:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('permissions:clearExpired', () => {
+  try {
+    const clearedCount = permissionManager.clearExpiredPermissions();
+    return { success: true, clearedCount };
+  } catch (error) {
+    console.error('Failed to clear expired permissions:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+// Function to detect tool usage from response content
+function detectToolUsageFromContent(content: string, availableTools: Array<{ serverId: string; name: string; description: string }>): Array<{ id: string; name: string; args: Record<string, unknown> }> {
+  const detectedTools: Array<{ id: string; name: string; args: Record<string, unknown> }> = [];
+  
+  // Patterns to detect common tool usage scenarios
+  const toolPatterns = [
+    // File operations
+    { 
+      pattern: /content of.*?`([^`]+\.(txt|md|js|ts|json|py|html|css|yml|yaml|xml|ini|cfg|conf))`/i,
+      toolName: 'read_file',
+      extractArgs: (match: RegExpMatchArray) => ({ path: match[1] })
+    },
+    {
+      pattern: /reading.*?file.*?`([^`]+)`/i,
+      toolName: 'read_file', 
+      extractArgs: (match: RegExpMatchArray) => ({ path: match[1] })
+    },
+    {
+      pattern: /Here.*?content.*?`([^`]+)`.*?file/i,
+      toolName: 'read_file',
+      extractArgs: (match: RegExpMatchArray) => ({ path: match[1] })
+    },
+    // Directory operations
+    {
+      pattern: /directory listing|files.*?directories|listing.*?contents/i,
+      toolName: 'list_directory',
+      extractArgs: () => ({ path: '.' })
+    },
+    // Search operations
+    {
+      pattern: /search.*?results|found.*?matching|searching.*?for/i,
+      toolName: 'brave_web_search',
+      extractArgs: () => ({ query: 'search query' })
+    },
+    // Weather operations
+    {
+      pattern: /weather.*?forecast|current.*?weather|temperature.*?conditions/i,
+      toolName: 'get-forecast',
+      extractArgs: () => ({ location: 'location' })
+    }
+  ];
+
+  // Check each pattern against the content
+  for (const { pattern, toolName, extractArgs } of toolPatterns) {
+    const match = content.match(pattern);
+    if (match) {
+      // Find the actual tool in available tools
+      const tool = availableTools.find(t => t.name === toolName);
+      if (tool) {
+        const toolId = `detected-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        detectedTools.push({
+          id: toolId,
+          name: toolName,
+          args: extractArgs(match)
+        });
+        
+        console.log('🔍 Detected tool usage:', {
+          toolName,
+          pattern: pattern.toString(),
+          match: match[0],
+          args: extractArgs(match)
+        });
+        
+        // Only detect one tool per response to avoid duplicates
+        break;
+      }
+    }
+  }
+
+  return detectedTools;
+}
+
 // LLM handlers
 ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = {}) => {
   try {
-    // conversationHistory is now an array of ChatMessage objects
-    const messages = conversationHistory.map((msg: any) => ({
-      id: msg.id,
-      role: msg.role as 'user' | 'assistant' | 'system',
-      content: msg.content,
-      timestamp: new Date(msg.timestamp)
-    }));
+    let messages = [...conversationHistory];
+    let extractedToolCalls: Array<{ id: string; name: string; args: Record<string, unknown> }> = [];
     
-    // Get available MCP tools and add them to the system message
+    // Get available tools and convert to OpenRouter format
     const availableTools = serverManager.getAllAvailableTools();
-    console.log('LLM: Available tools:', availableTools.length, availableTools.map(t => t.name));
+    let tools: Array<{ type: 'function'; function: { name: string; description: string; parameters: any; } }> = [];
     
-    // Check if we already have a system message with tools, if not add one
-    const hasSystemMessage = messages.some((msg: any) => msg.role === 'system' && msg.content.includes('Model Context Protocol'));
-    
-    if (availableTools.length > 0 && !hasSystemMessage) {
-      const toolsMessage = {
-        id: 'system-tools',
-        role: 'system' as const,
-        content: `You have access to the following tools through the Model Context Protocol (MCP):
+    if (availableTools.length > 0) {
+      tools = availableTools.map(tool => ({
+        type: 'function' as const,
+        function: {
+          name: `${tool.serverId}__${tool.name}`,
+          description: `${tool.description} (Server: ${tool.serverId})`,
+          parameters: tool.inputSchema || { type: 'object', properties: {} }
+        }
+      }));
 
-${availableTools.map((tool: any) => 
-  `**${tool.name}** (from ${tool.serverId}): ${tool.description}
-  Parameters: ${JSON.stringify(tool.inputSchema, null, 2)}`
-).join('\n\n')}
-
-When the user asks you to perform an action that matches one of these tools, you should:
-1. First respond with what you're going to do
-2. Then call the tool using this format: <tool_call>{"tool": "tool_name", "serverId": "server_id", "args": {...}}</tool_call>
-3. After the tool call, continue your response as if the tool result will be inserted
-4. The tool result will be automatically included, so you should provide context and explanation
-
-For example, if user says "list files", respond with:
-"I'll check the available directories and then list the files for you. <tool_call>{"tool": "list_allowed_directories", "serverId": "filesystem-1750707971824", "args": {}}</tool_call>
-
-Based on the available directories above, I can help you navigate and list files in your accessible locations."
-
-IMPORTANT: Always provide clear, well-structured responses. When presenting search results or complex information:
-- Use clear headings and sections
-- Break up long text into digestible chunks
-- Highlight key information (coordinates, temperatures, etc.)
-- Provide context and explanations
-- Use bullet points for lists
-- Include relevant emojis for visual clarity
-
-Your responses will be automatically formatted for better readability, but you should still structure your content logically.`,
-        timestamp: new Date()
-      } as any;
-      
-      // Add system message with tools info at the beginning
-      messages.unshift(toolsMessage);
+      console.log('LLM: Available tools for function calling:', tools.length);
     }
-    
-    const response = await llmManager.sendMessage(messages, options);
-    
-    // Parse response for tool calls
+
+    // Make initial LLM request with tools
+    const response = await llmManager.sendMessage(messages, {
+      ...options,
+      tools: tools.length > 0 ? tools : undefined
+    });
+
+    console.log('LLM: Response received:', {
+      hasContent: !!response.content,
+      hasToolCalls: !!response.toolCalls,
+      toolCallsCount: response.toolCalls?.length || 0,
+      actualToolCalls: response.toolCalls,
+      contentPreview: response.content?.substring(0, 200) + '...'
+    });
+
+    // Handle tool calls if present (native OpenRouter tool calling)
     let finalResponse = response;
-    console.log('LLM: Response content before parsing:', response.content);
-    const toolCallRegex = /<tool_call>(.*?)<\/tool_call>/gs; // Added 's' flag for multiline
-    const toolCalls: Array<{ toolCall: any; fullMatch: string }> = [];
-    let match;
     
-    while ((match = toolCallRegex.exec(response.content)) !== null) {
-      console.log('LLM: Found tool call match:', match[0]);
-      try {
-        const toolCall = JSON.parse(match[1]);
-        toolCalls.push({ toolCall, fullMatch: match[0] });
-      } catch (error) {
-        console.error('Failed to parse tool call:', match[1], error);
-      }
-    }
-    
-    // Execute tool calls in parallel for better performance
-    if (toolCalls.length > 0) {
-      console.log('LLM: Executing tool calls in parallel:', toolCalls.length);
-      let updatedContent = response.content;
+    if (response.toolCalls && response.toolCalls.length > 0) {
+      console.log('LLM: Processing native tool calls:', response.toolCalls.length);
       
-      // Execute all tools in parallel
-      const toolExecutionPromises = toolCalls.map(async (item) => {
-        const { toolCall, fullMatch } = item;
+      // Extract tool calls for frontend display
+      extractedToolCalls = response.toolCalls.map(toolCall => {
+        const [serverId, toolName] = toolCall.function.name.split('__');
+        let args = {};
         try {
-          console.log('LLM: Executing tool:', toolCall.tool, 'on server:', toolCall.serverId);
-          const toolResult = await serverManager.executeTool(
-            toolCall.serverId, 
-            toolCall.tool, 
-            toolCall.args || {}
-          );
-          console.log('LLM: Tool result for', toolCall.tool, ':', toolResult);
+          args = JSON.parse(toolCall.function.arguments);
+        } catch (error) {
+          console.error('Failed to parse tool arguments:', toolCall.function.arguments, error);
+        }
+        
+        return {
+          id: toolCall.id,
+          name: toolName,
+          args
+        };
+      });
+
+      // Add the assistant message with tool calls to conversation
+      messages.push({
+        id: `assistant-${Date.now()}`,
+        role: 'assistant',
+        content: response.content || '',
+        timestamp: new Date(),
+        tokens: response.tokens
+      });
+
+      // Execute all tools in parallel
+      const toolExecutionPromises = response.toolCalls.map(async (toolCall) => {
+        const [serverId, toolName] = toolCall.function.name.split('__');
+        
+        try {
+          let args = {};
+          try {
+            args = JSON.parse(toolCall.function.arguments);
+          } catch (error) {
+            console.error('Failed to parse tool arguments:', toolCall.function.arguments, error);
+          }
+          
+          console.log('LLM: Executing tool:', toolName, 'on server:', serverId, 'with args:', args);
+          const toolResult = await serverManager.executeTool(serverId, toolName, args);
+          console.log('LLM: Tool result for', toolName, ':', toolResult);
           
           // Extract clean text from MCP result
           let resultText = '';
@@ -876,58 +1070,30 @@ Your responses will be automatically formatted for better readability, but you s
           
           // Fix corrupted Unicode characters and HTML entities
           const unicodeFixes: Array<[RegExp, string]> = [
-            // Common corrupted emojis
-            [/≡ƒìà/g, '🍅'], // Tomato emoji
-            [/ΓÅ░/g, '⏰'],   // Clock emoji  
-            [/≡ƒôè/g, '📊'], // Chart emoji
-            [/≡ƒÄ»/g, '🎯'], // Target emoji
-            [/ΓÅ╕∩╕Å/g, '⏸️'], // Pause emoji
-            [/≡ƒÅ¡/g, '☕'], // Coffee emoji
-            [/≡ƒÅ╗/g, '🧘'], // Meditation emoji
-            [/≡ƒôü/g, '🔄'], // Refresh emoji
-            [/≡ƒöì/g, '🔍'], // Search emoji
-            [/ΓÇó/g, '•'],   // Bullet point
-            [/├úo/g, 'ão'],  // Portuguese ão
-            [/╔É╠â╦êpin╔És/g, 'kɐ̃ˈpinɐs'], // Campinas pronunciation
-            [/ΓÇª/g, '...'], // Ellipsis
-            [/┬░/g, '°'],    // Degree symbol
-            [/├úo Paulo/g, 'São Paulo'], // São Paulo
-            [/S├úo/g, 'São'], // São
-            [/╔É/g, 'ɐ'],    // Schwa
-            [/╠â/g, '̃'],     // Tilde combining
-            [/╦ê/g, 'ˈ'],    // Primary stress
-            [/pin╔És/g, 'pinɐs'], // Campinas ending
-            [/╔ç/g, 'ɛ'],    // Open-mid front unrounded vowel
-            [/ΓçÉ/g, '→'],   // Right arrow
-            [/ΓçÆ/g, '←'],   // Left arrow
-            [/&#x27;/g, "'"], // Apostrophe
-            [/&quot;/g, '"'], // Quote
-            [/&lt;/g, '<'],   // Less than
-            [/&gt;/g, '>'],   // Greater than
-            [/&amp;/g, '&'],  // Ampersand
+            [/≡ƒìà/g, '🍅'], [/ΓÅ░/g, '⏰'], [/≡ƒôè/g, '📊'], [/≡ƒÄ»/g, '🎯'],
+            [/ΓÅ╕∩╕Å/g, '⏸️'], [/≡ƒÅ¡/g, '☕'], [/≡ƒÅ╗/g, '🧘'], [/≡ƒôü/g, '🔄'],
+            [/≡ƒöì/g, '🔍'], [/ΓÇó/g, '•'], [/├úo/g, 'ão'], [/ΓÇª/g, '...'],
+            [/┬░/g, '°'], [/├úo Paulo/g, 'São Paulo'], [/S├úo/g, 'São'],
+            [/&#x27;/g, "'"], [/&quot;/g, '"'], [/&lt;/g, '<'], [/&gt;/g, '>'], [/&amp;/g, '&']
           ];
           
           for (const [corrupted, fixed] of unicodeFixes) {
             resultText = resultText.replace(corrupted, fixed);
           }
           
-          // Smart format the tool result
-          const formattedResultText = formatToolResult(toolCall.tool, resultText);
-          const cleanResultText = `\n\n${formattedResultText}`;
-          
           return {
-            fullMatch,
-            cleanResultText,
+            toolCallId: toolCall.id,
+            name: toolName,
+            content: resultText,
             success: true
           };
           
         } catch (error) {
-          console.error('LLM: Tool execution failed for', toolCall.tool, ':', error);
-          const errorText = `\n\n❌ **Tool Error**: ${error instanceof Error ? error.message : String(error)}`;
-          
+          console.error('LLM: Tool execution failed for', toolName, ':', error);
           return {
-            fullMatch,
-            cleanResultText: errorText,
+            toolCallId: toolCall.id,
+            name: toolName,
+            content: `Error: ${error instanceof Error ? error.message : String(error)}`,
             success: false
           };
         }
@@ -936,55 +1102,47 @@ Your responses will be automatically formatted for better readability, but you s
       // Wait for all tool executions to complete
       const toolResults = await Promise.allSettled(toolExecutionPromises);
       
-      // Process results and update content
+      // Add tool result messages to conversation
       toolResults.forEach((result, index) => {
         if (result.status === 'fulfilled') {
-          const { fullMatch, cleanResultText } = result.value;
-          console.log('LLM: Replacing:', fullMatch, 'with:', cleanResultText);
-          updatedContent = updatedContent.replace(fullMatch, cleanResultText);
+          const { toolCallId, name, content } = result.value;
+          messages.push({
+            id: `tool-${Date.now()}-${index}`,
+            role: 'tool',
+            content: content,
+            timestamp: new Date(),
+            tool_call_id: toolCallId,
+            name: name
+          });
         } else {
           // Handle promise rejection
-          const { fullMatch } = toolCalls[index];
-          const errorText = `\n\n❌ **Tool Error**: ${result.reason}`;
-          console.log('LLM: Replacing (promise rejected):', fullMatch, 'with error:', errorText);
-          updatedContent = updatedContent.replace(fullMatch, errorText);
+          const toolCall = response.toolCalls![index];
+          const [, toolName] = toolCall.function.name.split('__');
+          messages.push({
+            id: `tool-error-${Date.now()}-${index}`,
+            role: 'tool',
+            content: `Error: ${result.reason}`,
+            timestamp: new Date(),
+            tool_call_id: toolCall.id,
+            name: toolName
+          });
         }
       });
       
-      // If the response ends abruptly after tool results, add a helpful conclusion
-      const trimmedContent = updatedContent.trim();
-      const lines = trimmedContent.split('\n');
-      const lastLine = lines[lines.length - 1];
+      // Make second LLM request with tool results
+      console.log('LLM: Sending follow-up request with tool results');
+      finalResponse = await llmManager.sendMessage(messages, {
+        ...options,
+        tools: tools.length > 0 ? tools : undefined
+      });
+    } else {
+      // Fallback: Detect tool usage from content when OpenRouter doesn't provide tool calls
+      console.log('LLM: No native tool calls detected, analyzing content for tool usage...');
+      extractedToolCalls = detectToolUsageFromContent(response.content, availableTools);
       
-      console.log('LLM: Checking for follow-up. Last line:', lastLine);
-      console.log('LLM: Total lines:', lines.length, 'Content length:', trimmedContent.length);
-      
-      // Check if response ends abruptly
-      const endsAbruptly = (
-        lastLine.includes('Error:') || 
-        lastLine.includes('Allowed directories:') ||
-        lastLine.match(/^[A-Z]:\\/) || // Windows path
-        lastLine.endsWith('check...') || // Common incomplete ending
-        lastLine.endsWith('...') || // Any ellipsis ending
-        lines.length <= 4 || // Increased from 3
-        trimmedContent.length < 150 // Increased threshold
-      );
-      
-      console.log('LLM: Ends abruptly?', endsAbruptly);
-      
-      if (endsAbruptly) {
-        if (lastLine.includes('Error:')) {
-          updatedContent += '\n\nI encountered an error. Let me know if you need help with the correct path or a different approach!';
-        } else {
-          updatedContent += '\n\nLet me know if you need help with anything specific!';
-        }
-        console.log('LLM: Added follow-up text');
+      if (extractedToolCalls.length > 0) {
+        console.log('LLM: Detected tool usage from content:', extractedToolCalls.length);
       }
-      
-      finalResponse = {
-        ...response,
-        content: updatedContent
-      };
     }
     
     // Apply smart formatting to the entire response
@@ -992,8 +1150,14 @@ Your responses will be automatically formatted for better readability, but you s
       ...finalResponse,
       content: formatAIResponse(finalResponse.content)
     };
-    
-    return { success: true, response: finalResponse };
+
+    console.log('LLM: Returning response with tool calls:', extractedToolCalls.length);
+
+    return { 
+      success: true, 
+      response: finalResponse,
+      toolCalls: extractedToolCalls.length > 0 ? extractedToolCalls : undefined
+    };
   } catch (error) {
     console.error('LLM message failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };

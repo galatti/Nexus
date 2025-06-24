@@ -147,6 +147,14 @@ export class LlmManager extends EventEmitter {
       maxTokens?: number;
       model?: string;
       providerId?: string;
+      tools?: Array<{ 
+        type: 'function';
+        function: {
+          name: string;
+          description: string;
+          parameters: any;
+        };
+      }>;
     }
   ): Promise<LlmResponse> {
     const provider = options?.providerId 

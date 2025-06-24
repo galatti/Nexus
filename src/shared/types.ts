@@ -87,11 +87,12 @@ export interface ElectronAPI {
   connectToServer: (config: McpServerConfig) => Promise<void>;
   disconnectFromServer: (serverId: string) => Promise<void>;
   executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) => Promise<unknown>;
-  sendMessage: (message: string, options?: Record<string, unknown>) => Promise<string>;
+  sendMessage: (messages: ChatMessage[], options?: Record<string, unknown>) => Promise<string>;
   getLlmStatus: () => Promise<ApiResponse<LlmStatusResponse>>;
   getAvailableModels: (providerId?: string) => Promise<ApiResponse<LlmModel[]>>;
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => () => void;
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
+
   getMcpTemplates: () => Promise<ApiResponse<McpTemplateResponse>>;
   checkMcpInstallations: () => Promise<ApiResponse<McpInstallationStatus>>;
   installMcpTemplate: (templateId: string) => Promise<McpInstallationResponse>;
@@ -153,11 +154,13 @@ export interface LlmModel {
 // Chat message types
 export interface ChatMessage {
   id: string;
-  role: 'user' | 'assistant' | 'system';
+  role: 'user' | 'assistant' | 'system' | 'tool';
   content: string;
   timestamp: Date;
   tokens?: number;
   tools?: ToolCall[];
+  tool_call_id?: string;
+  name?: string;
 }
 
 export interface ToolCall {
@@ -167,6 +170,8 @@ export interface ToolCall {
   result?: unknown;
   error?: string;
 }
+
+// Remove ToolExecution interface - no longer needed
 
 // MCP Tool information
 export interface McpTool {

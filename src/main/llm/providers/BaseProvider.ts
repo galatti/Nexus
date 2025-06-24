@@ -5,6 +5,14 @@ export interface LlmResponse {
   tokens?: number;
   finishReason?: string;
   model?: string;
+  toolCalls?: Array<{
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>;
 }
 
 export interface StreamingResponse {
@@ -31,6 +39,14 @@ export abstract class BaseProvider {
       maxTokens?: number;
       stream?: boolean;
       model?: string;
+      tools?: Array<{ 
+        type: 'function';
+        function: {
+          name: string;
+          description: string;
+          parameters: any;
+        };
+      }>;
     }
   ): Promise<LlmResponse>;
   abstract streamMessage(

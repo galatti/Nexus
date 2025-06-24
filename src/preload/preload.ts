@@ -46,6 +46,13 @@ const electronAPI = {
   getPendingApprovals: () => ipcRenderer.invoke('permissions:getPending'),
   respondToApproval: (approvalId: string, result: any) =>
     ipcRenderer.invoke('permissions:respond', approvalId, result),
+  getAllPermissions: () => ipcRenderer.invoke('permissions:getAll'),
+  getPermissionStats: () => ipcRenderer.invoke('permissions:getStats'),
+  revokePermission: (serverId: string, toolName: string) =>
+    ipcRenderer.invoke('permissions:revoke', serverId, toolName),
+  clearSessionPermissions: () => ipcRenderer.invoke('permissions:clearSession'),
+  clearAllPermissions: () => ipcRenderer.invoke('permissions:clearAll'),
+  clearExpiredPermissions: () => ipcRenderer.invoke('permissions:clearExpired'),
   
   // LLM operations
   sendMessage: (messages: Record<string, unknown>[], options?: Record<string, unknown>) =>
@@ -65,6 +72,8 @@ const electronAPI = {
     ipcRenderer.on('settings:changed', (_event, settings) => callback(settings));
     return () => ipcRenderer.removeAllListeners('settings:changed');
   },
+
+
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

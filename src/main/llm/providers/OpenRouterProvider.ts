@@ -2,9 +2,21 @@ import { BaseProvider, LlmResponse, StreamingResponse } from './BaseProvider.js'
 import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types.js';
 import { logger } from '../../utils/logger.js';
 
+export interface ToolCall {
+  id: string;
+  type: 'function';
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
 interface OpenRouterMessage {
   role: string;
   content: string;
+  tool_calls?: ToolCall[];
+  tool_call_id?: string;
+  name?: string;
 }
 
 interface OpenRouterResponse {
@@ -17,6 +29,7 @@ interface OpenRouterResponse {
     message: {
       role: string;
       content: string;
+      tool_calls?: ToolCall[];
     };
     finish_reason: string;
   }>;
@@ -118,6 +131,14 @@ export class OpenRouterProvider extends BaseProvider {
       maxTokens?: number;
       stream?: boolean;
       model?: string;
+      tools?: Array<{ 
+        type: 'function';
+        function: {
+          name: string;
+          description: string;
+          parameters: any;
+        };
+      }>;
     } = {}
   ): Promise<LlmResponse> {
     try {
@@ -128,13 +149,22 @@ export class OpenRouterProvider extends BaseProvider {
       const modelName = this.getModelName(options.model);
       const formattedMessages = this.formatMessages(messages);
 
-      const requestBody = {
+      const requestBody: any = {
         model: modelName,
         messages: formattedMessages,
         temperature: options.temperature || 0.7,
         max_tokens: options.maxTokens || 4000,
         stream: false
       };
+
+      // Add tools if provided
+      if (options.tools && options.tools.length > 0) {
+        requestBody.tools = options.tools;
+        console.log('OpenRouter: Sending tools:', {
+          count: options.tools.length,
+          toolNames: options.tools.map(t => t.function.name)
+        });
+      }
 
       const response = await this.makeRequest(`${this.API_BASE}/chat/completions`, {
         method: 'POST',
@@ -160,11 +190,20 @@ export class OpenRouterProvider extends BaseProvider {
 
       const choice = data.choices[0];
 
+      console.log('OpenRouter: Response received:', {
+        hasContent: !!choice.message.content,
+        hasToolCalls: !!choice.message.tool_calls,
+        toolCallsCount: choice.message.tool_calls?.length || 0,
+        toolCalls: choice.message.tool_calls,
+        finishReason: choice.finish_reason
+      });
+
       return {
-        content: choice.message.content,
+        content: choice.message.content || '',
         tokens: data.usage.total_tokens,
         finishReason: choice.finish_reason,
-        model: data.model
+        model: data.model,
+        toolCalls: choice.message.tool_calls
       };
 
     } catch (error) {
@@ -341,10 +380,23 @@ export class OpenRouterProvider extends BaseProvider {
   }
 
   protected formatMessages(messages: ChatMessage[]): OpenRouterMessage[] {
-    return messages.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    }));
+    return messages.map(msg => {
+      if (msg.role === 'tool') {
+        // Handle tool response messages
+        return {
+          role: 'tool',
+          content: msg.content,
+          tool_call_id: (msg as any).tool_call_id,
+          name: (msg as any).name
+        };
+      }
+      
+      return {
+        role: msg.role,
+        content: msg.content,
+        tool_calls: (msg as any).tool_calls
+      };
+    });
   }
 
   protected handleError(error: any, context: string): Error {

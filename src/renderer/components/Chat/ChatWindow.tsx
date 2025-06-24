@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ChatMessage, LlmStatusResponse, LlmModel } from '../../../shared/types';
+import { ChatMessage, LlmStatusResponse, LlmModel, ToolCall } from '../../../shared/types';
 
 interface ChatWindowProps {
   className?: string;
@@ -90,11 +90,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       loadLlmInfo();
     };
 
-    // Add event listener if available
+    // Add event listeners
+    let settingsCleanup: (() => void) | undefined;
+    
     if (window.electronAPI.onSettingsChange) {
-      const cleanup = window.electronAPI.onSettingsChange(handleProviderChange);
-      return cleanup;
+      settingsCleanup = window.electronAPI.onSettingsChange(handleProviderChange);
     }
+
+    return () => {
+      settingsCleanup?.();
+    };
   }, []);
 
   // Load message history from localStorage
@@ -141,13 +146,23 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       const result = await window.electronAPI.sendMessage(conversationHistory) as any;
       
       if (result.success) {
+        console.log('🔍 LLM Response Debug:', {
+          hasResponse: !!result.response,
+          hasToolCalls: !!result.toolCalls,
+          toolCallsLength: result.toolCalls?.length || 0,
+          toolCalls: result.toolCalls
+        });
+        
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
           role: 'assistant',
           content: result.response.content,
           timestamp: new Date(),
-          tokens: result.response.tokens
+          tokens: result.response.tokens,
+          tools: result.toolCalls || undefined
         };
+        
+        console.log('📨 Assistant Message:', assistantMessage);
         
         setMessages(prev => [...prev, assistantMessage]);
       } else {
@@ -182,65 +197,110 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     navigator.clipboard.writeText(content);
   };
 
+  const renderToolCall = (toolCall: ToolCall) => {
+    return (
+      <div className="my-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-r-lg">
+        <div className="flex items-center justify-between mb-2">
+          <div className="font-semibold text-blue-700 dark:text-blue-300">
+            🔧 Tool Call: {toolCall.name}
+          </div>
+          <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-2 py-1 rounded">
+            {toolCall.id}
+          </div>
+        </div>
+        {toolCall.args && Object.keys(toolCall.args).length > 0 && (
+          <div className="mt-2">
+            <div className="text-sm text-blue-600 dark:text-blue-400 mb-1 font-medium">Parameters:</div>
+            <pre className="text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded overflow-x-auto text-blue-800 dark:text-blue-200">
+              {JSON.stringify(toolCall.args, null, 2)}
+            </pre>
+          </div>
+        )}
+
+      </div>
+    );
+  };
+
   const renderMessage = (message: ChatMessage) => {
     const isUser = message.role === 'user';
+    
+    console.log('🎨 Rendering message:', {
+      id: message.id,
+      role: message.role,
+      hasTools: !!message.tools,
+      toolsLength: message.tools?.length || 0,
+      tools: message.tools
+    });
     
     return (
       <div
         key={message.id}
         className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}
       >
-        <div
-          className={`max-w-3xl px-4 py-2 rounded-lg ${
-            isUser
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
-          }`}
-        >
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              {isUser ? (
-                <div className="whitespace-pre-wrap">{message.content}</div>
-                             ) : (
-                 <ReactMarkdown
-                   remarkPlugins={[remarkGfm]}
-                   components={{
-                     code({ className, children, ...props }) {
-                       const match = /language-(\w+)/.exec(className || '');
-                       const isCodeBlock = match && String(children).includes('\n');
-                       return isCodeBlock ? (
-                         <SyntaxHighlighter
-                           style={oneDark as any}
-                           language={match[1]}
-                           PreTag="div"
-                         >
-                           {String(children).replace(/\n$/, '')}
-                         </SyntaxHighlighter>
-                       ) : (
-                         <code className={className} {...props}>
-                           {children}
-                         </code>
-                       );
-                     }
-                   }}
-                 >
-                   {message.content}
-                 </ReactMarkdown>
-               )}
+        <div className="max-w-4xl w-full">
+          {/* Tool calls displayed above the message content */}
+          {message.tools && message.tools.length > 0 && (
+            <div className="mb-2">
+              {message.tools.map((toolCall, index) => (
+                <div key={index}>
+                  {renderToolCall(toolCall)}
+                </div>
+              ))}
             </div>
-            <button
-              onClick={() => copyMessage(message.content)}
-              className="ml-2 p-1 text-xs opacity-50 hover:opacity-100 transition-opacity"
-              title="Copy message"
-            >
-              📋
-            </button>
-          </div>
-          <div className="text-xs mt-2 opacity-70">
-            {message.timestamp.toLocaleTimeString()}
-            {message.tokens && (
-              <span className="ml-2">({message.tokens} tokens)</span>
-            )}
+          )}
+          
+          <div
+            className={`px-4 py-2 rounded-lg ${
+              isUser
+                ? 'bg-blue-600 text-white ml-auto max-w-3xl'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100'
+            }`}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                {isUser ? (
+                  <div className="whitespace-pre-wrap">{message.content}</div>
+                ) : (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code({ className, children, ...props }) {
+                        const match = /language-(\w+)/.exec(className || '');
+                        const isCodeBlock = match && String(children).includes('\n');
+                        return isCodeBlock ? (
+                          <SyntaxHighlighter
+                            style={oneDark as any}
+                            language={match[1]}
+                            PreTag="div"
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        );
+                      }
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                )}
+              </div>
+              <button
+                onClick={() => copyMessage(message.content)}
+                className="ml-2 p-1 text-xs opacity-50 hover:opacity-100 transition-opacity"
+                title="Copy message"
+              >
+                📋
+              </button>
+            </div>
+            <div className="text-xs mt-2 opacity-70">
+              {message.timestamp.toLocaleTimeString()}
+              {message.tokens && (
+                <span className="ml-2">({message.tokens} tokens)</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

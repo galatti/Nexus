@@ -5,6 +5,16 @@ import { logger } from '../../utils/logger.js';
 interface OllamaMessage {
   role: string;
   content: string;
+  tool_calls?: Array<{
+    id: string;
+    type: 'function';
+    function: {
+      name: string;
+      arguments: string;
+    };
+  }>;
+  tool_call_id?: string;
+  name?: string;
 }
 
 interface OllamaResponse {
@@ -13,6 +23,14 @@ interface OllamaResponse {
   message: {
     role: string;
     content: string;
+    tool_calls?: Array<{
+      id: string;
+      type: 'function';
+      function: {
+        name: string;
+        arguments: string;
+      };
+    }>;
   };
   done: boolean;
   total_duration?: number;
@@ -97,13 +115,21 @@ export class OllamaProvider extends BaseProvider {
       maxTokens?: number;
       stream?: boolean;
       model?: string;
+      tools?: Array<{ 
+        type: 'function';
+        function: {
+          name: string;
+          description: string;
+          parameters: any;
+        };
+      }>;
     } = {}
   ): Promise<LlmResponse> {
     try {
       const modelName = this.getModelName(options.model);
       const formattedMessages = this.formatMessages(messages);
 
-      const requestBody = {
+      const requestBody: any = {
         model: modelName,
         messages: formattedMessages,
         stream: false,
@@ -112,6 +138,11 @@ export class OllamaProvider extends BaseProvider {
           num_predict: options.maxTokens || -1
         }
       };
+
+      // Add tools if provided (Ollama supports function calling since July 2024)
+      if (options.tools && options.tools.length > 0) {
+        requestBody.tools = options.tools;
+      }
 
       const response = await this.makeRequest(`${this.config.baseUrl}/api/chat`, {
         method: 'POST',
@@ -131,7 +162,8 @@ export class OllamaProvider extends BaseProvider {
         content: data.message.content,
         tokens: data.eval_count,
         finishReason: data.done ? 'stop' : 'length',
-        model: data.model
+        model: data.model,
+        toolCalls: data.message.tool_calls
       };
 
     } catch (error) {
@@ -315,9 +347,22 @@ export class OllamaProvider extends BaseProvider {
   }
 
   protected formatMessages(messages: ChatMessage[]): OllamaMessage[] {
-    return messages.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'assistant',
-      content: msg.content
-    }));
+    return messages.map(msg => {
+      if (msg.role === 'tool') {
+        // Handle tool response messages
+        return {
+          role: 'tool',
+          content: msg.content,
+          tool_call_id: msg.tool_call_id,
+          name: msg.name
+        };
+      }
+      
+      return {
+        role: msg.role,
+        content: msg.content,
+        tool_calls: (msg as any).tool_calls
+      };
+    });
   }
 } 

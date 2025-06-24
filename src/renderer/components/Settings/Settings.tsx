@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { AppSettings, LlmProviderConfig } from '../../../shared/types';
 import { McpServerTemplates } from '../MCP/McpServerTemplates';
+import { ToolPermissionsOverview } from './ToolPermissionsOverview';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -8,7 +9,7 @@ interface SettingsProps {
   initialTab?: string;
 }
 
-type SettingsTab = 'general' | 'llm' | 'mcp' | 'mcp-templates';
+type SettingsTab = 'general' | 'llm' | 'mcp' | 'mcp-templates' | 'permissions';
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab = 'general' }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab as SettingsTab);
@@ -219,6 +220,20 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                 <div className="flex items-center">
                   <span className="mr-2">📦</span>
                   Server Templates
+                </div>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('permissions')}
+                className={`w-full text-left px-3 py-2 rounded-md mb-2 transition-colors ${
+                  activeTab === 'permissions'
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <div className="flex items-center">
+                  <span className="mr-2">🔐</span>
+                  Tool Permissions
                 </div>
               </button>
             </nav>
@@ -482,6 +497,11 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                       setActiveTab('mcp');
                     }}
                   />
+                )}
+
+                {/* Tool Permissions */}
+                {activeTab === 'permissions' && (
+                  <ToolPermissionsOverview />
                 )}
               </>
             ) : null}
