@@ -170,7 +170,15 @@ export class LlmManager extends EventEmitter {
     }
 
     try {
-      const response = await provider.sendMessage(messages, options);
+      // Merge provider defaults with passed options
+      const providerConfig = provider.getConfig();
+      const mergedOptions = {
+        temperature: providerConfig.temperature,
+        maxTokens: providerConfig.maxTokens,
+        ...options // User options override provider defaults
+      };
+      
+      const response = await provider.sendMessage(messages, mergedOptions);
       
       this.emit('messageProcessed', {
         providerId: this.getProviderIdByInstance(provider),

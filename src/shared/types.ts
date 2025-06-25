@@ -44,6 +44,8 @@ export interface ElectronAPI {
   sendMessage: (messages: ChatMessage[], options?: Record<string, unknown>) => Promise<string>;
   getLlmStatus: () => Promise<ApiResponse<LlmStatusResponse>>;
   getAvailableModels: (providerId?: string) => Promise<ApiResponse<LlmModel[]>>;
+  testLlmConnection: (providerConfig: LlmProviderConfig) => Promise<ApiResponse<{ models?: LlmModel[]; message?: string }>>;
+  getModelsForConfig: (providerConfig: LlmProviderConfig) => Promise<ApiResponse<LlmModel[]>>;
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => () => void;
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
   
@@ -103,6 +105,8 @@ export interface LlmProviderConfig {
   model: string;
   enabled: boolean;
   models?: LlmModel[];
+  temperature?: number; // 0.0 to 1.0
+  maxTokens?: number;
 }
 
 // LLM Model information

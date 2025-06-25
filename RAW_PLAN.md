@@ -76,13 +76,6 @@
 
 ### 3. MCP Server Management
 
-#### Pre-configured Servers
-The MVP includes configuration templates for these priority servers:
-1. **Web Search** (@modelcontextprotocol/server-brave-search)
-2. **Filesystem** (@modelcontextprotocol/server-filesystem)
-3. **Weather** (@modelcontextprotocol/server-weather)
-
-
 #### Server Configuration Interface
 - Visual form for each server type (no raw JSON)
 - Server enable/disable toggles

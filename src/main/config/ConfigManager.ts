@@ -48,7 +48,9 @@ export class ConfigManager {
           name: 'Ollama',
           baseUrl: 'http://localhost:11434',
           model: 'llama2',
-          enabled: false
+          enabled: false,
+          temperature: 0.7,
+          maxTokens: 2048
         }
       },
       mcp: {
@@ -96,7 +98,9 @@ export class ConfigManager {
           apiKey: userSettings.llm?.provider?.apiKey || defaultSettings.llm.provider.apiKey,
           model: userSettings.llm?.provider?.model || defaultSettings.llm.provider.model,
           enabled: userSettings.llm?.provider?.enabled ?? defaultSettings.llm.provider.enabled,
-          models: userSettings.llm?.provider?.models || defaultSettings.llm.provider.models
+          models: userSettings.llm?.provider?.models || defaultSettings.llm.provider.models,
+          temperature: userSettings.llm?.provider?.temperature ?? defaultSettings.llm.provider.temperature,
+          maxTokens: userSettings.llm?.provider?.maxTokens ?? defaultSettings.llm.provider.maxTokens
         }
       },
       mcp: {

@@ -595,6 +595,46 @@ ipcMain.handle('settings:set', async (_event, settings) => {
   }
 });
 
+ipcMain.handle('llm:test-connection', async (_event, providerConfig) => {
+  try {
+    // Create a temporary provider instance to test the connection
+    const { OllamaProvider } = await import('./llm/providers/OllamaProvider.js');
+    const { OpenRouterProvider } = await import('./llm/providers/OpenRouterProvider.js');
+    
+    let provider;
+    
+    if (providerConfig.type === 'ollama') {
+      provider = new OllamaProvider(providerConfig);
+    } else if (providerConfig.type === 'openrouter') {
+      if (!providerConfig.apiKey) {
+        return { success: false, error: 'API key is required for OpenRouter' };
+      }
+      provider = new OpenRouterProvider(providerConfig);
+    } else {
+      return { success: false, error: 'Unsupported provider type' };
+    }
+    
+    // Test the connection by checking health and getting available models
+    const isConnected = await provider.testConnection();
+    if (!isConnected) {
+      throw new Error('Connection test failed');
+    }
+    const models = await provider.getAvailableModels();
+    
+    return { 
+      success: true, 
+      models: models.slice(0, 5), // Return first 5 models as proof of connection
+      message: `Successfully connected to ${providerConfig.name}` 
+    };
+  } catch (error) {
+    console.error('Failed to test LLM connection:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : String(error) 
+    };
+  }
+});
+
 ipcMain.handle('settings:reset', async (_event) => {
   try {
     // Stop all running MCP servers
@@ -1414,6 +1454,41 @@ ipcMain.handle('llm:getAvailableModels', async (_event, providerId) => {
   } catch (error) {
     console.error('Failed to get available models:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('llm:getModelsForConfig', async (_event, providerConfig) => {
+  try {
+    // Create a temporary provider instance to fetch models
+    const { OllamaProvider } = await import('./llm/providers/OllamaProvider.js');
+    const { OpenRouterProvider } = await import('./llm/providers/OpenRouterProvider.js');
+    
+    let provider;
+    
+    if (providerConfig.type === 'ollama') {
+      provider = new OllamaProvider(providerConfig);
+    } else if (providerConfig.type === 'openrouter') {
+      if (!providerConfig.apiKey) {
+        return { success: false, error: 'API key is required for OpenRouter' };
+      }
+      provider = new OpenRouterProvider(providerConfig);
+    } else {
+      return { success: false, error: 'Unsupported provider type' };
+    }
+    
+    // Fetch all available models
+    const models = await provider.getAvailableModels();
+    
+    return { 
+      success: true, 
+      data: models // Return all available models
+    };
+  } catch (error) {
+    console.error('Failed to get models for config:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : String(error) 
+    };
   }
 });
 
