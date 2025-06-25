@@ -15,6 +15,7 @@ const electronAPI = {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   setSettings: (settings: Record<string, unknown>) => 
     ipcRenderer.invoke('settings:set', settings),
+  resetSettings: () => ipcRenderer.invoke('settings:reset'),
   
   // MCP operations
   connectToServer: (config: Record<string, unknown>) => 
@@ -24,15 +25,19 @@ const electronAPI = {
   executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) =>
     ipcRenderer.invoke('mcp:executeTool', serverId, toolName, args),
   
-  // MCP Template operations
-  getMcpTemplates: () => ipcRenderer.invoke('mcp:getTemplates'),
-  checkMcpInstallations: () => ipcRenderer.invoke('mcp:checkInstallations'),
-  installMcpTemplate: (templateId: string) => 
-    ipcRenderer.invoke('mcp:installTemplate', templateId),
-  generateServerFromTemplate: (templateId: string, config: Record<string, any>, serverName: string) =>
-    ipcRenderer.invoke('mcp:generateServerFromTemplate', templateId, config, serverName),
+  // MCP Server management
   getMcpServers: () => 
     ipcRenderer.invoke('mcp:getServers'),
+  addMcpServer: (serverConfig: Record<string, unknown>) =>
+    ipcRenderer.invoke('mcp:addServer', serverConfig),
+  updateMcpServer: (serverId: string, updates: Record<string, unknown>) =>
+    ipcRenderer.invoke('mcp:updateServer', serverId, updates),
+  removeMcpServer: (serverId: string) =>
+    ipcRenderer.invoke('mcp:removeServer', serverId),
+  startMcpServer: (serverId: string) =>
+    ipcRenderer.invoke('mcp:start', serverId),
+  stopMcpServer: (serverId: string) =>
+    ipcRenderer.invoke('mcp:stop', serverId),
   testMcpConnection: (serverId: string) => 
     ipcRenderer.invoke('mcp:testConnection', serverId),
   getServerCapabilities: (serverId: string) =>
@@ -72,8 +77,6 @@ const electronAPI = {
     ipcRenderer.on('settings:changed', (_event, settings) => callback(settings));
     return () => ipcRenderer.removeAllListeners('settings:changed');
   },
-
-
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

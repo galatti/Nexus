@@ -15,26 +15,6 @@ export interface LlmStatusResponse {
   models?: LlmModel[];
 }
 
-export interface McpTemplateResponse {
-  templates: McpServerTemplateInfo[];
-}
-
-export interface McpInstallationStatus {
-  [templateId: string]: {
-    isInstalled: boolean;
-    isInstalling: boolean;
-    error?: string;
-  };
-}
-
-export interface McpInstallationResponse {
-  success: boolean;
-  error?: string;
-  installedVersion?: string;
-  command?: string;
-  args?: string[];
-}
-
 export interface PendingApproval {
   id: string;
   toolName: string;
@@ -50,33 +30,6 @@ export interface ApprovalResult {
   scope?: 'once' | 'session' | 'always';
 }
 
-export interface McpServerTemplateInfo {
-  id: string;
-  name: string;
-  description: string;
-  category: 'filesystem' | 'web' | 'weather' | 'productivity' | 'development' | 'custom';
-  icon: string;
-  npmPackage?: string;
-  version?: string;
-  defaultEnabled: boolean;
-  requiresConfig: boolean;
-  configFields: McpConfigField[];
-  documentation?: string;
-  examples?: string[];
-}
-
-export interface McpConfigField {
-  key: string;
-  label: string;
-  type: 'text' | 'password' | 'number' | 'boolean' | 'select' | 'path';
-  required: boolean;
-  placeholder?: string;
-  description?: string;
-  options?: string[];
-  validation?: RegExp;
-  defaultValue?: unknown;
-}
-
 export interface ElectronAPI {
   getAppVersion: () => Promise<string>;
   minimizeWindow: () => Promise<void>;
@@ -84,6 +37,7 @@ export interface ElectronAPI {
   closeWindow: () => Promise<void>;
   getSettings: () => Promise<AppSettings>;
   setSettings: (settings: AppSettings) => Promise<void>;
+  resetSettings: () => Promise<ApiResponse<void>>;
   connectToServer: (config: McpServerConfig) => Promise<void>;
   disconnectFromServer: (serverId: string) => Promise<void>;
   executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) => Promise<unknown>;
@@ -92,11 +46,16 @@ export interface ElectronAPI {
   getAvailableModels: (providerId?: string) => Promise<ApiResponse<LlmModel[]>>;
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => () => void;
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
-
-  getMcpTemplates: () => Promise<ApiResponse<McpTemplateResponse>>;
-  checkMcpInstallations: () => Promise<ApiResponse<McpInstallationStatus>>;
-  installMcpTemplate: (templateId: string) => Promise<McpInstallationResponse>;
-  generateServerFromTemplate: (templateId: string, config: Record<string, unknown>, serverName: string) => Promise<ApiResponse<McpServerConfig>>;
+  
+  // MCP Server management
+  getMcpServers: () => Promise<ApiResponse<McpServerConfig[]>>;
+  addMcpServer: (config: McpServerConfig) => Promise<ApiResponse<void>>;
+  updateMcpServer: (serverId: string, updates: Partial<McpServerConfig>) => Promise<ApiResponse<void>>;
+  removeMcpServer: (serverId: string) => Promise<ApiResponse<void>>;
+  startMcpServer: (serverId: string) => Promise<ApiResponse<void>>;
+  stopMcpServer: (serverId: string) => Promise<ApiResponse<void>>;
+  
+  // Permissions
   getPendingApprovals: () => Promise<ApiResponse<PendingApproval[]>>;
   respondToApproval: (approvalId: string, result: ApprovalResult) => Promise<ApiResponse<boolean>>;
 }
@@ -117,7 +76,7 @@ export interface AppSettings {
   };
 }
 
-// MCP Server configuration
+// MCP Server configuration (simplified - no template references)
 export interface McpServerConfig {
   id: string;
   name: string;
@@ -125,11 +84,10 @@ export interface McpServerConfig {
   command: string;
   args: string[];
   env?: Record<string, string>;
+  workingDirectory?: string;
   enabled: boolean;
   autoStart: boolean;
   state?: 'configured' | 'starting' | 'ready' | 'stopped' | 'failed';
-  templateId?: string;
-  userConfig?: Record<string, unknown>;
 }
 
 // LLM Provider configuration
@@ -170,8 +128,6 @@ export interface ToolCall {
   result?: unknown;
   error?: string;
 }
-
-// Remove ToolExecution interface - no longer needed
 
 // MCP Tool information
 export interface McpTool {

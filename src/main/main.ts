@@ -158,7 +158,7 @@ app.on('web-contents-created', (_event, contents) => {
 import { configManager } from './config/ConfigManager.js';
 import { serverManager } from './mcp/ConnectionManager.js';
 import { llmManager } from './llm/LlmManager.js';
-import { templateManager } from './mcp/templates/TemplateManager.js';
+
 import { permissionManager } from './permissions/PermissionManager.js';
 
 // Smart formatting functions
@@ -593,6 +593,27 @@ ipcMain.handle('settings:set', async (_event, settings) => {
   }
 });
 
+ipcMain.handle('settings:reset', async (_event) => {
+  try {
+    // Stop all running MCP servers
+    const servers = configManager.getMcpServers();
+    for (const server of servers) {
+      await serverManager.stopServer(server.id);
+    }
+    
+    // Reset to default settings
+    configManager.resetToDefaults();
+    
+    // Emit settings change event
+    mainWindow?.webContents.send('settings:changed', configManager.getSettings());
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to reset settings:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 // MCP handlers
 ipcMain.handle('mcp:start', async (_event, config) => {
   try {
@@ -628,41 +649,13 @@ ipcMain.handle('mcp:executeTool', async (_event, serverId, toolName, args) => {
   }
 });
 
-// MCP Template handlers
-ipcMain.handle('mcp:getTemplates', () => {
+// MCP Server management handlers
+ipcMain.handle('mcp:addServer', async (_event, serverConfig) => {
   try {
-    const templates = templateManager.getAllTemplates();
-    return { success: true, templates };
-  } catch (error) {
-    console.error('Failed to get MCP templates:', error);
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
-  }
-});
-
-ipcMain.handle('mcp:checkInstallations', async () => {
-  try {
-    const status = await templateManager.checkAllInstallations();
-    const statusObject = Object.fromEntries(status);
-    return { success: true, status: statusObject };
-  } catch (error) {
-    console.error('Failed to check MCP installations:', error);
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
-  }
-});
-
-ipcMain.handle('mcp:installTemplate', async (_event, templateId) => {
-  try {
-    const result = await templateManager.installTemplate(templateId);
-    return result;
-  } catch (error) {
-    console.error('Failed to install MCP template:', error);
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
-  }
-});
-
-ipcMain.handle('mcp:generateServerFromTemplate', async (_event, templateId, config, serverName) => {
-  try {
-    const serverConfig = await templateManager.generateServerConfig(templateId, config, serverName);
+    // Generate unique ID if not provided
+    if (!serverConfig.id) {
+      serverConfig.id = `server-${Date.now()}`;
+    }
     
     // Save the server configuration
     configManager.addMcpServer(serverConfig);
@@ -674,7 +667,47 @@ ipcMain.handle('mcp:generateServerFromTemplate', async (_event, templateId, conf
     
     return { success: true, serverConfig };
   } catch (error) {
-    console.error('Failed to generate server from template:', error);
+    console.error('Failed to add MCP server:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:updateServer', async (_event, serverId, updates) => {
+  try {
+    configManager.updateMcpServer(serverId, updates);
+    
+    // If the server is running and critical settings changed, restart it
+    const serverState = serverManager.getServerState(serverId);
+    if (serverState && serverState.state === 'ready') {
+      if (updates.command || updates.args || updates.env) {
+        await serverManager.stopServer(serverId);
+        if (updates.enabled !== false) {
+          const updatedServer = configManager.getMcpServers().find(s => s.id === serverId);
+          if (updatedServer) {
+            await serverManager.startServer(updatedServer);
+          }
+        }
+      }
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to update MCP server:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:removeServer', async (_event, serverId) => {
+  try {
+    // Stop the server if it's running
+    await serverManager.stopServer(serverId);
+    
+    // Remove from configuration
+    configManager.removeMcpServer(serverId);
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to remove MCP server:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });
