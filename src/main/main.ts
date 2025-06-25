@@ -226,6 +226,7 @@ function cleanupText(text: string): string {
   return cleaned;
 }
 
+// @ts-ignore - Unused function preserved for future use
 function formatToolResult(toolName: string, resultText: string): string {
   // Detect data types and format accordingly
   if (resultText.startsWith('Error:')) {
@@ -443,6 +444,7 @@ function getToolIcon(toolName: string): string {
   return '🔧'; // Default tool icon
 }
 
+// @ts-ignore - Unused function preserved for future use
 function generateToolSummary(toolName: string, result: unknown): string {
   try {
     if (!result) return 'No result';
@@ -459,18 +461,21 @@ function generateToolSummary(toolName: string, result: unknown): string {
         // Generate summary based on tool type
         switch (toolName) {
           case 'list_allowed_directories':
-          case 'list_directory':
+          case 'list_directory': {
             const lines = textContent.split('\n').filter(line => line.trim());
             return `Found ${lines.length} items`;
+          }
           
-          case 'read_file':
+          case 'read_file': {
             const lineCount = textContent.split('\n').length;
             const charCount = textContent.length;
             return `Read ${lineCount} lines (${charCount} characters)`;
+          }
           
-          case 'search_files':
+          case 'search_files': {
             const matches = textContent.split('\n').filter(line => line.trim());
             return `Found ${matches.length} matches`;
+          }
           
           case 'web_search':
             if (textContent.includes('results')) {
@@ -515,9 +520,19 @@ async function initializeServices(): Promise<void> {
     // Load configuration and set up providers
     const settings = configManager.getSettings();
     
-    // Add LLM provider if configured
-    if (settings.llm.provider.enabled) {
-      await llmManager.addProvider(settings.llm.provider);
+    // Add all enabled LLM providers
+    for (const provider of settings.llm.providers) {
+      if (provider.enabled) {
+        await llmManager.addProvider(provider);
+      }
+    }
+    
+    // Set current provider if specified
+    if (settings.llm.currentProviderId) {
+      const provider = llmManager.getProvider(settings.llm.currentProviderId);
+      if (provider) {
+        await llmManager.setCurrentProvider(settings.llm.currentProviderId);
+      }
     }
     
 
@@ -574,14 +589,27 @@ ipcMain.handle('settings:set', async (_event, settings) => {
   try {
     configManager.updateSettings(settings);
     
-    // Update LLM provider if changed
-    if (settings.llm?.provider) {
-      const currentProvider = llmManager.getCurrentProvider();
-      if (currentProvider) {
-        const providerId = `${settings.llm.provider.type}-${settings.llm.provider.name.toLowerCase().replace(/\s+/g, '-')}`;
-        await llmManager.updateProvider(providerId, settings.llm.provider);
-      } else if (settings.llm.provider.enabled) {
-        await llmManager.addProvider(settings.llm.provider);
+    // Update LLM providers if changed
+    if (settings.llm?.providers) {
+      // Remove all existing providers
+      const existingProviders = llmManager.getAllProviders();
+      for (const [providerId] of existingProviders) {
+        await llmManager.removeProvider(providerId);
+      }
+      
+      // Add all enabled providers from settings
+      for (const provider of settings.llm.providers) {
+        if (provider.enabled) {
+          await llmManager.addProvider(provider);
+        }
+      }
+      
+      // Set current provider if specified
+      if (settings.llm.currentProviderId) {
+        const provider = llmManager.getProvider(settings.llm.currentProviderId);
+        if (provider) {
+          await llmManager.setCurrentProvider(settings.llm.currentProviderId);
+        }
       }
     }
     
@@ -897,6 +925,7 @@ ipcMain.handle('mcp:testConnection', async (_event, serverConfigOrId) => {
               shell: process.platform === 'win32' // Use shell on Windows
             });
             
+            // Test connection variables (kept for future use)
             let output = '';
             let errorOutput = '';
             
@@ -1288,7 +1317,7 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
       
       // Extract tool calls for frontend display
       extractedToolCalls = response.toolCalls.map(toolCall => {
-        const [serverId, toolName] = toolCall.function.name.split('__');
+        const [/* serverId */, toolName] = toolCall.function.name.split('__');
         let args = {};
         try {
           args = JSON.parse(toolCall.function.arguments);

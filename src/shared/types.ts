@@ -73,7 +73,8 @@ export interface AppSettings {
     language: string;
   };
   llm: {
-    provider: LlmProviderConfig;
+    providers: LlmProviderConfig[];
+    currentProviderId?: string;
   };
   mcp: {
     servers: McpServerConfig[];
@@ -98,6 +99,7 @@ export interface McpServerConfig {
 
 // LLM Provider configuration
 export interface LlmProviderConfig {
+  id: string;
   type: 'ollama' | 'openrouter';
   name: string;
   baseUrl?: string;

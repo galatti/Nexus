@@ -326,7 +326,8 @@ export class LlmManager extends EventEmitter {
 
 
   private getProviderId(config: LlmProviderConfig): string {
-    return `${config.type}-${config.name.toLowerCase().replace(/\s+/g, '-')}`;
+    // Use the explicit ID from config, or generate one if not present (for backward compatibility)
+    return config.id || `${config.type}-${config.name.toLowerCase().replace(/\s+/g, '-')}`;
   }
 
   private getProviderIdByInstance(provider: BaseProvider): string | null {

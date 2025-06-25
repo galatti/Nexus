@@ -25,6 +25,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   const [modelSearchQuery, setModelSearchQuery] = useState('');
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [selectedModelIndex, setSelectedModelIndex] = useState(-1);
+  const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
 
   // Load settings when component opens
   useEffect(() => {
@@ -40,9 +41,25 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
     }
   }, [isOpen, initialTab]);
 
-  // Fetch available models when provider configuration changes
+  // Set selected provider when settings load
   useEffect(() => {
-    if (settings?.llm.provider && activeTab === 'llm') {
+    if (settings?.llm.providers && settings.llm.providers.length > 0 && !selectedProviderId) {
+      const currentId = settings.llm.currentProviderId;
+      const providerId = currentId && settings.llm.providers.find(p => p.id === currentId) 
+        ? currentId 
+        : settings.llm.providers[0].id;
+      setSelectedProviderId(providerId);
+    }
+  }, [settings?.llm.providers, selectedProviderId]);
+
+  // Get selected provider
+  const selectedProvider = selectedProviderId && settings?.llm.providers
+    ? settings.llm.providers.find(p => p.id === selectedProviderId)
+    : null;
+
+  // Fetch available models when selected provider configuration changes
+  useEffect(() => {
+    if (selectedProvider && activeTab === 'llm') {
       // Debounce the model fetching to avoid too many API calls
       const timer = setTimeout(() => {
         fetchAvailableModels();
@@ -50,14 +67,14 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
       
       return () => clearTimeout(timer);
     }
-  }, [settings?.llm.provider.type, settings?.llm.provider.apiKey, settings?.llm.provider.baseUrl, activeTab]);
+  }, [selectedProvider?.type, selectedProvider?.apiKey, selectedProvider?.baseUrl, activeTab]);
 
-  // Sync model search query with selected model
+  // Sync model search query with selected provider model
   useEffect(() => {
-    if (settings?.llm.provider.model && modelSearchQuery !== settings.llm.provider.model) {
-      setModelSearchQuery(settings.llm.provider.model);
+    if (selectedProvider?.model && modelSearchQuery !== selectedProvider.model) {
+      setModelSearchQuery(selectedProvider.model);
     }
-  }, [settings?.llm.provider.model]);
+  }, [selectedProvider?.model]);
 
   // Listen for server status changes
   useEffect(() => {
@@ -153,13 +170,74 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
     });
   };
 
-  const updateLlmProvider = (provider: Partial<LlmProviderConfig>) => {
+  const updateSelectedProvider = (updates: Partial<LlmProviderConfig>) => {
+    if (!settings || !selectedProviderId) return;
+    
+    const updatedProviders = settings.llm.providers.map(p => 
+      p.id === selectedProviderId ? { ...p, ...updates } : p
+    );
+    
+    updateSettings({
+      llm: {
+        providers: updatedProviders,
+        currentProviderId: settings.llm.currentProviderId
+      }
+    });
+  };
+
+  const setCurrentProvider = (providerId: string) => {
     if (!settings) return;
     updateSettings({
       llm: {
-        provider: { ...settings.llm.provider, ...provider }
+        providers: settings.llm.providers,
+        currentProviderId: providerId
       }
     });
+  };
+
+  const addNewProvider = (provider: LlmProviderConfig) => {
+    if (!settings) return;
+    const updatedProviders = [...settings.llm.providers, provider];
+    updateSettings({
+      llm: {
+        providers: updatedProviders,
+        currentProviderId: settings.llm.currentProviderId
+      }
+    });
+    setSelectedProviderId(provider.id);
+  };
+
+  const removeProvider = (providerId: string) => {
+    if (!settings) return;
+    const updatedProviders = settings.llm.providers.filter(p => p.id !== providerId);
+    const newCurrentId = settings.llm.currentProviderId === providerId 
+      ? undefined 
+      : settings.llm.currentProviderId;
+    
+    updateSettings({
+      llm: {
+        providers: updatedProviders,
+        currentProviderId: newCurrentId
+      }
+    });
+    
+    // Select first provider if we removed the selected one
+    if (selectedProviderId === providerId && updatedProviders.length > 0) {
+      setSelectedProviderId(updatedProviders[0].id);
+    }
+  };
+
+  const handleAddProvider = () => {
+    const newProvider: LlmProviderConfig = {
+      id: `provider-${Date.now()}`,
+      type: 'ollama',
+      name: 'New Provider',
+      model: '',
+      enabled: false,
+      temperature: 0.7,
+      maxTokens: 2048
+    };
+    addNewProvider(newProvider);
   };
 
   // Filter models based on search query
@@ -170,7 +248,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   });
 
   const handleModelSelect = (modelName: string) => {
-    updateLlmProvider({ model: modelName });
+    updateSelectedProvider({ model: modelName });
     setModelSearchQuery(modelName);
     setShowModelDropdown(false);
     setSelectedModelIndex(-1);
@@ -178,7 +256,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
 
   const handleModelInputChange = (value: string) => {
     setModelSearchQuery(value);
-    updateLlmProvider({ model: value });
+    updateSelectedProvider({ model: value });
     setShowModelDropdown(value.length > 0 && availableModels.length > 0);
     setSelectedModelIndex(-1);
   };
@@ -213,22 +291,22 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   };
 
   const fetchAvailableModels = async () => {
-    if (!settings?.llm.provider) return;
+    if (!selectedProvider) return;
 
     setIsLoadingModels(true);
     
     try {
       // For OpenRouter, we can fetch models from the API
       // For Ollama, we need a connection to fetch models
-      if (settings.llm.provider.type === 'openrouter') {
-        if (!settings.llm.provider.apiKey) {
+      if (selectedProvider.type === 'openrouter') {
+        if (!selectedProvider.apiKey) {
           setAvailableModels([]);
           return;
         }
       }
 
       // Use the dedicated models endpoint to get all available models
-      const result = await window.electronAPI.getModelsForConfig(settings.llm.provider) as any;
+      const result = await window.electronAPI.getModelsForConfig(selectedProvider) as any;
       
       if (result.success && result.data) {
         setAvailableModels(result.data);
@@ -245,14 +323,14 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   };
 
   const testConnection = async () => {
-    if (!settings?.llm.provider) return;
+    if (!selectedProvider) return;
 
     setIsTestingConnection(true);
     setConnectionStatus('idle');
     
     try {
       // Call the main process to test the connection
-      const result = await window.electronAPI.testLlmConnection(settings.llm.provider) as any;
+      const result = await window.electronAPI.testLlmConnection(selectedProvider) as any;
       
       if (result.success) {
         setConnectionStatus('success');
@@ -457,242 +535,356 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                 {/* LLM Provider Settings */}
                 {activeTab === 'llm' && (
                   <div className="space-y-6">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">LLM Provider Configuration</h3>
-                    
-                    <div className="space-y-6">
-                      {/* Provider Type */}
-                      <div>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">LLM Providers</h3>
+                      <button
+                        onClick={handleAddProvider}
+                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                      >
+                        + Add Provider
+                      </button>
+                    </div>
+
+                    {/* Show message if no providers */}
+                    {(!settings?.llm.providers || settings.llm.providers.length === 0) && (
+                      <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                        <p>No providers configured yet.</p>
+                        <p className="text-sm">Click "Add Provider" to get started.</p>
+                      </div>
+                    )}
+
+                    {/* Active Provider Quick Switch */}
+                    {settings?.llm.providers && settings.llm.providers.length > 0 && (
+                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Provider Type
+                          Active Provider
                         </label>
                         <select
-                          value={settings.llm.provider.type}
-                          onChange={(e) => updateLlmProvider({ type: e.target.value as 'ollama' | 'openrouter' })}
+                          value={settings.llm.currentProviderId || ''}
+                          onChange={(e) => setCurrentProvider(e.target.value)}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                          <option value="ollama">Ollama (Local)</option>
-                          <option value="openrouter">OpenRouter (Cloud)</option>
+                          <option value="">Select active provider...</option>
+                          {settings.llm.providers.filter(p => p.enabled).map((provider) => (
+                            <option key={provider.id} value={provider.id}>
+                              {provider.name} ({provider.type}) - {provider.model}
+                            </option>
+                          ))}
                         </select>
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          The provider that will be used for AI conversations
+                        </p>
                       </div>
+                    )}
 
-                      {/* Provider Name */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Provider Name
-                        </label>
-                        <input
-                          type="text"
-                          value={settings.llm.provider.name}
-                          onChange={(e) => updateLlmProvider({ name: e.target.value })}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="Provider display name"
-                        />
+                    {/* Provider List */}
+                    {settings?.llm.providers && settings.llm.providers.length > 0 && (
+                      <div className="space-y-3">
+                        <h4 className="text-md font-medium text-gray-900 dark:text-white">All Providers</h4>
+                        <div className="space-y-2">
+                          {settings.llm.providers.map((provider) => (
+                            <div
+                              key={provider.id}
+                              className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                                selectedProviderId === provider.id
+                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
+                              }`}
+                              onClick={() => setSelectedProviderId(provider.id)}
+                            >
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                  <div className={`w-3 h-3 rounded-full ${
+                                    settings.llm.currentProviderId === provider.id
+                                      ? 'bg-green-500'
+                                      : provider.enabled
+                                        ? 'bg-blue-500'
+                                        : 'bg-gray-400'
+                                  }`} />
+                                  <div>
+                                    <div className="font-medium text-gray-900 dark:text-white">
+                                      {provider.name}
+                                    </div>
+                                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                                      {provider.type} • {provider.model || 'No model selected'}
+                                      {settings.llm.currentProviderId === provider.id && ' • Active'}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  {settings.llm.currentProviderId === provider.id && (
+                                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                                      Active
+                                    </span>
+                                  )}
+                                  {provider.enabled ? (
+                                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
+                                      Enabled
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded">
+                                      Disabled
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
+                    )}
 
-                      {/* Base URL (for Ollama) */}
-                      {settings.llm.provider.type === 'ollama' && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Base URL
-                          </label>
-                          <input
-                            type="url"
-                            value={settings.llm.provider.baseUrl || ''}
-                            onChange={(e) => updateLlmProvider({ baseUrl: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="http://localhost:11434"
-                          />
-                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            The URL where Ollama is running (default: http://localhost:11434)
-                          </p>
+                    {/* Selected Provider Configuration */}
+                    {selectedProvider && (
+                      <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-6 space-y-6">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+                            Configure: {selectedProvider.name}
+                          </h4>
+                          <button
+                            onClick={() => removeProvider(selectedProvider.id)}
+                            className="text-red-600 hover:text-red-700 text-sm"
+                          >
+                            🗑️ Remove
+                          </button>
                         </div>
-                      )}
 
-                      {/* API Key (for OpenRouter) */}
-                      {settings.llm.provider.type === 'openrouter' && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            API Key
-                          </label>
-                          <input
-                            type="password"
-                            value={settings.llm.provider.apiKey || ''}
-                            onChange={(e) => updateLlmProvider({ apiKey: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder="Your OpenRouter API key"
-                          />
-                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                            Get your API key from <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai</a>
-                          </p>
-                        </div>
-                      )}
+                        <div className="space-y-4">
+                          {/* Provider Type */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Provider Type
+                            </label>
+                            <select
+                              value={selectedProvider.type}
+                              onChange={(e) => updateSelectedProvider({ type: e.target.value as 'ollama' | 'openrouter' })}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="ollama">Ollama (Local)</option>
+                              <option value="openrouter">OpenRouter (Cloud)</option>
+                            </select>
+                          </div>
 
-                      {/* Model */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Default Model
-                        </label>
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={modelSearchQuery}
-                            onChange={(e) => handleModelInputChange(e.target.value)}
-                            onKeyDown={handleModelKeyDown}
-                            onFocus={() => setShowModelDropdown(availableModels.length > 0 && modelSearchQuery.length > 0)}
-                            onBlur={() => setTimeout(() => setShowModelDropdown(false), 150)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            placeholder={availableModels.length > 0 
-                              ? 'Search models...' 
-                              : settings.llm.provider.type === 'ollama' ? 'llama2' : 'meta-llama/llama-2-7b-chat'
-                            }
-                            disabled={isLoadingModels}
-                          />
-                          {isLoadingModels && (
-                            <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                          {/* Provider Name */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Provider Name
+                            </label>
+                            <input
+                              type="text"
+                              value={selectedProvider.name}
+                              onChange={(e) => updateSelectedProvider({ name: e.target.value })}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Provider display name"
+                            />
+                          </div>
+
+                          {/* Base URL (for Ollama) */}
+                          {selectedProvider.type === 'ollama' && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Base URL
+                              </label>
+                              <input
+                                type="url"
+                                value={selectedProvider.baseUrl || ''}
+                                onChange={(e) => updateSelectedProvider({ baseUrl: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="http://localhost:11434"
+                              />
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                The URL where Ollama is running (default: http://localhost:11434)
+                              </p>
                             </div>
                           )}
-                          
-                          {/* Dropdown Results */}
-                          {showModelDropdown && filteredModels.length > 0 && (
-                            <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
-                              {filteredModels.slice(0, 50).map((model, index) => (
-                                <div
-                                  key={model.name}
-                                  className={`px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
-                                    index === selectedModelIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''
-                                  }`}
-                                  onClick={() => handleModelSelect(model.name)}
-                                >
-                                  <div className="text-sm text-gray-900 dark:text-white font-medium">
-                                    {model.name}
-                                  </div>
-                                  {model.description && (
-                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                      {model.description}
+
+                          {/* API Key (for OpenRouter) */}
+                          {selectedProvider.type === 'openrouter' && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                API Key
+                              </label>
+                              <input
+                                type="password"
+                                value={selectedProvider.apiKey || ''}
+                                onChange={(e) => updateSelectedProvider({ apiKey: e.target.value })}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Your OpenRouter API key"
+                              />
+                              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                                Get your API key from <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai</a>
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Model with Search */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Model
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                value={modelSearchQuery}
+                                onChange={(e) => handleModelInputChange(e.target.value)}
+                                onKeyDown={handleModelKeyDown}
+                                onFocus={() => setShowModelDropdown(availableModels.length > 0 && modelSearchQuery.length > 0)}
+                                onBlur={() => setTimeout(() => setShowModelDropdown(false), 150)}
+                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder={availableModels.length > 0 
+                                  ? 'Search models...' 
+                                  : selectedProvider.type === 'ollama' ? 'llama2' : 'meta-llama/llama-2-7b-chat'
+                                }
+                                disabled={isLoadingModels}
+                              />
+                              {isLoadingModels && (
+                                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                                </div>
+                              )}
+                              
+                              {/* Dropdown Results */}
+                              {showModelDropdown && filteredModels.length > 0 && (
+                                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                  {filteredModels.slice(0, 50).map((model, index) => (
+                                    <div
+                                      key={model.name}
+                                      className={`px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
+                                        index === selectedModelIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''
+                                      }`}
+                                      onClick={() => handleModelSelect(model.name)}
+                                    >
+                                      <div className="text-sm text-gray-900 dark:text-white font-medium">
+                                        {model.name}
+                                      </div>
+                                      {model.description && (
+                                        <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                                          {model.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ))}
+                                  {filteredModels.length > 50 && (
+                                    <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600">
+                                      Showing first 50 of {filteredModels.length} results. Continue typing to narrow search.
                                     </div>
                                   )}
                                 </div>
-                              ))}
-                              {filteredModels.length > 50 && (
-                                <div className="px-3 py-2 text-xs text-gray-500 dark:text-gray-400 border-t border-gray-200 dark:border-gray-600">
-                                  Showing first 50 of {filteredModels.length} results. Continue typing to narrow search.
-                                </div>
                               )}
                             </div>
-                          )}
-                        </div>
-                        <div className="mt-2 flex items-center justify-between">
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            {availableModels.length > 0 
-                              ? `${availableModels.length} models available${modelSearchQuery.length > 0 ? `, ${filteredModels.length} filtered` : ''}`
-                              : isLoadingModels 
-                                ? 'Loading models...'
-                                : settings.llm.provider.type === 'ollama' 
-                                  ? 'Connect to load available models or enter manually'
-                                  : 'Add API key to load available models or enter manually'
-                            }
-                          </p>
-                          {!isLoadingModels && (
+                            <div className="mt-2 flex items-center justify-between">
+                              <p className="text-xs text-gray-500 dark:text-gray-400">
+                                {availableModels.length > 0 
+                                  ? `${availableModels.length} models available${modelSearchQuery.length > 0 ? `, ${filteredModels.length} filtered` : ''}`
+                                  : isLoadingModels 
+                                    ? 'Loading models...'
+                                    : selectedProvider.type === 'ollama' 
+                                      ? 'Connect to load available models or enter manually'
+                                      : 'Add API key to load available models or enter manually'
+                                }
+                              </p>
+                              {!isLoadingModels && (
+                                <button
+                                  onClick={fetchAvailableModels}
+                                  className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                >
+                                  Refresh
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Temperature Slider */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Temperature: {selectedProvider.temperature?.toFixed(1) || '0.7'}
+                            </label>
+                            <input
+                              type="range"
+                              min="0"
+                              max="1"
+                              step="0.1"
+                              value={selectedProvider.temperature || 0.7}
+                              onChange={(e) => updateSelectedProvider({ temperature: parseFloat(e.target.value) })}
+                              className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
+                            />
+                            <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              <span>Conservative (0.0)</span>
+                              <span>Creative (1.0)</span>
+                            </div>
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                              Controls randomness in the model's responses
+                            </p>
+                          </div>
+
+                          {/* Max Tokens */}
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                              Max Tokens
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="32000"
+                              value={selectedProvider.maxTokens || 2048}
+                              onChange={(e) => updateSelectedProvider({ maxTokens: parseInt(e.target.value) || 2048 })}
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="2048"
+                            />
+                            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                              Maximum number of tokens in the response (1-32000)
+                            </p>
+                          </div>
+
+                          {/* Test Connection */}
+                          <div>
                             <button
-                              onClick={fetchAvailableModels}
-                              className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                              onClick={testConnection}
+                              disabled={isTestingConnection || !selectedProvider.model}
+                              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
                             >
-                              Refresh
+                              {isTestingConnection ? (
+                                <>
+                                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                  <span>Testing Connection...</span>
+                                </>
+                              ) : (
+                                <span>Test Connection</span>
+                              )}
                             </button>
-                          )}
+                            {connectionStatus === 'success' && (
+                              <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center">
+                                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Connection successful!
+                              </p>
+                            )}
+                            {connectionStatus === 'error' && (
+                              <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
+                                <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                                </svg>
+                                Connection failed
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Enable Provider */}
+                          <label className="flex items-center">
+                            <input
+                              type="checkbox"
+                              checked={selectedProvider.enabled}
+                              onChange={(e) => updateSelectedProvider({ enabled: e.target.checked })}
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            />
+                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              Enable this provider
+                            </span>
+                          </label>
                         </div>
                       </div>
-
-                      {/* Temperature Slider */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Temperature: {settings.llm.provider.temperature?.toFixed(1) || '0.7'}
-                        </label>
-                        <input
-                          type="range"
-                          min="0"
-                          max="1"
-                          step="0.1"
-                          value={settings.llm.provider.temperature || 0.7}
-                          onChange={(e) => updateLlmProvider({ temperature: parseFloat(e.target.value) })}
-                          className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
-                        />
-                        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          <span>Conservative (0.0)</span>
-                          <span>Creative (1.0)</span>
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          Controls randomness in the model's responses
-                        </p>
-                      </div>
-
-                      {/* Max Tokens */}
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Max Tokens
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          max="32000"
-                          value={settings.llm.provider.maxTokens || 2048}
-                          onChange={(e) => updateLlmProvider({ maxTokens: parseInt(e.target.value) || 2048 })}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          placeholder="2048"
-                        />
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          Maximum number of tokens in the response (1-32000)
-                        </p>
-                      </div>
-
-                      {/* Test Connection */}
-                      <div>
-                        <button
-                          onClick={testConnection}
-                          disabled={isTestingConnection || !settings.llm.provider.model}
-                          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
-                        >
-                          {isTestingConnection ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>Testing Connection...</span>
-                            </>
-                          ) : (
-                            <span>Test Connection</span>
-                          )}
-                        </button>
-                        {connectionStatus === 'success' && (
-                          <p className="mt-2 text-sm text-green-600 dark:text-green-400 flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                            </svg>
-                            Connection successful!
-                          </p>
-                        )}
-                        {connectionStatus === 'error' && (
-                          <p className="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center">
-                            <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                            </svg>
-                            Connection failed
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Enable Provider */}
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={settings.llm.provider.enabled}
-                          onChange={(e) => updateLlmProvider({ enabled: e.target.checked })}
-                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
-                          Enable this LLM provider
-                        </span>
-                      </label>
-                    </div>
+                    )}
                   </div>
                 )}
 
