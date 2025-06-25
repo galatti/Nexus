@@ -128,10 +128,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
+    const trimmedMessage = inputMessage.trim();
+    
+    // Check for slash commands (prompts)
+    if (trimmedMessage.startsWith('/')) {
+      await handleSlashCommand(trimmedMessage);
+      return;
+    }
+
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputMessage.trim(),
+      content: trimmedMessage,
       timestamp: new Date()
     };
 
@@ -174,6 +182,132 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     } finally {
       setIsLoading(false);
       // Restore focus to input after the message is processed
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    }
+  };
+
+  const handleSlashCommand = async (command: string) => {
+    setInputMessage('');
+    setIsLoading(true);
+    setError(null);
+
+    // Add user message showing the command
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: command,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, userMessage]);
+
+    try {
+      // Parse the slash command
+      const parts = command.substring(1).split(' ');
+      const promptName = parts[0];
+      const argsText = parts.slice(1).join(' ');
+      
+      // Try to parse arguments as JSON, or use as simple parameters
+      let args: Record<string, any> = {};
+      if (argsText) {
+        try {
+          // Try JSON parsing first
+          args = JSON.parse(argsText);
+        } catch {
+          // If JSON parsing fails, treat as simple key=value pairs or single prompt text
+          if (argsText.includes('=')) {
+            // Parse key=value pairs: /complex_prompt temperature=0.8 style=conversational
+            const pairs = argsText.split(' ');
+            pairs.forEach(pair => {
+              if (pair.includes('=')) {
+                const [key, value] = pair.split('=', 2);
+                // Keep all values as strings for MCP prompt compatibility
+                args[key] = value;
+              }
+            });
+          } else {
+            // Single argument prompts: /resource_prompt 25
+            if (!isNaN(Number(argsText))) {
+              args.resourceId = Number(argsText);
+            } else {
+              args.text = argsText;
+            }
+          }
+        }
+      }
+
+      // Get available MCP servers (assuming we use the first one with prompts)
+      const mcpServers = await (window as any).electronAPI.getMcpServers();
+      if (!mcpServers.success || !mcpServers.servers || mcpServers.servers.length === 0) {
+        throw new Error('No MCP servers available');
+      }
+
+      // Find a server that has the requested prompt
+      let targetServerId: string | null = null;
+      for (const server of mcpServers.servers) {
+        if (server.state === 'ready') {
+          // Get server capabilities to check for prompts
+          const capabilities = await (window as any).electronAPI.getServerCapabilities(server.id);
+          if (capabilities.success && capabilities.capabilities && capabilities.capabilities.promptsList) {
+            const hasPrompt = capabilities.capabilities.promptsList.some((p: any) => p.name === promptName);
+            if (hasPrompt) {
+              targetServerId = server.id;
+              break;
+            }
+          }
+        }
+      }
+
+      if (!targetServerId) {
+        throw new Error(`Prompt "${promptName}" not found in any connected MCP server`);
+      }
+
+      // Execute the prompt
+      console.log(`Executing prompt: ${promptName} with args:`, args);
+      const result = await (window as any).electronAPI.executePrompt(targetServerId, promptName, args);
+
+      if (result.success && result.result) {
+        // Process the prompt result
+        let responseContent = '';
+        if (result.result.messages && Array.isArray(result.result.messages)) {
+          responseContent = result.result.messages
+            .filter((msg: any) => msg.content?.type === 'text')
+            .map((msg: any) => msg.content.text)
+            .join('\n\n');
+        } else if (typeof result.result === 'string') {
+          responseContent = result.result;
+        } else {
+          responseContent = JSON.stringify(result.result, null, 2);
+        }
+
+        const assistantMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: responseContent || `✅ Prompt "${promptName}" executed successfully`,
+          timestamp: new Date()
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+      } else {
+        throw new Error(result.error || 'Failed to execute prompt');
+      }
+
+    } catch (error) {
+      console.error('Slash command error:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `❌ Error executing command: ${errorMessage}\n\n**Available commands:**\n- \`/simple_prompt\` - Basic prompt without arguments\n- \`/complex_prompt temperature=0.7 style=conversational\` - Advanced prompt with arguments\n- \`/resource_prompt 25\` - Prompt with resource ID`,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } finally {
+      setIsLoading(false);
+      // Restore focus to input
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);

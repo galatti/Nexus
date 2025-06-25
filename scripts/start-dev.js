@@ -17,6 +17,15 @@ import { freePort } from './kill-port.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Fix encoding for Windows PowerShell
+if (process.platform === 'win32') {
+  try {
+    // Set console output encoding to UTF-8
+    execSync('chcp 65001 >nul 2>&1', { shell: true });
+  } catch (e) {
+    // Ignore errors, fallback to ASCII characters
+  }
+}
 
 function waitUntilReachable(port, retries = 40, delay = 250) {
   return new Promise((resolve, reject) => {
@@ -42,25 +51,25 @@ function waitUntilReachable(port, retries = 40, delay = 250) {
 (async () => {
   const preferredPort = 5173;
 
-  console.log(`🛑 Attempting to free port ${preferredPort}...`);
+  console.log(`[!] Attempting to free port ${preferredPort}...`);
   await freePort(preferredPort);
-  console.log(`✅ Port ${preferredPort} freed successfully`);
+  console.log(`[✓] Port ${preferredPort} freed successfully`);
 
   const port = preferredPort;
   const env = { ...process.env, NODE_ENV: 'development', DEV_SERVER_PORT: String(port) };
 
   // Ensure main process is compiled
-  console.log('🔧 Compiling main process...');
+  console.log('[*] Compiling main process...');
   execSync('npm run build:main', { stdio: 'inherit', shell: true });
   
   // Free port again after build in case build process interfered
-  console.log(`🛑 Re-freeing port ${port} after build...`);
+  console.log(`[!] Re-freeing port ${port} after build...`);
   await freePort(port);
   
   // Give the system a moment to fully release the port
   await new Promise(resolve => setTimeout(resolve, 1000));
 
-  console.log(`🚀 Starting Vite dev server on http://localhost:${port}`);
+  console.log(`[>] Starting Vite dev server on http://localhost:${port}`);
   const vite = spawn('npx', ['vite', '--port', String(port), '--strictPort'], {
     cwd: path.resolve(__dirname, '..'),
     shell: true,
@@ -70,7 +79,7 @@ function waitUntilReachable(port, retries = 40, delay = 250) {
 
   // helper to wait dev server
   await waitUntilReachable(port);
-  console.log('✅ Vite is ready – launching Electron');
+  console.log('[✓] Vite is ready – launching Electron');
   const electron = spawn('npx', ['electron', '.'], {
     cwd: path.resolve(__dirname, '..'),
     shell: true,

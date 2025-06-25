@@ -7,7 +7,7 @@ const newPath = path.join(preloadDir, 'preload.mjs');
 
 try {
   fs.renameSync(oldPath, newPath);
-  console.log(`✅ Renamed ${oldPath} to ${newPath}`);
+  console.log(`[✓] Renamed ${oldPath} to ${newPath}`);
 } catch (err) {
   if (err.code === 'ENOENT') {
     console.log('ℹ️ preload.js not found - skipping rename');

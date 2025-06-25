@@ -82,9 +82,9 @@ const createWindow = (): void => {
   if (isDev) {
     // Development - load from vite dev server
     const devPort = process.env.DEV_SERVER_PORT || '5173';
-    const url = `http://localhost:${devPort}`;
-    console.log(`🌐 Loading URL: ${url}`);
-    console.log(`🔧 isDev: ${isDev}, NODE_ENV: ${process.env.NODE_ENV}`);
+          const url = `http://localhost:${devPort}`;
+      console.log(`[>] Loading URL: ${url}`);
+      console.log(`[*] isDev: ${isDev}, NODE_ENV: ${process.env.NODE_ENV}`);
     
     mainWindow.loadURL(url);
     
@@ -95,7 +95,7 @@ const createWindow = (): void => {
     });
     
     mainWindow.webContents.on('did-finish-load', () => {
-      console.log('✅ Page loaded successfully');
+      console.log('[✓] Page loaded successfully');
     });
     
     // DevTools available via menu or Ctrl+Shift+I, but don't auto-open
