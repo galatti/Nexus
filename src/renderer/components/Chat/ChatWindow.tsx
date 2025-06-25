@@ -224,13 +224,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const renderMessage = (message: ChatMessage) => {
     const isUser = message.role === 'user';
     
-    console.log('🎨 Rendering message:', {
-      id: message.id,
-      role: message.role,
-      hasTools: !!message.tools,
-      toolsLength: message.tools?.length || 0,
-      tools: message.tools
-    });
+    // Only log for debugging in development and avoid excessive logging
+    if (process.env.NODE_ENV === 'development' && message.tools?.length) {
+      console.log('🎨 Rendering message with tools:', {
+        id: message.id,
+        role: message.role,
+        toolsLength: message.tools.length
+      });
+    }
     
     return (
       <div

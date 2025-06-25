@@ -83,10 +83,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
   // Listen for server state changes
   useEffect(() => {
-    console.log('Sidebar: Setting up state change listener');
+    if (process.env.NODE_ENV === 'development') {
+      console.log('Sidebar: Setting up state change listener');
+    }
     
     const cleanup = (window as any).electronAPI.onMcpServerStateChange?.((serverId: string, state: string) => {
-      console.log('Sidebar: Received state change:', serverId, state);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Sidebar: Received state change:', serverId, state);
+      }
       
       setServers(prev => {
         const updatedServers = prev.map(server => 

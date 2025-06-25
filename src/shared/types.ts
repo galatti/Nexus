@@ -141,6 +141,42 @@ export interface McpTool {
   serverId: string;
 }
 
+// MCP Resource information
+export interface McpResource {
+  uri: string;
+  name: string;
+  description?: string;
+  mimeType?: string;
+  serverId: string;
+}
+
+// MCP Prompt information
+export interface McpPrompt {
+  name: string;
+  description?: string;
+  arguments?: Array<{
+    name: string;
+    description?: string;
+    required?: boolean;
+  }>;
+  serverId: string;
+}
+
+// MCP Progress notification
+export interface ProgressNotification {
+  operationId: string;
+  progress: number;
+  total?: number;
+  message?: string;
+}
+
+// MCP Log message
+export interface LogMessage {
+  level: 'debug' | 'info' | 'warning' | 'error';
+  logger?: string;
+  data: any;
+}
+
 // Extend Window interface for Electron API
 declare global {
   interface Window {

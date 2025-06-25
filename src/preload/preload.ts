@@ -49,6 +49,22 @@ const electronAPI = {
   updateMcpServerEnabled: (serverId: string, enabled: boolean) =>
     ipcRenderer.invoke('mcp:updateServerEnabled', serverId, enabled),
   
+  // Resource operations
+  readResource: (serverId: string, uri: string) =>
+    ipcRenderer.invoke('mcp:readResource', serverId, uri),
+  subscribeResource: (serverId: string, uri: string) =>
+    ipcRenderer.invoke('mcp:subscribeResource', serverId, uri),
+  unsubscribeResource: (serverId: string, uri: string) =>
+    ipcRenderer.invoke('mcp:unsubscribeResource', serverId, uri),
+  
+  // Prompt operations
+  executePrompt: (serverId: string, promptName: string, args?: Record<string, unknown>) =>
+    ipcRenderer.invoke('mcp:executePrompt', serverId, promptName, args),
+  
+  // LLM sampling via MCP
+  sampleLLM: (serverId: string, messages: any[], options?: any) =>
+    ipcRenderer.invoke('mcp:sampleLLM', serverId, messages, options),
+  
   // Permission operations
   getPendingApprovals: () => ipcRenderer.invoke('permissions:getPending'),
   respondToApproval: (approvalId: string, result: any) =>
@@ -78,6 +94,31 @@ const electronAPI = {
   onSettingsChange: (callback: (settings: Record<string, unknown>) => void) => {
     ipcRenderer.on('settings:changed', (_event, settings) => callback(settings));
     return () => ipcRenderer.removeAllListeners('settings:changed');
+  },
+
+  // MCP notification event listeners
+  onProgressNotification: (callback: (serverId: string, notification: any) => void) => {
+    ipcRenderer.on('mcp:progressNotification', (_event, serverId, notification) => 
+      callback(serverId, notification));
+    return () => ipcRenderer.removeAllListeners('mcp:progressNotification');
+  },
+
+  onLogMessage: (callback: (serverId: string, logMessage: any) => void) => {
+    ipcRenderer.on('mcp:logMessage', (_event, serverId, logMessage) => 
+      callback(serverId, logMessage));
+    return () => ipcRenderer.removeAllListeners('mcp:logMessage');
+  },
+
+  onResourcesChanged: (callback: (serverId: string, resources: any[]) => void) => {
+    ipcRenderer.on('mcp:resourcesChanged', (_event, serverId, resources) => 
+      callback(serverId, resources));
+    return () => ipcRenderer.removeAllListeners('mcp:resourcesChanged');
+  },
+
+  onResourceUpdated: (callback: (serverId: string, uri: string) => void) => {
+    ipcRenderer.on('mcp:resourceUpdated', (_event, serverId, uri) => 
+      callback(serverId, uri));
+    return () => ipcRenderer.removeAllListeners('mcp:resourceUpdated');
   },
 };
 

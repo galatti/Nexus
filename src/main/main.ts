@@ -651,6 +651,59 @@ ipcMain.handle('mcp:executeTool', async (_event, serverId, toolName, args) => {
   }
 });
 
+// Resource operations
+ipcMain.handle('mcp:readResource', async (_event, serverId, uri) => {
+  try {
+    const result = await serverManager.readResource(serverId, uri);
+    return { success: true, result };
+  } catch (error) {
+    console.error('MCP resource read failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:subscribeResource', async (_event, serverId, uri) => {
+  try {
+    await serverManager.subscribeToResource(serverId, uri);
+    return { success: true };
+  } catch (error) {
+    console.error('MCP resource subscription failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('mcp:unsubscribeResource', async (_event, serverId, uri) => {
+  try {
+    await serverManager.unsubscribeFromResource(serverId, uri);
+    return { success: true };
+  } catch (error) {
+    console.error('MCP resource unsubscription failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+// Prompt operations
+ipcMain.handle('mcp:executePrompt', async (_event, serverId, promptName, args) => {
+  try {
+    const result = await serverManager.executePrompt(serverId, promptName, args);
+    return { success: true, result };
+  } catch (error) {
+    console.error('MCP prompt execution failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+// LLM sampling via MCP
+ipcMain.handle('mcp:sampleLLM', async (_event, serverId, messages, options) => {
+  try {
+    const result = await serverManager.sampleLLM(serverId, messages, options);
+    return { success: true, result };
+  } catch (error) {
+    console.error('MCP LLM sampling failed:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 // MCP Server management handlers
 ipcMain.handle('mcp:addServer', async (_event, serverConfig) => {
   try {
@@ -873,12 +926,16 @@ ipcMain.handle('mcp:getServerCapabilities', async (_event, serverId) => {
 
     const tools = serverManager.getAvailableTools(serverId);
     
-    // TODO: Add resources and prompts when implemented
+    const resources = serverManager.getAvailableResources(serverId);
+    const prompts = serverManager.getAvailablePrompts(serverId);
+    
     const capabilities = {
       tools: tools.length,
-      resources: 0, // Placeholder until resources are implemented
-      prompts: 0,   // Placeholder until prompts are implemented
-      toolsList: tools
+      resources: resources.length,
+      prompts: prompts.length,
+      toolsList: tools,
+      resourcesList: resources,
+      promptsList: prompts
     };
     
     return { success: true, capabilities };
@@ -901,11 +958,33 @@ ipcMain.handle('mcp:getAllCapabilities', async (_event) => {
       toolsByServer[tool.serverId].push(tool);
     });
     
+    const allResources = serverManager.getAllAvailableResources();
+    const allPrompts = serverManager.getAllAvailablePrompts();
+    
+    // Group resources and prompts by server
+    const resourcesByServer: Record<string, any[]> = {};
+    allResources.forEach(resource => {
+      if (!resourcesByServer[resource.serverId]) {
+        resourcesByServer[resource.serverId] = [];
+      }
+      resourcesByServer[resource.serverId].push(resource);
+    });
+    
+    const promptsByServer: Record<string, any[]> = {};
+    allPrompts.forEach(prompt => {
+      if (!promptsByServer[prompt.serverId]) {
+        promptsByServer[prompt.serverId] = [];
+      }
+      promptsByServer[prompt.serverId].push(prompt);
+    });
+    
     const totalCapabilities = {
       tools: allTools.length,
-      resources: 0, // Placeholder until resources are implemented
-      prompts: 0,   // Placeholder until prompts are implemented
-      toolsByServer
+      resources: allResources.length,
+      prompts: allPrompts.length,
+      toolsByServer,
+      resourcesByServer,
+      promptsByServer
     };
     
     return { success: true, capabilities: totalCapabilities };
@@ -1342,6 +1421,27 @@ ipcMain.handle('llm:getAvailableModels', async (_event, providerId) => {
 serverManager.on('stateChange', (serverState) => {
   console.log('Forwarding state change:', serverState.serverId, serverState.state, 'mainWindow exists:', !!mainWindow);
   mainWindow?.webContents.send('mcp:serverStateChange', serverState.serverId, serverState.state);
+});
+
+// Forward MCP notifications to renderer
+serverManager.on('progressNotification', (serverId, notification) => {
+  console.log('Forwarding progress notification:', serverId, notification);
+  mainWindow?.webContents.send('mcp:progressNotification', serverId, notification);
+});
+
+serverManager.on('logMessage', (serverId, logMessage) => {
+  console.log('Forwarding log message:', serverId, logMessage);
+  mainWindow?.webContents.send('mcp:logMessage', serverId, logMessage);
+});
+
+serverManager.on('resourcesChanged', (serverId, resources) => {
+  console.log('Forwarding resources changed:', serverId, resources.length);
+  mainWindow?.webContents.send('mcp:resourcesChanged', serverId, resources);
+});
+
+serverManager.on('resourceUpdated', (serverId, uri) => {
+  console.log('Forwarding resource updated:', serverId, uri);
+  mainWindow?.webContents.send('mcp:resourceUpdated', serverId, uri);
 });
 
 llmManager.on('currentProviderChanged', (data) => {

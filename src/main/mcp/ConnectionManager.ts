@@ -8,6 +8,41 @@ export interface ServerState {
   error?: string;
   lastReady?: Date;
   tools?: McpTool[];
+  resources?: McpResource[];
+  prompts?: McpPrompt[];
+}
+
+// Add new MCP types for resources and prompts
+export interface McpResource {
+  uri: string;
+  name: string;
+  description?: string;
+  mimeType?: string;
+  serverId: string;
+}
+
+export interface McpPrompt {
+  name: string;
+  description?: string;
+  arguments?: Array<{
+    name: string;
+    description?: string;
+    required?: boolean;
+  }>;
+  serverId: string;
+}
+
+export interface ProgressNotification {
+  operationId: string;
+  progress: number;
+  total?: number;
+  message?: string;
+}
+
+export interface LogMessage {
+  level: 'debug' | 'info' | 'warning' | 'error';
+  logger?: string;
+  data: any;
 }
 
 const dynamicImport = (specifier: string): Promise<any> => {
@@ -30,6 +65,7 @@ export class ServerManager extends EventEmitter {
     config: McpServerConfig;
     state: ServerState;
     process?: any;
+    subscribedResources?: Set<string>;
   }>();
 
   private readonly MAX_SERVERS = 8;
@@ -122,19 +158,29 @@ export class ServerManager extends EventEmitter {
       }, {
         capabilities: {
           tools: {},
-          resources: {}
+          resources: {
+            subscribe: true,
+            listChanged: true
+          },
+          prompts: {},
+          sampling: {}
         }
       });
 
       // Connect the client (start the process)
       await client.connect(transport);
 
+      // Set up notification handlers
+      this.setupNotificationHandlers(client, config.id);
+
       // List available tools to verify server is ready
       const result = await client.listTools();
       console.log(`MCP server ready: ${config.name}`, result);
 
-      // Discover tools
+      // Discover tools, resources, and prompts
       const tools = await this.discoverTools(client, config.id);
+      const resources = await this.discoverResources(client, config.id);
+      const prompts = await this.discoverPrompts(client, config.id);
 
       // Store server info
       const serverInfo = {
@@ -145,7 +191,9 @@ export class ServerManager extends EventEmitter {
           serverId: config.id,
           state: 'ready' as const,
           lastReady: new Date(),
-          tools
+          tools,
+          resources,
+          prompts
         },
         process: transport.process // Store process reference if available
       };
@@ -286,6 +334,155 @@ export class ServerManager extends EventEmitter {
     return allTools;
   }
 
+  getAvailableResources(serverId: string): McpResource[] {
+    const server = this.servers.get(serverId);
+    return server?.state.resources || [];
+  }
+
+  getAllAvailableResources(): McpResource[] {
+    const allResources: McpResource[] = [];
+    for (const server of this.servers.values()) {
+      if (server.state.state === 'ready' && server.state.resources) {
+        allResources.push(...server.state.resources);
+      }
+    }
+    return allResources;
+  }
+
+  getAvailablePrompts(serverId: string): McpPrompt[] {
+    const server = this.servers.get(serverId);
+    return server?.state.prompts || [];
+  }
+
+  getAllAvailablePrompts(): McpPrompt[] {
+    const allPrompts: McpPrompt[] = [];
+    for (const server of this.servers.values()) {
+      if (server.state.state === 'ready' && server.state.prompts) {
+        allPrompts.push(...server.state.prompts);
+      }
+    }
+    return allPrompts;
+  }
+
+  async readResource(serverId: string, uri: string): Promise<unknown> {
+    const server = this.servers.get(serverId);
+    if (!server) {
+      throw new Error(`Server ${serverId} is not running`);
+    }
+
+    if (server.state.state !== 'ready') {
+      throw new Error(`Server ${serverId} is not ready (current state: ${server.state.state})`);
+    }
+
+    try {
+      console.log(`Reading resource ${uri} from server ${serverId}`);
+      const result = await server.client.readResource({ uri });
+      console.log(`Resource read completed for ${uri}`);
+      return result;
+    } catch (error) {
+      console.error(`Resource read failed for ${uri} on ${serverId}:`, error);
+      throw error;
+    }
+  }
+
+  async subscribeToResource(serverId: string, uri: string): Promise<void> {
+    const server = this.servers.get(serverId);
+    if (!server) {
+      throw new Error(`Server ${serverId} is not running`);
+    }
+
+    if (!server.subscribedResources) {
+      server.subscribedResources = new Set();
+    }
+
+    if (server.subscribedResources.has(uri)) {
+      console.log(`Already subscribed to resource ${uri} on ${serverId}`);
+      return;
+    }
+
+    try {
+      await server.client.subscribeResource({ uri });
+      server.subscribedResources.add(uri);
+      console.log(`Subscribed to resource ${uri} on ${serverId}`);
+    } catch (error) {
+      console.error(`Failed to subscribe to resource ${uri} on ${serverId}:`, error);
+      throw error;
+    }
+  }
+
+  async unsubscribeFromResource(serverId: string, uri: string): Promise<void> {
+    const server = this.servers.get(serverId);
+    if (!server || !server.subscribedResources) {
+      return;
+    }
+
+    try {
+      await server.client.unsubscribeResource({ uri });
+      server.subscribedResources.delete(uri);
+      console.log(`Unsubscribed from resource ${uri} on ${serverId}`);
+    } catch (error) {
+      console.error(`Failed to unsubscribe from resource ${uri} on ${serverId}:`, error);
+      throw error;
+    }
+  }
+
+  async executePrompt(serverId: string, promptName: string, args?: Record<string, unknown>): Promise<unknown> {
+    const server = this.servers.get(serverId);
+    if (!server) {
+      throw new Error(`Server ${serverId} is not running`);
+    }
+
+    if (server.state.state !== 'ready') {
+      throw new Error(`Server ${serverId} is not ready (current state: ${server.state.state})`);
+    }
+
+    // Find the prompt definition
+    const prompt = server.state.prompts?.find(p => p.name === promptName);
+    if (!prompt) {
+      throw new Error(`Prompt ${promptName} not found on server ${serverId}`);
+    }
+
+    try {
+      console.log(`Executing prompt ${promptName} on server ${serverId}`, { args });
+      const result = await server.client.getPrompt({
+        name: promptName,
+        arguments: args || {}
+      });
+      console.log(`Prompt execution completed for ${promptName}`);
+      return result;
+    } catch (error) {
+      console.error(`Prompt execution failed for ${promptName} on ${serverId}:`, error);
+      throw error;
+    }
+  }
+
+  async sampleLLM(serverId: string, messages: any[], options?: { maxTokens?: number; temperature?: number; stopSequences?: string[]; modelPreferences?: any }): Promise<unknown> {
+    const server = this.servers.get(serverId);
+    if (!server) {
+      throw new Error(`Server ${serverId} is not running`);
+    }
+
+    if (server.state.state !== 'ready') {
+      throw new Error(`Server ${serverId} is not ready (current state: ${server.state.state})`);
+    }
+
+    try {
+      console.log(`Sampling LLM via server ${serverId}`, { messagesCount: messages.length, options });
+      const result = await server.client.sampling.createMessage({
+        messages,
+        maxTokens: options?.maxTokens,
+        temperature: options?.temperature,
+        stopSequences: options?.stopSequences,
+        modelPreferences: options?.modelPreferences
+      });
+      console.log(`LLM sampling completed via ${serverId}`);
+      return result;
+    } catch (error) {
+      console.error(`LLM sampling failed via ${serverId}:`, error);
+      throw error;
+    }
+  }
+
   async stopAllServers(): Promise<void> {
     const stopPromises = Array.from(this.servers.keys()).map(serverId =>
       this.stopServer(serverId)
@@ -308,6 +505,100 @@ export class ServerManager extends EventEmitter {
     } catch (error) {
       console.error(`Failed to discover tools for server ${serverId}:`, error);
       return [];
+    }
+  }
+
+  private async discoverResources(client: any, serverId: string): Promise<McpResource[]> {
+    try {
+      const resourcesList = await client.listResources();
+      console.log(`Discovered resources for ${serverId}:`, resourcesList.resources?.length || 0);
+      
+      return resourcesList.resources?.map((resource: any) => ({
+        uri: resource.uri,
+        name: resource.name,
+        description: resource.description,
+        mimeType: resource.mimeType,
+        serverId
+      })) || [];
+
+    } catch (error) {
+      console.error(`Failed to discover resources for server ${serverId}:`, error);
+      return [];
+    }
+  }
+
+  private async discoverPrompts(client: any, serverId: string): Promise<McpPrompt[]> {
+    try {
+      const promptsList = await client.listPrompts();
+      console.log(`Discovered prompts for ${serverId}:`, promptsList.prompts?.length || 0);
+      
+      return promptsList.prompts?.map((prompt: any) => ({
+        name: prompt.name,
+        description: prompt.description,
+        arguments: prompt.arguments,
+        serverId
+      })) || [];
+
+    } catch (error) {
+      console.error(`Failed to discover prompts for server ${serverId}:`, error);
+      return [];
+    }
+  }
+
+  private setupNotificationHandlers(client: any, serverId: string): void {
+    try {
+      // Handle progress notifications
+      client.onNotification('notifications/progress', (params: any) => {
+        const progressNotification: ProgressNotification = {
+          operationId: params.operationId || 'unknown',
+          progress: params.progress || 0,
+          total: params.total,
+          message: params.message
+        };
+        
+        console.log(`Progress notification from ${serverId}:`, progressNotification);
+        this.emit('progressNotification', serverId, progressNotification);
+      });
+
+      // Handle log messages
+      client.onNotification('notifications/message', (params: any) => {
+        const logMessage: LogMessage = {
+          level: params.level || 'info',
+          logger: params.logger,
+          data: params.data
+        };
+        
+        console.log(`Log message from ${serverId}:`, logMessage);
+        this.emit('logMessage', serverId, logMessage);
+      });
+
+      // Handle resource list changes
+      client.onNotification('notifications/resources/list_changed', () => {
+        console.log(`Resource list changed for ${serverId}`);
+        this.refreshServerResources(serverId);
+      });
+
+      // Handle resource updates
+      client.onNotification('notifications/resources/updated', (params: any) => {
+        console.log(`Resource updated for ${serverId}:`, params.uri);
+        this.emit('resourceUpdated', serverId, params.uri);
+      });
+
+    } catch (error) {
+      console.error(`Failed to setup notification handlers for ${serverId}:`, error);
+    }
+  }
+
+  private async refreshServerResources(serverId: string): Promise<void> {
+    try {
+      const server = this.servers.get(serverId);
+      if (server && server.client) {
+        const resources = await this.discoverResources(server.client, serverId);
+        server.state.resources = resources;
+        this.emit('resourcesChanged', serverId, resources);
+      }
+    } catch (error) {
+      console.error(`Failed to refresh resources for ${serverId}:`, error);
     }
   }
 }
