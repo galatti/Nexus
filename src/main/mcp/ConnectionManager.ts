@@ -76,16 +76,41 @@ export class ServerManager extends EventEmitter {
         env.LC_ALL = 'en_US.UTF-8';
       }
       
+      // Parse command properly - split command string if it contains spaces
+      if (!config.command) {
+        throw new Error('Command is required for STDIO transport');
+      }
+      
+      let command = config.command;
+      let args = config.args || [];
+      
+      // If command contains spaces, split it properly with quote handling
+      if (command.includes(' ')) {
+        const parts = command.match(/[^\s"']+|"([^"]*)"|'([^']*)'/g) || [];
+        command = parts[0] || command;
+        args = [...parts.slice(1).map((arg: string) => arg.replace(/^["']|["']$/g, '')), ...args];
+      }
+      
+      // On Windows, handle special commands
+      if (process.platform === 'win32' && (command === 'npx' || command === 'npm' || command === 'node')) {
+        // Use .cmd extension on Windows for npm/npx
+        if (command === 'npx' && !command.endsWith('.cmd')) {
+          command = 'npx.cmd';
+        } else if (command === 'npm' && !command.endsWith('.cmd')) {
+          command = 'npm.cmd';
+        }
+      }
+      
       // Configure transport options based on platform
       const transportOptions: any = {
-        command: config.command,
-        args: config.args,
+        command,
+        args,
         env,
         encoding: 'utf8'
       };
       
-      // On Windows, we need to use shell mode when using cmd.exe
-      if (process.platform === 'win32' && config.command === 'cmd.exe') {
+      // On Windows, we need to use shell mode for proper command resolution
+      if (process.platform === 'win32') {
         transportOptions.shell = true;
       }
       

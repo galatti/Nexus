@@ -49,11 +49,13 @@ export interface ElectronAPI {
   
   // MCP Server management
   getMcpServers: () => Promise<ApiResponse<McpServerConfig[]>>;
-  addMcpServer: (config: McpServerConfig) => Promise<ApiResponse<void>>;
+  addMcpServer: (config: Omit<McpServerConfig, 'id'>) => Promise<ApiResponse<void>>;
   updateMcpServer: (serverId: string, updates: Partial<McpServerConfig>) => Promise<ApiResponse<void>>;
   removeMcpServer: (serverId: string) => Promise<ApiResponse<void>>;
+  removeAllMcpServers: () => Promise<ApiResponse<void>>;
   startMcpServer: (serverId: string) => Promise<ApiResponse<void>>;
   stopMcpServer: (serverId: string) => Promise<ApiResponse<void>>;
+  testMcpConnection: (serverConfigOrId: string | McpServerConfig) => Promise<ApiResponse<{ message?: string }>>;
   
   // Permissions
   getPendingApprovals: () => Promise<ApiResponse<PendingApproval[]>>;
@@ -81,9 +83,11 @@ export interface McpServerConfig {
   id: string;
   name: string;
   description?: string;
-  command: string;
-  args: string[];
+  transport: 'stdio' | 'http' | 'sse' | 'websocket';
+  command?: string;
+  args?: string[];
   env?: Record<string, string>;
+  url?: string;
   workingDirectory?: string;
   enabled: boolean;
   autoStart: boolean;

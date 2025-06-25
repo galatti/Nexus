@@ -22,6 +22,8 @@ const electronAPI = {
     ipcRenderer.invoke('mcp:connect', config),
   disconnectFromServer: (serverId: string) => 
     ipcRenderer.invoke('mcp:disconnect', serverId),
+  testMcpConnection: (serverConfigOrId: string | Record<string, unknown>) =>
+    ipcRenderer.invoke('mcp:testConnection', serverConfigOrId),
   executeTools: (serverId: string, toolName: string, args: Record<string, unknown>) =>
     ipcRenderer.invoke('mcp:executeTool', serverId, toolName, args),
   
@@ -34,12 +36,12 @@ const electronAPI = {
     ipcRenderer.invoke('mcp:updateServer', serverId, updates),
   removeMcpServer: (serverId: string) =>
     ipcRenderer.invoke('mcp:removeServer', serverId),
+  removeAllMcpServers: () =>
+    ipcRenderer.invoke('mcp:removeAllServers'),
   startMcpServer: (serverId: string) =>
     ipcRenderer.invoke('mcp:start', serverId),
   stopMcpServer: (serverId: string) =>
     ipcRenderer.invoke('mcp:stop', serverId),
-  testMcpConnection: (serverId: string) => 
-    ipcRenderer.invoke('mcp:testConnection', serverId),
   getServerCapabilities: (serverId: string) =>
     ipcRenderer.invoke('mcp:getServerCapabilities', serverId),
   getAllCapabilities: () =>

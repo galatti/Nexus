@@ -2,6 +2,8 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
+import { spawn } from 'child_process';
+import { existsSync, readFileSync } from 'fs';
 import { isDev } from '../shared/utils.js';
 
 // ES module equivalent of __dirname
@@ -12,8 +14,8 @@ const __dirname = dirname(__filename);
 const isWSL = process.platform === 'linux' && (
   process.env.WSL_DISTRO_NAME || 
   process.env.WSLENV ||
-  require('fs').existsSync('/proc/version') && 
-  require('fs').readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft')
+  existsSync('/proc/version') && 
+  readFileSync('/proc/version', 'utf8').toLowerCase().includes('microsoft')
 );
 
 // Apply WSL-specific fixes only when running in WSL
@@ -712,6 +714,24 @@ ipcMain.handle('mcp:removeServer', async (_event, serverId) => {
   }
 });
 
+ipcMain.handle('mcp:removeAllServers', async (_event) => {
+  try {
+    // Stop all running servers
+    await serverManager.stopAllServers();
+    
+    // Get all server IDs and remove them
+    const servers = configManager.getMcpServers();
+    for (const server of servers) {
+      configManager.removeMcpServer(server.id);
+    }
+    
+    return { success: true };
+  } catch (error) {
+    console.error('Failed to remove all MCP servers:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
 ipcMain.handle('mcp:getServers', async (_event) => {
   try {
     const servers = configManager.getMcpServers();
@@ -727,18 +747,119 @@ ipcMain.handle('mcp:getServers', async (_event) => {
   }
 });
 
-ipcMain.handle('mcp:testConnection', async (_event, serverId) => {
+ipcMain.handle('mcp:testConnection', async (_event, serverConfigOrId) => {
   try {
-    const servers = configManager.getMcpServers();
-    const server = servers.find(s => s.id === serverId);
-    if (!server) {
-      throw new Error(`Server ${serverId} not found`);
+    let server;
+    
+    // Handle both server config (for wizard) and serverId (for existing servers)
+    if (typeof serverConfigOrId === 'string') {
+      // It's a serverId - find existing server
+      const servers = configManager.getMcpServers();
+      server = servers.find(s => s.id === serverConfigOrId);
+      if (!server) {
+        throw new Error(`Server ${serverConfigOrId} not found`);
+      }
+    } else {
+      // It's a server config object from wizard
+      server = serverConfigOrId;
     }
     
-    await serverManager.startServer(server);
-    return { success: true };
+    // For the wizard, we'll do more thorough validation
+    if (server.transport === 'stdio') {
+      if (!server.command) {
+        return { success: false, error: 'Command is required for STDIO transport' };
+      }
+      
+      // Try to actually test the command if it's for testing (has no ID)
+      if (!server.id || server.id.startsWith('test-')) {
+        return new Promise((resolve) => {
+          try {
+            // Parse command properly - handle shell commands
+            let cmd: string;
+            let args: string[];
+            
+            if (server.command.includes(' ')) {
+              // Split command, but handle quoted arguments properly
+              const parts = server.command.match(/[^\s"']+|"([^"]*)"|'([^']*)'/g) || [];
+              cmd = parts[0];
+                             args = [...parts.slice(1).map((arg: string) => arg.replace(/^["']|["']$/g, '')), ...(server.args || [])];
+            } else {
+              cmd = server.command;
+              args = server.args || [];
+            }
+            
+            // On Windows, handle special commands
+            if (process.platform === 'win32' && (cmd === 'npx' || cmd === 'npm' || cmd === 'node')) {
+              // Use .cmd extension on Windows for npm/npx
+              if (cmd === 'npx' && !cmd.endsWith('.cmd')) {
+                cmd = 'npx.cmd';
+              } else if (cmd === 'npm' && !cmd.endsWith('.cmd')) {
+                cmd = 'npm.cmd';
+              }
+            }
+            
+            const child = spawn(cmd, args, {
+              stdio: ['pipe', 'pipe', 'pipe'],
+              env: { ...process.env, ...(server.env || {}) },
+              shell: process.platform === 'win32' // Use shell on Windows
+            });
+            
+            let output = '';
+            let errorOutput = '';
+            
+            const timeout = setTimeout(() => {
+              child.kill();
+              resolve({ success: false, error: 'Connection test timed out (10s)' });
+            }, 10000);
+            
+            child.stdout?.on('data', (data: Buffer) => {
+              output += data.toString();
+            });
+            
+            child.stderr?.on('data', (data: Buffer) => {
+              errorOutput += data.toString();
+            });
+            
+            child.on('error', (error: NodeJS.ErrnoException) => {
+              clearTimeout(timeout);
+              if (error.code === 'ENOENT') {
+                resolve({ success: false, error: `Command not found: ${cmd}. Make sure it's installed and in PATH.` });
+              } else {
+                resolve({ success: false, error: `Failed to start: ${error.message}` });
+              }
+            });
+            
+            child.on('spawn', () => {
+              // If it spawns successfully, it's probably valid
+              setTimeout(() => {
+                clearTimeout(timeout);
+                child.kill();
+                resolve({ success: true, message: 'Command spawned successfully' });
+              }, 2000);
+            });
+            
+          } catch (error) {
+            resolve({ success: false, error: `Test failed: ${error instanceof Error ? error.message : String(error)}` });
+          }
+        });
+      } else {
+        // For existing servers, just validate format
+        return { success: true, message: 'STDIO configuration looks valid' };
+      }
+    } else {
+      if (!server.url) {
+        return { success: false, error: 'URL is required for network transport' };
+      }
+      // For network transports, validate the URL format
+      try {
+        new URL(server.url);
+        return { success: true, message: 'URL format is valid' };
+      } catch {
+        return { success: false, error: 'Invalid URL format' };
+      }
+    }
   } catch (error) {
-    console.error('Failed to start server:', error);
+    console.error('Failed to test connection:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
 });

@@ -105,6 +105,24 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     return cleanup;
   }, []);
 
+  // Refresh servers periodically to catch new additions
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const result = await (window as any).electronAPI.getMcpServers();
+        if (result.success && result.servers.length !== servers.length) {
+          // Server count changed, refresh the list
+          console.log('Sidebar: Server count changed, refreshing list');
+          setServers(result.servers);
+        }
+      } catch (error) {
+        // Silently ignore errors during periodic refresh
+      }
+    }, 3000); // Check every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [servers.length]);
+
   if (!isOpen) return null;
 
   const getServerIcon = (server: McpServerConfig) => {
@@ -115,8 +133,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   };
 
   const getTransportType = (server: McpServerConfig) => {
-    const command = server.command.toLowerCase();
-    const args = server.args.map(arg => arg.toLowerCase());
+    if (server.transport) {
+      // Use the explicit transport type
+      switch (server.transport) {
+        case 'stdio':
+          return { type: 'STDIO', icon: '💬', color: 'text-green-600 dark:text-green-400' };
+        case 'http':
+          return { type: 'HTTP', icon: '🌐', color: 'text-blue-600 dark:text-blue-400' };
+        case 'websocket':
+          return { type: 'WebSocket', icon: '⚡', color: 'text-yellow-600 dark:text-yellow-400' };
+        case 'sse':
+          return { type: 'SSE', icon: '📡', color: 'text-purple-600 dark:text-purple-400' };
+      }
+    }
+    
+    // Fallback to detecting from command/URL (for legacy configs)
+    if (!server.command) {
+      return { type: 'HTTP', icon: '🌐', color: 'text-blue-600 dark:text-blue-400' };
+    }
+    
+    const command = server.command!.toLowerCase();
+    const args = server.args?.map(arg => arg.toLowerCase()) || [];
     
     // Check for HTTP/HTTPS URLs in command or args
     if (command.includes('http') || command.includes('https') || 

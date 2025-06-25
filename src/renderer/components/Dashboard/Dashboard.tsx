@@ -38,6 +38,23 @@ export const Dashboard: React.FC = () => {
     return cleanup;
   }, []);
 
+  // Refresh servers periodically to catch new additions
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const result = await (window as any).electronAPI.getMcpServers();
+        if (result.success && result.servers.length !== servers.length) {
+          // Server count changed, refresh the list
+          setServers(result.servers);
+        }
+      } catch (error) {
+        // Silently ignore errors during periodic refresh
+      }
+    }, 3000); // Check every 3 seconds
+
+    return () => clearInterval(interval);
+  }, [servers.length]);
+
   const loadServers = async () => {
     try {
       setIsLoading(true);
@@ -124,8 +141,27 @@ export const Dashboard: React.FC = () => {
   };
 
   const getTransportType = (server: McpServerConfig) => {
-    const command = server.command.toLowerCase();
-    const args = server.args.map(arg => arg.toLowerCase());
+    if (server.transport) {
+      // Use the explicit transport type
+      switch (server.transport) {
+        case 'stdio':
+          return { type: 'STDIO', icon: '💬', color: 'text-green-600 dark:text-green-400' };
+        case 'http':
+          return { type: 'HTTP', icon: '🌐', color: 'text-blue-600 dark:text-blue-400' };
+        case 'websocket':
+          return { type: 'WebSocket', icon: '⚡', color: 'text-yellow-600 dark:text-yellow-400' };
+        case 'sse':
+          return { type: 'SSE', icon: '📡', color: 'text-purple-600 dark:text-purple-400' };
+      }
+    }
+    
+    // Fallback to detecting from command/URL (for legacy configs)
+    if (!server.command) {
+      return { type: 'HTTP', icon: '🌐', color: 'text-blue-600 dark:text-blue-400' };
+    }
+    
+    const command = server.command!.toLowerCase();
+    const args = server.args?.map(arg => arg.toLowerCase()) || [];
     
     // Check for HTTP/HTTPS URLs in command or args
     if (command.includes('http') || command.includes('https') || 
@@ -248,58 +284,86 @@ export const Dashboard: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                MCP Servers
-              </h2>
-              <div className="flex items-center space-x-4 mt-2 text-xs text-gray-600 dark:text-gray-400">
-                <div className="flex items-center space-x-1">
-                  <span>💬</span>
-                  <span>STDIO</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <span>🌐</span>
-                  <span>HTTP</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <span>🔒</span>
-                  <span>SSH/TCP</span>
-                </div>
-                <div className="flex items-center space-x-1">
-                  <span>⚡</span>
-                  <span>WebSocket</span>
-                </div>
-              </div>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">MCP Servers</h2>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">
+                Manage your integrations
+              </p>
             </div>
-            <button
-              onClick={() => {
-                // This would open settings to the MCP tab
-                const event = new CustomEvent('openSettings', { detail: { tab: 'mcp' } });
-                window.dispatchEvent(event);
-              }}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
-            >
-              Add Server
-            </button>
+            
+            {/* Only show Add Server button when there are servers */}
+            {servers.length > 0 && (
+              <button
+                onClick={() => {
+                  // This would open settings to the MCP tab
+                  const event = new CustomEvent('openSettings', { detail: { tab: 'mcp' } });
+                  window.dispatchEvent(event);
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+              >
+                Add Server
+              </button>
+            )}
           </div>
 
+          {/* Transport types info - only show when servers exist */}
+          {servers.length > 0 && (
+            <div className="flex items-center space-x-6 mb-6 text-sm text-gray-600 dark:text-gray-400">
+              <div className="flex items-center space-x-1">
+                <span>💬</span>
+                <span>STDIO</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span>🌐</span>
+                <span>HTTP</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span>🔒</span>
+                <span>SSH/TCP</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span>⚡</span>
+                <span>WebSocket</span>
+              </div>
+            </div>
+          )}
+
           {servers.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🔧</div>
-              <h3 className="text-xl font-medium text-gray-900 dark:text-white mb-2">
-                No MCP Servers
+            <div className="text-center py-16">
+              <div className="text-7xl mb-6">🚀</div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
+                Welcome to MCP Servers
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Add your first MCP server to extend functionality with tools and resources
+              <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+                Connect to Model Context Protocol servers to extend functionality with powerful tools, resources, and capabilities.
               </p>
               <button
                 onClick={() => {
                   const event = new CustomEvent('openSettings', { detail: { tab: 'mcp' } });
                   window.dispatchEvent(event);
                 }}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium shadow-lg"
               >
-                Get Started
+                Add Your First Server
               </button>
+              
+              {/* Quick info about what users can do */}
+              <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-2xl mx-auto">
+                <div className="text-center">
+                  <div className="text-3xl mb-2">🔧</div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Tools</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Execute functions and actions</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">📁</div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Resources</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Access files and data</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-3xl mb-2">💬</div>
+                  <h4 className="font-medium text-gray-900 dark:text-white">Prompts</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Pre-built conversations</p>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
