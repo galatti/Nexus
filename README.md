@@ -1,232 +1,194 @@
-# NEXUS MVP 🚀
+# NEXUS
 
-**A Modern MCP-First Desktop Application Built with Electron + React + TypeScript**
+**A Modern MCP-First Desktop Application for AI Interactions**
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 [![Electron](https://img.shields.io/badge/Electron-28.0+-green.svg)](https://www.electronjs.org/)
 [![React](https://img.shields.io/badge/React-18.0+-blue.svg)](https://reactjs.org/)
-[![Vite](https://img.shields.io/badge/Vite-5.0+-purple.svg)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.0+-cyan.svg)](https://tailwindcss.com/)
+[![MCP](https://img.shields.io/badge/MCP-Enabled-purple.svg)](https://modelcontextprotocol.io/)
 
 ---
 
-## 🎯 **Current Status: Phase 3 Complete ✅**
+## Overview
 
-NEXUS MVP is a fully functional desktop application that provides a modern interface for interacting with MCP (Model Context Protocol) servers and LLM providers. All core features have been implemented and tested.
+NEXUS is a production-ready desktop application that provides a seamless interface for managing Model Context Protocol (MCP) servers and interacting with Large Language Models. Built with Electron, React, and TypeScript, it offers a professional user experience for both local and cloud AI providers.
 
-### ✨ **Key Features**
+### Key Features
 
-- 🖥️ **Modern Desktop UI** - Professional Electron application with native window controls
-- 🤖 **Multi-LLM Support** - Ollama (local) and OpenRouter (cloud) integration
-- 🔌 **MCP Integration** - Built-in server templates and tool execution
-- 🎨 **Beautiful Interface** - Dark/light themes with Tailwind CSS
-- 🛡️ **Security First** - Comprehensive permission system and risk assessment
-- ⚡ **High Performance** - Vite-powered development with hot reload
-- 🔧 **Developer Friendly** - TypeScript throughout with comprehensive tooling
-
----
-
-## 📋 **What's Implemented**
-
-### 🚀 **Phase 1: Core Infrastructure ✅**
-- ✅ **Electron Application**: Cross-platform desktop app with secure architecture
-- ✅ **TypeScript Setup**: Strict typing throughout main and renderer processes
-- ✅ **Vite Build System**: Fast development with hot module replacement
-- ✅ **React UI Foundation**: Modern component architecture with Tailwind CSS
-- ✅ **Theme System**: Dark, light, and system theme support
-- ✅ **Development Scripts**: Cross-platform build and development tools
-
-### 🚀 **Phase 2: Essential Features ✅**
-- ✅ **Advanced Chat Interface**: 
-  - GitHub Flavored Markdown rendering
-  - Syntax highlighting for 200+ languages
-  - Message persistence and history
-  - Copy functionality and auto-scroll
-  - Professional loading states
-  
-- ✅ **LLM Provider Integration**:
-  - **Ollama Provider**: Local model support with auto-detection
-  - **OpenRouter Provider**: Cloud API with credit tracking
-  - Model management and health monitoring
-  - Streaming architecture (ready for implementation)
-  
-- ✅ **Settings Management**:
-  - Professional tabbed interface
-  - Real-time configuration updates
-  - Data validation and error handling
-  - Import/export capabilities
-
-### 🚀 **Phase 3: MCP Integration ✅**
-- ✅ **Server Templates System**:
-  - **Filesystem Template**: Secure file system access
-  - **Web Search Template**: Brave Search API integration
-  - **Weather Template**: OpenWeatherMap integration
-  
-- ✅ **Permission Management**:
-  - Risk assessment (low/medium/high)
-  - User approval workflows with timeouts
-  - Granular permission scopes
-  - Security-first architecture
-  
-- ✅ **Professional UI**:
-  - Server template selection interface
-  - Configuration forms with validation
-  - Installation status indicators
-  - Template categorization
-
-- ✅ **Build System**:
-  - Cross-platform MCP server compilation
-  - TypeScript to JavaScript transpilation
-  - Automated build scripts (.sh/.ps1)
+- **Multi-LLM Support** - Ollama (local) and OpenRouter (cloud) with real-time model switching
+- **Advanced MCP Integration** - Full protocol support with tool execution and resource management
+- **Professional Chat Interface** - Markdown rendering, syntax highlighting, and message persistence
+- **Comprehensive Security** - Permission system with risk assessment and user approval workflows
+- **Configuration Management** - Visual forms, validation, and automatic backup
+- **Modern UI** - Dark/light themes with responsive design and smooth animations
 
 ---
 
-## 🚀 **Quick Start**
+## Quick Start
 
 ### Prerequisites
 - **Node.js** 18+ (LTS recommended)
 - **npm** 9+
-- **Git**
 - **OS**: Windows 10+, macOS 10.15+, or Linux
 
 ### Installation
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   cd Nexus
-   ```
-
-2. **Install dependencies**
-   ```bash
-   npm install
-   ```
-
-3. **Start development server**
-   ```bash
-   npm run dev
-   ```
-
-The application will launch automatically with:
-- **Vite Dev Server**: http://localhost:5173
-- **Electron App**: Desktop application window
-- **Hot Reload**: Automatic refresh on code changes
-
-### Production Build
-
 ```bash
-# Build for production
-npm run build
+# Clone and install
+git clone <repository-url>
+cd Nexus
+npm install
 
-# Package for distribution (if configured)
-npm run dist
+# Start the application
+npm run dev
 ```
+
+The application launches automatically with hot reload enabled.
+
+### First-Time Setup
+
+1. **Configure LLM Provider** - Go to Settings → LLM Settings
+   - **Ollama**: Automatically detects local installation
+   - **OpenRouter**: Requires API key configuration
+
+2. **Set Up MCP Servers** - Go to Settings → MCP Servers
+   - Choose from available server templates
+   - Configure connection parameters
+   - Test connections before enabling
+
+3. **Start Chatting** - Return to main interface and begin conversations
 
 ---
 
-## 🏗️ **Architecture Overview**
+## Features
+
+### Chat Interface
+
+- **Markdown Rendering** - Full GitHub Flavored Markdown support
+- **Syntax Highlighting** - 200+ programming languages via Prism.js
+- **Message History** - Persistent across application restarts
+- **Tool Execution** - Visual indicators for MCP tool usage
+- **Slash Commands** - Execute MCP prompts with `/` prefix
+- **Copy/Clear** - Message-level and full history operations
+- **Permission Prompts** - User approval required for tool execution
+- **Progress Tracking** - Real-time updates for long-running operations
+- **Error Handling** - Graceful degradation with helpful error messages
+
+### LLM Provider Support
+
+**Ollama (Local)**
+- Auto-detection of local Ollama installation
+- Model management with download status
+- Connection health monitoring
+- Zero configuration when Ollama is running
+
+**OpenRouter (Cloud)**
+- Full API integration with proper headers
+- 100+ models with search and filtering
+- Credit tracking and usage monitoring
+- Automatic rate limiting handling
+
+**Multi-Provider Features**
+- Hot switching between providers
+- Configuration persistence across sessions
+- Connection testing and validation
+
+### MCP Server Management
+
+**Supported Server Types**
+- **Filesystem Server** - Secure file system access with permission controls
+- **Web Search Server** - Brave Search API integration for real-time web queries
+- **Weather Server** - OpenWeatherMap integration for weather data
+- **Custom Servers** - Support for any MCP-compliant server
+
+**Management Features**
+- Visual configuration with form-based setup
+- Real-time connection health monitoring
+- Granular tool-level permissions
+- Pre-configured server templates
+
+**Tool Execution**
+- Automatic risk assessment (low/medium/high)
+- Modal dialogs with detailed permission requests
+- Session management (once/session/always permissions)
+- Parameter validation before execution
+
+### Settings & Configuration
+
+**Categories**
+- **General** - Theme selection and application preferences
+- **LLM Settings** - Provider configuration and model selection
+- **MCP Servers** - Server management and permissions
+- **Permissions** - Global permission policies and security settings
+
+**Features**
+- Real-time validation with immediate feedback
+- Automatic configuration persistence
+- Import/export functionality for backup and restore
+- Migration support for configuration format changes
+
+### Security & Permissions
+
+**Permission System**
+- Individual approval for each tool execution
+- Automatic evaluation of tool danger levels
+- Temporary, session, or permanent permission scopes
+- Explicit user confirmation with timeout handling
+
+**Security Features**
+- Renderer process sandboxing with context isolation
+- API keys protected in OS keychain
+- Parameter sanitization and type checking
+- Logging of all external network requests
+
+### User Interface
+
+**Design System**
+- Clean, professional interface with logical organization
+- Responsive design for different window sizes
+- Keyboard navigation and accessibility support
+- Loading states, progress indicators, and status messages
+
+**Theme Support**
+- Professional light color scheme
+- Modern dark color scheme with proper contrast
+- Automatic system preference detection
+- Smooth animated theme transitions
+
+---
+
+## Architecture
+
+### Technology Stack
+- **Frontend**: React 18 + TypeScript + Tailwind CSS
+- **Backend**: Electron 28 + Node.js
+- **MCP**: @modelcontextprotocol/sdk v0.5.0
+- **Build**: Vite + ESLint + Prettier
+- **State**: React Context + Local Storage
 
 ### Project Structure
 ```
 src/
-├── main/                   # Electron Main Process
-│   ├── config/            # Configuration management
-│   ├── llm/               # LLM provider integrations
-│   ├── mcp/               # MCP server management
-│   │   ├── servers/       # Custom MCP servers
-│   │   └── templates/     # Server template system
-│   ├── permissions/       # Security and permissions
-│   └── utils/            # Shared utilities
-├── renderer/              # React Frontend
-│   ├── components/        # UI components
-│   │   ├── Chat/         # Chat interface
-│   │   ├── Layout/       # Application layout
-│   │   ├── MCP/          # MCP management UI
-│   │   └── Settings/     # Settings interface
-│   ├── context/          # React contexts
-│   └── styles/           # CSS and styling
-├── preload/              # Electron preload scripts
-└── shared/               # Shared types and utilities
+├── main/                 # Electron Main Process
+│   ├── config/          # Configuration management
+│   ├── llm/             # LLM provider implementations
+│   ├── mcp/             # MCP server management
+│   └── permissions/     # Security and permissions
+├── renderer/            # React Frontend
+│   ├── components/      # UI components
+│   ├── context/         # React contexts
+│   └── styles/          # Styling
+└── preload/             # IPC bridge
 ```
 
-### Technology Stack
-
-**Frontend**
-- **React 18** - Modern UI library with hooks
-- **TypeScript** - Type-safe development
-- **Tailwind CSS** - Utility-first styling
-- **Lucide React** - Beautiful icon library
-- **React Markdown** - Markdown rendering
-- **Prism.js** - Syntax highlighting
-
-**Backend**
-- **Electron 28** - Desktop application framework
-- **Node.js** - Runtime environment
-- **Winston** - Structured logging
-- **MCP SDK** - Model Context Protocol integration
-
-**Development**
-- **Vite** - Fast build tool and dev server
-- **ESLint** - Code linting
-- **Prettier** - Code formatting
-- **Jest** - Testing framework
-
 ---
 
-## 🎮 **Usage Guide**
-
-### First Launch
-1. **Start the application** using `npm run dev`
-2. **Configure LLM provider** in Settings → LLM Settings
-3. **Set up MCP servers** in Settings → Server Templates
-4. **Start chatting** in the main chat interface
-
-### LLM Configuration
-
-**Ollama (Local)**
-- Install Ollama on your system
-- Models are auto-detected
-- No API keys required
-
-**OpenRouter (Cloud)**
-- Get API key from OpenRouter
-- Configure in Settings → LLM Settings
-- Monitor credit usage
-
-### MCP Server Templates
-
-**Filesystem Template**
-- Secure file system access
-- Configure allowed directories
-- Read, write, and search files
-
-**Web Search Template**
-- Brave Search API integration
-- Configure API key
-- Real-time web search capabilities
-
-**Weather Template**
-- OpenWeatherMap integration
-- Get current weather and forecasts
-- Location-based queries
-
-
-
-### Permissions System
-- **Automatic Risk Assessment**: Low, medium, high risk categorization
-- **User Approval**: Explicit approval for tool execution
-- **Permission Scopes**: Once, session, or always
-- **Timeout Handling**: Automatic denial after timeout
-
----
-
-## 🛠️ **Development**
+## Development
 
 ### Available Scripts
-
 ```bash
 # Development
-npm run dev              # Start development server
+npm run dev              # Start development server with hot reload
 npm run dev:vite         # Start Vite dev server only
 npm run dev:electron     # Start Electron only
 
@@ -235,234 +197,84 @@ npm run build            # Build for production
 npm run build:renderer   # Build React frontend
 npm run build:main       # Build Electron main process
 
-# Custom MCP Servers
-
-# Linting and Testing
+# Quality
 npm run lint             # Run ESLint
-npm run test             # Run Jest tests
 npm run type-check       # TypeScript compilation check
 ```
 
-### Cross-Platform Scripts
-
-Each script is available in both formats:
-- **Bash/Zsh**: `.sh` files for macOS/Linux
-- **PowerShell**: `.ps1` files for Windows
-
-Example:
-```bash
-# macOS/Linux
-./scripts/dev-server.sh
-
-# Windows
-./scripts/dev-server.ps1
-```
-
-### Configuration
-
-**Environment Variables**
-- Development environment auto-detected
-- Configuration stored in user data directory
-- Settings persist between sessions
-
-**Logging**
-- Winston-based structured logging
-- File rotation and size limits
-- Development vs production log levels
+### Development Features
+- Hot reload with instant updates
+- Full TypeScript type safety
+- Automated code formatting and linting
+- Complete debugging support with source maps
 
 ---
 
-## 🔧 **Customization**
-
-### Adding New LLM Providers
-
-1. Create provider class extending `BaseProvider`
-2. Implement required methods (`initialize`, `generateResponse`, etc.)
-3. Register in `LlmManager.ts`
-4. Add UI configuration in Settings
-
-### Creating Custom MCP Servers
-
-1. Implement MCP protocol methods
-2. Add build script for compilation  
-3. Create template class for UI integration
-
-### Theme Customization
-
-Themes are defined in `ThemeContext.tsx`:
-- **Light Theme**: Professional light color scheme
-- **Dark Theme**: Modern dark color scheme  
-- **System Theme**: Follows OS preference
-
-Customize colors in `tailwind.config.js`.
-
----
-
-## 🧪 **Testing**
-
-### Running Tests
-```bash
-npm run test              # Run all tests
-npm run test:watch        # Run tests in watch mode
-npm run test:coverage     # Run with coverage report
-```
-
-### Test Structure
-- **Unit Tests**: Component and utility testing
-- **Integration Tests**: Cross-component functionality
-- **E2E Tests**: Full application workflows (planned)
-
----
-
-## 🚀 **Deployment**
+## Deployment
 
 ### Production Build
 ```bash
 npm run build
 ```
 
-### Distribution Package
-```bash
-npm run dist  # (if electron-builder configured)
-```
+### Distribution
+- Cross-platform support (Windows, macOS, Linux)
+- Code signing infrastructure ready
+- Auto-updater framework implemented
+---
 
-### Platform Support
-- **Windows**: x64, ARM64
-- **macOS**: x64, ARM64 (Apple Silicon)
-- **Linux**: x64, ARM64
+## Future Roadmap (Post-MVP)
+
+Features explicitly excluded from MVP but planned for future versions:
+- Multiple chat sessions/tabs
+- MCP marketplace with one-click installation
+- Auto-discovery of local MCP servers
+- Workspace/project management
+- Localization and internationalization
+- Advanced debugging and analytics
+- Plugin system for custom integrations
+- Mobile companion app
+- Team collaboration features
+---
+
+## ⚠️ Important Disclaimers
+
+### User Responsibility
+**NEXUS is provided "AS IS" without warranty of any kind.** Users are solely responsible for:
+- **Configuration and Usage**: Proper setup and operation of the application
+- **Third-Party Services**: API keys, costs, and compliance with provider terms
+- **MCP Server Security**: Vetting and securing any installed MCP servers
+- **Data Protection**: Backing up and securing their data and configurations
+- **System Security**: Maintaining secure computing environments
+
+### Liability Limitations
+- **No Warranty**: This software is provided without warranties of merchantability or fitness
+- **User Risk**: Use at your own risk - we are not responsible for data loss, security breaches, or system damage
+- **Third-Party Services**: We are not responsible for issues with Ollama, OpenRouter, or other integrated services
+- **Financial Responsibility**: Users are responsible for any costs incurred through API usage
+
+### Security Notice
+- **Tool Execution**: MCP tools can perform system operations - review permissions carefully
+- **API Keys**: Secure your API keys and never share them
+- **File Access**: MCP servers may access your file system - use appropriate restrictions
+- **Network Requests**: Third-party servers may make external network requests
+
+**See [DISCLAIMER.md](DISCLAIMER.md) and [TERMS_OF_USE.md](TERMS_OF_USE.md) for complete legal terms.**
 
 ---
 
-## 🔒 **Security**
+## License
 
-### Security Features
-- **Context Isolation**: Renderer process sandboxing
-- **Node Integration Disabled**: Prevents direct Node.js access
-- **Content Security Policy**: Strict CSP headers
-- **Permission System**: User approval for tool execution
-- **Risk Assessment**: Automatic security evaluation
-
-### Best Practices
-- All external APIs require explicit user configuration
-- File system access is sandboxed and permission-based
-- Network requests are logged and monitored
-- User data is encrypted and stored securely
+This project is licensed under the MIT License with additional disclaimers - see the [LICENSE](LICENSE) file for details.
 
 ---
 
-## 📚 **API Reference**
-
-### IPC API
-The preload script exposes these APIs to the renderer:
-
-```typescript
-window.electronAPI = {
-  // Configuration
-  getConfig: () => Promise<Config>
-  updateConfig: (updates: Partial<Config>) => Promise<void>
-  
-  // LLM
-  generateResponse: (message: string) => Promise<string>
-  getAvailableModels: () => Promise<Model[]>
-  
-  // MCP
-  getServerTemplates: () => Promise<ServerTemplate[]>
-  installTemplate: (templateId: string, config: any) => Promise<void>
-  
-  // Permissions
-  requestPermission: (request: PermissionRequest) => Promise<boolean>
-}
-```
-
-### Configuration Schema
-```typescript
-interface Config {
-  theme: 'light' | 'dark' | 'system'
-  language: string
-  llm: {
-    provider: 'ollama' | 'openrouter'
-    apiKey?: string
-    selectedModel?: string
-  }
-  mcp: {
-    servers: McpServerConfig[]
-  }
-}
-```
-
----
-
-## 🤝 **Contributing**
-
-### Development Workflow
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Make changes with proper TypeScript types
-4. Add tests for new functionality
-5. Commit changes (`git commit -m 'Add amazing feature'`)
-6. Push to branch (`git push origin feature/amazing-feature`)
-7. Open Pull Request
-
-### Code Standards
-- **TypeScript**: Strict mode with proper typing
-- **ESLint**: Follow configured rules
-- **Prettier**: Automatic code formatting
-- **Conventional Commits**: Use conventional commit messages
-
-### Testing Requirements
-- Unit tests for new components
-- Integration tests for cross-component features
-- E2E tests for critical user workflows
-
----
-
-## 📊 **Project Status**
-
-### Completed Phases
-- ✅ **Phase 1**: Core Infrastructure (100%)
-- ✅ **Phase 2**: Essential Features (100%)
-- ✅ **Phase 3**: MCP Integration (100%)
-
-### Next Phase
-- 🔄 **Phase 4**: Advanced Features (Planning)
-  - Advanced chat capabilities
-  - Plugin system
-  - Performance optimization
-  - Advanced debugging tools
-
-### Statistics
-- **Components**: 15+ React components
-- **TypeScript Files**: 25+ source files
-- **Lines of Code**: 3000+ lines
-- **Build Size**: ~17MB (optimized)
-- **Supported Platforms**: Windows, macOS, Linux
-
----
-
-## 📄 **License**
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-
-## 🙏 **Acknowledgments**
-
-- **Electron Team** - Amazing desktop application framework
-- **React Team** - Excellent UI library
-- **Vite Team** - Lightning-fast build tool
-- **Tailwind CSS** - Beautiful utility-first CSS framework
-- **MCP Protocol** - Model Context Protocol specification
-- **TypeScript Team** - Type-safe JavaScript development
-
----
-
-## 📞 **Support**
+## Support
 
 For questions, issues, or contributions:
 - **Issues**: GitHub Issues tab
 - **Discussions**: GitHub Discussions
-- **Documentation**: See `/docs` directory (when available)
+
+**Note**: Support is provided on a best-effort basis. Users are responsible for troubleshooting their own configurations and environments.
 
 ---
-
-**Built with ❤️ using modern web technologies** 
