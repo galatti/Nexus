@@ -1,8 +1,19 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { serverManager, ServerManager, type ServerState } from '../../../src/main/mcp/ConnectionManager.js';
 import type { McpServerConfig } from '../../../src/shared/types.js';
+import { permissionManager } from '../../../src/main/permissions/PermissionManager.js';
 
 describe('ServerManager', () => {
+  vi.mock('../../../src/main/permissions/PermissionManager.js', async () => {
+    const actual = await vi.importActual('../../../src/main/permissions/PermissionManager.js');
+    return {
+      ...actual,
+      permissionManager: {
+        ...actual.permissionManager,
+        requestPermission: vi.fn(),
+      },
+    };
+  });
   const mockConfig: McpServerConfig = {
     id: 'test-server',
     name: 'Test Server',
@@ -135,13 +146,9 @@ describe('ServerManager', () => {
         }
       });
 
-      // Mock permission manager
-      vi.doMock('../permissions/PermissionManager.js', () => ({
-        permissionManager: {
-          requestPermission: vi.fn().mockResolvedValue(true)
-        }
-      }));
+      
 
+      permissionManager.requestPermission.mockResolvedValue(true);
       const result = await serverManager.executeTool(mockConfig.id, 'test-tool', {});
       expect(result).toBe('test-result');
       expect(mockToolCall).toHaveBeenCalled();
@@ -189,11 +196,7 @@ describe('ServerManager', () => {
       });
 
       // Mock permission manager to deny
-      vi.doMock('../permissions/PermissionManager.js', () => ({
-        permissionManager: {
-          requestPermission: vi.fn().mockResolvedValue(false)
-        }
-      }));
+      permissionManager.requestPermission.mockResolvedValue(false);
 
       await expect(serverManager.executeTool(mockConfig.id, 'test-tool', {}))
         .rejects.toThrow('Permission denied');

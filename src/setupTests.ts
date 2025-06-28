@@ -1,20 +1,23 @@
 // Jest setup file for testing
-import '@testing-library/jest-dom';
+import { expect, vi } from 'vitest';
+import * as matchers from '@testing-library/jest-dom/matchers';
+
+expect.extend(matchers);
 
 // Mock Electron APIs for testing
 const mockElectronAPI = {
-  getAppVersion: jest.fn().mockResolvedValue('1.0.0'),
-  minimizeWindow: jest.fn().mockResolvedValue(undefined),
-  maximizeWindow: jest.fn().mockResolvedValue(undefined),
-  closeWindow: jest.fn().mockResolvedValue(undefined),
-  getSettings: jest.fn().mockResolvedValue({}),
-  setSettings: jest.fn().mockResolvedValue(undefined),
-  connectToServer: jest.fn().mockResolvedValue(undefined),
-  disconnectFromServer: jest.fn().mockResolvedValue(undefined),
-  executeTools: jest.fn().mockResolvedValue({}),
-  sendMessage: jest.fn().mockResolvedValue('Mock response'),
-  onMcpServerStatusChange: jest.fn().mockReturnValue(() => {}),
-  onSettingsChange: jest.fn().mockReturnValue(() => {}),
+  getAppVersion: vi.fn().mockResolvedValue('1.0.0'),
+  minimizeWindow: vi.fn().mockResolvedValue(undefined),
+  maximizeWindow: vi.fn().mockResolvedValue(undefined),
+  closeWindow: vi.fn().mockResolvedValue(undefined),
+  getSettings: vi.fn().mockResolvedValue({}),
+  setSettings: vi.fn().mockResolvedValue(undefined),
+  connectToServer: vi.fn().mockResolvedValue(undefined),
+  disconnectFromServer: vi.fn().mockResolvedValue(undefined),
+  executeTools: vi.fn().mockResolvedValue({}),
+  sendMessage: vi.fn().mockResolvedValue('Mock response'),
+  onMcpServerStatusChange: vi.fn().mockReturnValue(() => {}),
+  onSettingsChange: vi.fn().mockReturnValue(() => {}),
 };
 
 // Mock the Electron API on window object
@@ -26,6 +29,6 @@ Object.defineProperty(window, 'electronAPI', {
 // Suppress console warnings during tests
 global.console = {
   ...console,
-  warn: jest.fn(),
-  error: jest.fn(),
-}; 
+  warn: vi.fn(),
+  error: vi.fn(),
+};
