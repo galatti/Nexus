@@ -1,8 +1,6 @@
 // Jest setup file for testing
 import { expect, vi } from 'vitest';
-import * as matchers from '@testing-library/jest-dom/matchers';
-
-expect.extend(matchers);
+import '@testing-library/jest-dom/vitest';
 
 // Mock Electron APIs for testing
 const mockElectronAPI = {

@@ -181,7 +181,7 @@ export const McpIntegration: React.FC<McpIntegrationProps> = ({ settings, onSett
                     <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
                       <span className="flex items-center space-x-1">
                         <span>Transport:</span>
-                        <span className="font-medium">{server.transport.toUpperCase()}</span>
+                        <span className="font-medium">{server.transport?.toUpperCase() || 'Unknown'}</span>
                       </span>
                       {server.transport === 'stdio' && server.command && (
                         <span className="flex items-center space-x-1">
