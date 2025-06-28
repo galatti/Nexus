@@ -290,6 +290,10 @@ Features explicitly excluded from MVP but planned for future versions:
 
 **See [DISCLAIMER.md](DISCLAIMER.md) and [TERMS_OF_USE.md](TERMS_OF_USE.md) for complete legal terms.**
 
+## Community
+
+We are committed to providing a welcoming and inclusive environment for all contributors. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in the project.
+
 ---
 
 ## License

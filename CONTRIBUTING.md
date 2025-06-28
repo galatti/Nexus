@@ -235,10 +235,12 @@ src/
 ## 🤝 Community Guidelines
 
 ### Code of Conduct
-- Be respectful and inclusive
-- Focus on constructive feedback
+All contributors must follow our [Code of Conduct](CODE_OF_CONDUCT.md). In summary:
+- Be respectful and inclusive to all community members
+- Focus on constructive feedback and collaboration
 - Help others learn and grow
-- Maintain a professional tone
+- Maintain a professional and welcoming tone
+- Report any violations to the project maintainers
 
 ### Communication
 - Use GitHub Issues for bug reports and feature requests
