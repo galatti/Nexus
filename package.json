@@ -1,10 +1,17 @@
 {
   "name": "nexus-mvp",
   "version": "0.1.0",
-  "description": "NEXUS MVP - An MCP-first desktop application built with Electron",
+  "description": "NEXUS - A modern MCP-first desktop application built with Electron",
   "main": "dist/main/main.js",
   "homepage": "./",
-  "private": true,
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/galattiNexus.git"
+  },
+  "bugs": {
+    "url": "https://github.com/galatti/Nexus/issues"
+  },
   "type": "module",
   "author": {
     "name": "Nexus Team"

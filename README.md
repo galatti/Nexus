@@ -11,7 +11,9 @@
 
 ## Overview
 
-NEXUS is a production-ready desktop application that provides a seamless interface for managing Model Context Protocol (MCP) servers and interacting with Large Language Models. Built with Electron, React, and TypeScript, it offers a professional user experience for both local and cloud AI providers.
+NEXUS is a modern desktop application that provides a seamless interface for managing Model Context Protocol (MCP) servers and interacting with Large Language Models. Built with Electron, React, and TypeScript, it offers a professional user experience for both local and cloud AI providers.
+
+**Current Status:** Active development with core MCP functionality fully implemented and tested.
 
 ### Key Features
 
@@ -35,7 +37,7 @@ NEXUS is a production-ready desktop application that provides a seamless interfa
 
 ```bash
 # Clone and install
-git clone <repository-url>
+git clone https://github.com/galatti/Nexus.git
 cd Nexus
 npm install
 
@@ -189,16 +191,20 @@ src/
 ```bash
 # Development
 npm run dev              # Start development server with hot reload
-npm run dev:vite         # Start Vite dev server only
-npm run dev:electron     # Start Electron only
 
 # Building
 npm run build            # Build for production
 npm run build:renderer   # Build React frontend
 npm run build:main       # Build Electron main process
 
+# Testing
+npm test                 # Run all tests
+npm run test:watch       # Run tests in watch mode
+npm run test:coverage    # Generate test coverage report
+
 # Quality
 npm run lint             # Run ESLint
+npm run lint:fix         # Fix ESLint issues automatically
 npm run type-check       # TypeScript compilation check
 ```
 
@@ -207,6 +213,29 @@ npm run type-check       # TypeScript compilation check
 - Full TypeScript type safety
 - Automated code formatting and linting
 - Complete debugging support with source maps
+- Comprehensive testing with Vitest
+- Test coverage reporting
+
+### Testing
+The project includes comprehensive unit and integration tests:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests with coverage report
+npm run test:coverage
+
+# Run tests in watch mode during development
+npm run test:watch
+```
+
+**Current Test Coverage:**
+- **MCP Connection Manager**: 96.11% (highly tested core functionality)
+- **UI Components**: 50-80% (key components well tested)
+- **Integration Tests**: Full end-to-end MCP server lifecycle testing
+
+See [TESTING.md](TESTING.md) for detailed testing information.
 
 ---
 
