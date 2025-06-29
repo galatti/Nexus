@@ -37,7 +37,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       
       const result = await (window as any).electronAPI.getMcpServers();
       if (result.success) {
-        setServers(result.servers);
+        setServers(result.data || []);
       }
     } catch (error) {
       console.error('Failed to load MCP servers:', error);
@@ -99,9 +99,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     const interval = setInterval(async () => {
       try {
         const result = await (window as any).electronAPI.getMcpServers();
-        if (result.success && result.servers.length !== servers.length) {
+        if (result.success && (result.data || []).length !== servers.length) {
           // Server count changed, refresh the list
-          setServers(result.servers);
+          setServers(result.data || []);
         }
       } catch (error) {
         // Silently ignore errors during periodic refresh
@@ -109,7 +109,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     }, 3000); // Check every 3 seconds
 
     return () => clearInterval(interval);
-  }, [servers.length]);
+  }, [servers?.length || 0]);
 
   if (!isOpen) return null;
 

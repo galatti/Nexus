@@ -878,7 +878,7 @@ ipcMain.handle('mcp:getServers', async (_event) => {
       ...server,
       state: serverManager.getServerState(server.id)?.state || 'configured'
     }));
-    return { success: true, servers: serversWithState };
+    return { success: true, data: serversWithState };
   } catch (error) {
     console.error('Failed to get MCP servers:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
@@ -1337,7 +1337,12 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
         const [/* serverId */, toolName] = toolCall.function.name.split('__');
         let args = {};
         try {
-          args = JSON.parse(toolCall.function.arguments);
+          // Handle both string and object arguments
+          if (typeof toolCall.function.arguments === 'string') {
+            args = JSON.parse(toolCall.function.arguments);
+          } else if (typeof toolCall.function.arguments === 'object' && toolCall.function.arguments !== null) {
+            args = toolCall.function.arguments;
+          }
         } catch (error) {
           console.error('Failed to parse tool arguments:', toolCall.function.arguments, error);
         }
@@ -1365,7 +1370,12 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
         try {
           let args = {};
           try {
-            args = JSON.parse(toolCall.function.arguments);
+            // Handle both string and object arguments
+            if (typeof toolCall.function.arguments === 'string') {
+              args = JSON.parse(toolCall.function.arguments);
+            } else if (typeof toolCall.function.arguments === 'object' && toolCall.function.arguments !== null) {
+              args = toolCall.function.arguments;
+            }
           } catch (error) {
             console.error('Failed to parse tool arguments:', toolCall.function.arguments, error);
           }
