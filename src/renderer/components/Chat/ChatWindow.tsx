@@ -140,6 +140,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     };
   }, [loadLlmInfo]);
 
+  // Track if initial load is complete
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+
   // Load message history from localStorage
   useEffect(() => {
     const savedMessages = localStorage.getItem('nexus-chat-history');
@@ -154,14 +157,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
         console.error('Failed to load message history:', error);
       }
     }
+    setInitialLoadComplete(true);
   }, []);
 
-  // Save message history to localStorage
+  // Save message history to localStorage (only after initial load)
   useEffect(() => {
-    if (messages.length > 0) {
+    if (initialLoadComplete) {
       localStorage.setItem('nexus-chat-history', JSON.stringify(messages));
     }
-  }, [messages]);
+  }, [messages, initialLoadComplete]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
