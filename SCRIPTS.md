@@ -226,6 +226,54 @@ node scripts/kill-port.js 5173
 
 ---
 
+### Git Hooks
+
+#### `.git/hooks/pre-commit`
+**Purpose**: Automated quality assurance before commits
+
+**Features**:
+- 📝 **Documentation validation**: All 10 consistency checks 
+- 🧪 **Test execution**: Complete test suite (104 tests across 4 files)
+- ⚡ **Fast execution**: Average runtime 3-5 seconds
+- 🔀 **Cross-platform**: Works on Windows, Linux, and macOS
+- ❌ **Fail-fast**: Blocks commits if checks fail
+
+**What it validates**:
+- Package.json scripts documented in README
+- Test framework consistency (Vitest)
+- No inappropriate legacy test framework references  
+- Scripts directory documentation
+- State management description accuracy
+- Technology stack documentation
+- Cross-platform script availability
+- Known issues documentation
+- Dashboard view documentation
+- Correct test configuration files
+
+**Usage**:
+```bash
+# Runs automatically on commit
+git commit -m "your changes"
+
+# Skip validation if needed (not recommended)
+git commit --no-verify -m "your changes"
+
+# Test the hook manually
+npm run validate-docs && npm test
+```
+
+**Typical output**:
+```
+🔍 Running pre-commit checks...
+📝 Validating documentation...
+✅ All 10 documentation checks passed!
+🧪 Running tests...
+✅ All 104 tests passed!
+🎉 All pre-commit checks passed! Proceeding with commit...
+```
+
+---
+
 ## Script Conventions
 
 ### Naming Convention
