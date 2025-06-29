@@ -152,6 +152,27 @@ export class ServerManager extends EventEmitter {
       
       const transport = new StdioClientTransport(transportOptions);
 
+      // Attach process-level error handling to avoid unhandled exceptions (e.g. EPIPE when pipes are closed)
+      if (transport?.process) {
+        const childProc = transport.process as any;
+        const swallowEpipe = (err: NodeJS.ErrnoException) => {
+          if (err.code === 'EPIPE') {
+            // Broken pipe errors can occur when the client closes before the child
+            // process finishes flushing its buffers. Swallow these to avoid bringing
+            // down the entire Electron/Node application.
+            console.warn(`MCP child process (${config.name}) emitted EPIPE – ignoring`, err);
+          } else {
+            console.error(`MCP child process (${config.name}) error:`, err);
+          }
+        };
+
+        // Listen on both the child process itself and its stdio streams.
+        childProc.on?.('error', swallowEpipe);
+        childProc.stdin?.on?.('error', swallowEpipe);
+        childProc.stdout?.on?.('error', swallowEpipe);
+        childProc.stderr?.on?.('error', swallowEpipe);
+      }
+
       const client = new Client({
         name: 'nexus-reference-client',
         version: '1.0.0'
@@ -245,12 +266,43 @@ export class ServerManager extends EventEmitter {
     console.log(`Stopping MCP server: ${server.config.name}`);
 
     try {
-      // Close client connection if it exists and has close method
+      // Close client connection if possible
       if (server.client && typeof server.client.close === 'function') {
-        await server.client.close();
+        await server.client.close().catch((err: unknown) => {
+          console.error(`Failed to close MCP client for ${serverId}:`, err);
+        });
       }
 
-      // Remove from servers
+      // Dispose transport (closes pipes & removes listeners)
+      if (server.transport && typeof server.transport.close === 'function') {
+        try {
+          await server.transport.close();
+        } catch (err) {
+          console.error(`Failed to close transport for ${serverId}:`, err);
+        }
+      }
+
+      // Wait briefly for the child process to exit on its own after graceful close
+      const childProc: any = server.process ?? server.transport?.process;
+      if (childProc && !childProc.killed) {
+        const exited = await new Promise<boolean>((resolve) => {
+          const timer = setTimeout(() => resolve(false), 1500); // 1.5-s grace period
+          childProc.once?.('exit', () => {
+            clearTimeout(timer);
+            resolve(true);
+          });
+        });
+
+        if (!exited) {
+          try {
+            childProc.kill();
+          } catch (err) {
+            console.error(`Failed to force-kill child process for ${serverId}:`, err);
+          }
+        }
+      }
+
+      // Remove from internal map
       this.servers.delete(serverId);
 
       // Emit stopped state

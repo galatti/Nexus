@@ -35,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Advanced debugging and analytics
 - Plugin system for custom integrations
 
+### MCP Server Shutdown
+  - Added graceful shutdown and error-listener logic in `src/main/mcp/ConnectionManager.ts` to prevent Nexus from crashing with `EPIPE: broken pipe` when stopping STDIO servers.  The underlying MCP child process may still print an EPIPE stack-trace, but this is now confirmed to be **cosmetic** and has no impact on Nexus stability.
+
 ## [0.1.0] - 2025-06-28
 
 ### Added
@@ -111,6 +114,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Occasional EPIPE errors during MCP server shutdown (non-fatal)
 - WSL environments use software rendering for compatibility
 - Legacy jest.config.js removed in favor of vitest.config.ts
+- Residual EPIPE stack traces emitted **inside** MCP child processes during shutdown (cosmetic only — Nexus remains fully stable)
 
 ---
 

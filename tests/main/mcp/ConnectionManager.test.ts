@@ -286,8 +286,7 @@ describe('ServerManager', () => {
 
         await serverManager.stopServer(mockConfig.id);
         
-        // Note: Current implementation doesn't actually kill process on close failure
-        // This test should be updated to match actual behavior
+        expect(mockKill).toHaveBeenCalled();
         expect(serverManager.getServerState(mockConfig.id)).toBeNull();
       });
     });
