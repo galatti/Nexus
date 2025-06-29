@@ -13,7 +13,7 @@ export const Dashboard: React.FC = () => {
 
   // Load capabilities when servers change
   useEffect(() => {
-    if (servers.length > 0) {
+    if (servers && servers.length > 0) {
       loadCapabilitiesForServers(servers);
     }
   }, [servers]);
@@ -22,6 +22,8 @@ export const Dashboard: React.FC = () => {
   useEffect(() => {
     const cleanup = (window as any).electronAPI.onMcpServerStateChange?.((serverId: string, state: string) => {
       setServers(prev => {
+        if (!Array.isArray(prev)) return [];
+        
         const updatedServers = prev.map(server => 
           server.id === serverId ? { ...server, state: state as any } : server
         );
@@ -43,9 +45,9 @@ export const Dashboard: React.FC = () => {
     const interval = setInterval(async () => {
       try {
         const result = await (window as any).electronAPI.getMcpServers();
-        if (result.success && result.servers.length !== servers.length) {
+        if (result.success && Array.isArray(result.data) && result.data.length !== servers.length) {
           // Server count changed, refresh the list
-          setServers(result.servers);
+          setServers(result.data);
         }
       } catch (error) {
         // Silently ignore errors during periodic refresh
@@ -53,17 +55,20 @@ export const Dashboard: React.FC = () => {
     }, 3000); // Check every 3 seconds
 
     return () => clearInterval(interval);
-  }, [servers.length]);
+  }, [servers?.length || 0]);
 
   const loadServers = async () => {
     try {
       setIsLoading(true);
       const result = await (window as any).electronAPI.getMcpServers();
-      if (result.success) {
-        setServers(result.servers);
+      if (result.success && Array.isArray(result.data)) {
+        setServers(result.data);
+      } else {
+        setServers([]);
       }
     } catch (error) {
       console.error('Failed to load MCP servers:', error);
+      setServers([]);
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +111,7 @@ export const Dashboard: React.FC = () => {
   };
 
   // Convenience wrapper for loading capabilities with current servers
-  const loadCapabilities = () => loadCapabilitiesForServers(servers);
+  const loadCapabilities = () => loadCapabilitiesForServers(servers || []);
 
   // Get capabilities for a specific server
   const getServerCapabilities = (serverId: string) => {
