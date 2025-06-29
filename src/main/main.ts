@@ -591,20 +591,37 @@ ipcMain.handle('settings:set', async (_event, settings) => {
     
     // Update LLM providers if changed
     if (settings.llm?.providers) {
-      // Remove all existing providers
       const existingProviders = llmManager.getAllProviders();
-      for (const [providerId] of existingProviders) {
-        await llmManager.removeProvider(providerId);
-      }
+      const existingProviderIds = new Set(existingProviders.keys());
+      const newProviderIds = new Set(settings.llm.providers.map((p: any) => p.id || `${p.type}-${p.name.toLowerCase().replace(/\s+/g, '-')}`));
       
-      // Add all enabled providers from settings
-      for (const provider of settings.llm.providers) {
-        if (provider.enabled) {
-          await llmManager.addProvider(provider);
+      // Remove providers that are no longer in the settings
+      for (const providerId of existingProviderIds) {
+        if (!newProviderIds.has(providerId)) {
+          await llmManager.removeProvider(providerId);
         }
       }
       
-      // Set current provider if specified
+      // Add or update providers from settings
+      for (const providerConfig of settings.llm.providers) {
+        const providerId = providerConfig.id || `${providerConfig.type}-${providerConfig.name.toLowerCase().replace(/\s+/g, '-')}`;
+        
+        if (providerConfig.enabled) {
+          const existingProvider = llmManager.getProvider(providerId);
+          if (existingProvider) {
+            // Update existing provider if configuration changed
+            await llmManager.updateProvider(providerId, providerConfig);
+          } else {
+            // Add new provider
+            await llmManager.addProvider(providerConfig);
+          }
+        } else if (existingProviderIds.has(providerId)) {
+          // Remove disabled provider
+          await llmManager.removeProvider(providerId);
+        }
+      }
+      
+      // Set current provider if specified and exists
       if (settings.llm.currentProviderId) {
         const provider = llmManager.getProvider(settings.llm.currentProviderId);
         if (provider) {

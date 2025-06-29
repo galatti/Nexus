@@ -48,7 +48,7 @@ export class ConfigManager {
             id: 'ollama-local',
             type: 'ollama',
             name: 'Ollama Local',
-            baseUrl: 'http://localhost:11434',
+            baseUrl: 'http://127.0.0.1:11434',
             model: 'llama2',
             enabled: false,
             temperature: 0.7,

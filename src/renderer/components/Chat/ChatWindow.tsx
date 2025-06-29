@@ -48,34 +48,51 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   useEffect(() => {
     const loadLlmInfo = async () => {
       try {
+        console.log('ChatWindow: Loading LLM status...');
         const statusResult = await window.electronAPI.getLlmStatus();
+        console.log('ChatWindow: LLM status result:', statusResult);
+        
         if (statusResult.success && statusResult.data) {
+          console.log('ChatWindow: Setting LLM status:', statusResult.data);
           setLlmStatus(statusResult.data);
           
           // Get the configured model information
           if (statusResult.data.currentModel) {
+            console.log('ChatWindow: Loading model info for:', statusResult.data.currentModel);
+            
             // Try to get detailed model info from available models
             const modelsResult = await window.electronAPI.getAvailableModels();
+            console.log('ChatWindow: Available models result:', modelsResult);
+            
             if (modelsResult.success && modelsResult.data && modelsResult.data.length > 0) {
               // Find the currently configured model in the available models
               const modelInfo = modelsResult.data.find((m: LlmModel) => m.name === statusResult.data!.currentModel);
               if (modelInfo) {
+                console.log('ChatWindow: Found detailed model info:', modelInfo);
                 setCurrentModel(modelInfo);
               } else {
                 // Fallback: create a basic model object with just the name
-                setCurrentModel({
+                const fallbackModel = {
                   name: statusResult.data.currentModel,
                   description: `${statusResult.data.currentProviderType} model`
-                });
+                };
+                console.log('ChatWindow: Using fallback model info:', fallbackModel);
+                setCurrentModel(fallbackModel);
               }
             } else {
               // Fallback: create a basic model object with just the name
-              setCurrentModel({
+              const fallbackModel = {
                 name: statusResult.data.currentModel,
                 description: `${statusResult.data.currentProviderType} model`
-              });
+              };
+              console.log('ChatWindow: Using fallback model info (no models available):', fallbackModel);
+              setCurrentModel(fallbackModel);
             }
+          } else {
+            console.log('ChatWindow: No current model in status');
           }
+        } else {
+          console.warn('ChatWindow: Failed to get LLM status:', statusResult);
         }
       } catch (error) {
         console.error('Failed to load LLM info:', error);
@@ -86,18 +103,26 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
 
     // Listen for LLM provider changes
     const handleProviderChange = () => {
+      console.log('ChatWindow: Provider change event detected, reloading LLM info');
       loadLlmInfo();
     };
 
     // Add event listeners
     let settingsCleanup: (() => void) | undefined;
+    let providerCleanup: (() => void) | undefined;
     
     if (window.electronAPI.onSettingsChange) {
       settingsCleanup = window.electronAPI.onSettingsChange(handleProviderChange);
     }
+    
+    // Also listen for direct LLM provider change events
+    if (window.electronAPI.onLlmProviderChange) {
+      providerCleanup = window.electronAPI.onLlmProviderChange(handleProviderChange);
+    }
 
     return () => {
       settingsCleanup?.();
+      providerCleanup?.();
     };
   }, []);
 
@@ -437,28 +462,29 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
             Chat Assistant
           </h2>
           {llmStatus && llmStatus.currentProvider && (
-            <div className="flex items-center space-x-2 mt-1">
-              <div className="flex items-center space-x-1">
-                <div className={`w-2 h-2 rounded-full ${llmStatus.isHealthy ? 'bg-green-500' : 'bg-red-500'}`} />
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center space-x-2 mt-1 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${llmStatus.isHealthy ? 'bg-green-500' : 'bg-red-500'} shadow-sm`} />
+                <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                   {llmStatus.currentProviderName || llmStatus.currentProvider?.replace(/-/g, ' ')}
                 </span>
               </div>
               {currentModel && (
-                <div className="flex items-center space-x-1">
-                  <span className="text-gray-400">•</span>
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex items-center space-x-2">
+                  <span className="text-blue-400 dark:text-blue-500">•</span>
+                  <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
                     {currentModel.name}
                   </span>
                   {currentModel.size && (
-                    <span className="text-xs text-gray-500 dark:text-gray-500">
-                      ({currentModel.size})
+                    <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-1.5 py-0.5 rounded">
+                      {currentModel.size}
                     </span>
                   )}
                 </div>
               )}
             </div>
           )}
+
           {currentModel && currentModel.description && (
             <div className="mt-1">
               <span className="text-xs text-gray-500 dark:text-gray-500">

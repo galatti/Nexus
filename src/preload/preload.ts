@@ -124,6 +124,11 @@ const electronAPI = {
       callback(serverId, uri));
     return () => ipcRenderer.removeAllListeners('mcp:resourceUpdated');
   },
+
+  onLlmProviderChange: (callback: (data: any) => void) => {
+    ipcRenderer.on('llm:providerChanged', (_event, data) => callback(data));
+    return () => ipcRenderer.removeAllListeners('llm:providerChanged');
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

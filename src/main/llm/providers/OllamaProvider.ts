@@ -59,9 +59,9 @@ export class OllamaProvider extends BaseProvider {
   constructor(config: LlmProviderConfig) {
     super(config);
     
-    // Ensure baseUrl has the correct default
+    // Ensure baseUrl has the correct default - use IPv4 to avoid IPv6 resolution issues
     if (!this.config.baseUrl) {
-      this.config.baseUrl = 'http://localhost:11434';
+      this.config.baseUrl = 'http://127.0.0.1:11434';
     }
   }
 
@@ -75,8 +75,12 @@ export class OllamaProvider extends BaseProvider {
       }, 5000); // Shorter timeout for health check
 
       return response.ok;
-    } catch (error) {
-      logger.warn(`Ollama connection test failed:`, error);
+    } catch (error: any) {
+      if (error.code === 'ECONNREFUSED' || error.cause?.code === 'ECONNREFUSED') {
+        logger.warn(`Ollama connection failed: Ollama is not running on ${this.config.baseUrl}. Please start Ollama to use local models.`);
+      } else {
+        logger.warn(`Ollama connection test failed:`, error);
+      }
       return false;
     }
   }
@@ -96,6 +100,11 @@ export class OllamaProvider extends BaseProvider {
 
       const data = await response.json() as { models: OllamaModelInfo[] };
       
+      if (!data.models || data.models.length === 0) {
+        logger.warn('Ollama is running but no models are installed. Please install models using: ollama pull <model-name>');
+        return [];
+      }
+      
       return data.models.map(model => ({
         name: model.name,
         size: this.formatSize(model.size),
@@ -103,7 +112,10 @@ export class OllamaProvider extends BaseProvider {
         modified_at: model.modified_at
       }));
 
-    } catch (error) {
+    } catch (error: any) {
+      if (error.code === 'ECONNREFUSED' || error.cause?.code === 'ECONNREFUSED') {
+        throw new Error('Ollama is not running. Please start Ollama to list available models.');
+      }
       throw this.handleError(error, 'get available models');
     }
   }

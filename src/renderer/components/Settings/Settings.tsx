@@ -690,10 +690,10 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                 value={selectedProvider.baseUrl || ''}
                                 onChange={(e) => updateSelectedProvider({ baseUrl: e.target.value })}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="http://localhost:11434"
+                                placeholder="http://127.0.0.1:11434"
                               />
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                The URL where Ollama is running (default: http://localhost:11434)
+                                The URL where Ollama is running (default: http://127.0.0.1:11434)
                               </p>
                             </div>
                           )}
