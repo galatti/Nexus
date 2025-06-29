@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import { EventEmitter } from 'events';
 import type { McpServerConfig, McpTool, McpResource, McpPrompt } from '../../src/shared/types.js';
 
 // Test Data Fixtures
@@ -65,10 +66,22 @@ export const createMockClient = (overrides: Record<string, any> = {}) => ({
 });
 
 // Mock Transport Factory
-export const createMockTransport = (overrides: Record<string, any> = {}) => ({
-  process: { kill: vi.fn() },
-  ...overrides,
-});
+export const createMockTransport = (overrides: Record<string, any> = {}) => {
+  const mockProcess = new EventEmitter() as any;
+  mockProcess.killed = false;
+  mockProcess.kill = vi.fn().mockImplementation(() => {
+    if (!mockProcess.killed) {
+      mockProcess.killed = true;
+      // Simulate immediate process exit so production code's grace-period resolves instantly
+      mockProcess.emit('exit', 0);
+    }
+  });
+
+  return {
+    process: mockProcess,
+    ...overrides,
+  };
+};
 
 // Mock Electron API Factory
 export const createMockElectronAPI = (overrides: Record<string, any> = {}) => ({

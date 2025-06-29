@@ -58,6 +58,10 @@ async function loadMcpSdk() {
   }
 }
 
+// Grace period (in ms) to allow MCP child processes to exit gracefully.
+// Disabled during unit tests to keep the test suite fast.
+const SHUTDOWN_GRACE_MS = process.env.NODE_ENV === 'test' ? 0 : 1500;
+
 export class ServerManager extends EventEmitter {
   private servers = new Map<string, {
     client: any;
@@ -286,7 +290,7 @@ export class ServerManager extends EventEmitter {
       const childProc: any = server.process ?? server.transport?.process;
       if (childProc && !childProc.killed) {
         const exited = await new Promise<boolean>((resolve) => {
-          const timer = setTimeout(() => resolve(false), 1500); // 1.5-s grace period
+          const timer = setTimeout(() => resolve(false), SHUTDOWN_GRACE_MS);
           childProc.once?.('exit', () => {
             clearTimeout(timer);
             resolve(true);
