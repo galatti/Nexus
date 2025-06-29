@@ -56,7 +56,6 @@ The application launches automatically with hot reload enabled.
    - **OpenRouter**: Requires API key configuration
 
 2. **Set Up MCP Servers** - Go to Settings → MCP Servers
-   - Choose from available server templates
    - Configure connection parameters
    - Test connections before enabling
 
