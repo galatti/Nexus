@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { OptimizedSyntaxHighlighter } from './SyntaxHighlighter';
 import { ChatMessage, LlmStatusResponse, LlmModel, ToolCall } from '../../../shared/types';
 
 interface ChatWindowProps {
@@ -403,13 +402,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
                         const match = /language-(\w+)/.exec(className || '');
                         const isCodeBlock = match && String(children).includes('\n');
                         return isCodeBlock ? (
-                          <SyntaxHighlighter
-                            style={oneDark as any}
+                          <OptimizedSyntaxHighlighter
                             language={match[1]}
-                            PreTag="div"
+                            className="rounded-md"
                           >
                             {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
+                          </OptimizedSyntaxHighlighter>
                         ) : (
                           <code className={className} {...props}>
                             {children}
@@ -570,13 +568,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
                     const match = /language-(\w+)/.exec(className || '');
                     const isCodeBlock = match && String(children).includes('\n');
                     return isCodeBlock ? (
-                      <SyntaxHighlighter
-                        style={oneDark as any}
+                      <OptimizedSyntaxHighlighter
                         language={match[1]}
-                        PreTag="div"
+                        className="rounded-md"
                       >
                         {String(children).replace(/\n$/, '')}
-                      </SyntaxHighlighter>
+                      </OptimizedSyntaxHighlighter>
                     ) : (
                       <code className={className} {...props}>
                         {children}

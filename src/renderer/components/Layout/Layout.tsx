@@ -1,12 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { ChatWindow } from '../Chat/ChatWindow';
-import { Settings } from '../Settings/Settings';
 import { Dashboard } from '../Dashboard/Dashboard';
 import { PermissionModal } from '../Permissions/PermissionModal';
 
+// Lazy load heavy components
+const ChatWindow = lazy(() => 
+  import('../Chat/ChatWindow').then(module => ({ default: module.ChatWindow }))
+);
+
+const Settings = lazy(() => 
+  import('../Settings/Settings').then(module => ({ default: module.Settings }))
+);
+
 type ActiveView = 'dashboard' | 'chat';
+
+// Loading component for Suspense
+const LoadingSpinner: React.FC<{ message?: string }> = ({ message = 'Loading...' }) => (
+  <div className="flex items-center justify-center h-full">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p className="text-gray-600 dark:text-gray-400">{message}</p>
+    </div>
+  </div>
+);
 
 export const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -73,17 +90,23 @@ export const Layout: React.FC = () => {
           {activeView === 'dashboard' ? (
             <Dashboard />
           ) : (
-            <ChatWindow isActive={activeView === 'chat'} />
+            <Suspense fallback={<LoadingSpinner message="Loading Chat..." />}>
+              <ChatWindow isActive={activeView === 'chat'} />
+            </Suspense>
           )}
         </main>
       </div>
 
-      {/* Settings Modal */}
-      <Settings 
-        isOpen={settingsOpen} 
-        onClose={handleSettingsClose}
-        initialTab={settingsTab}
-      />
+      {/* Settings Modal - Lazy loaded only when opened */}
+      {settingsOpen && (
+        <Suspense fallback={<LoadingSpinner message="Loading Settings..." />}>
+          <Settings 
+            isOpen={settingsOpen} 
+            onClose={handleSettingsClose}
+            initialTab={settingsTab}
+          />
+        </Suspense>
+      )}
 
       {/* Permission Modal */}
       <PermissionModal

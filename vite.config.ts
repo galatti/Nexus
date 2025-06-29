@@ -9,9 +9,50 @@ export default defineConfig({
   build: {
     outDir: resolve(__dirname, 'dist/renderer'),
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1000,
     rollupOptions: {
-      input: resolve(__dirname, 'src/renderer/index.html')
-    }
+      input: resolve(__dirname, 'src/renderer/index.html'),
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom'],
+          'markdown-vendor': [
+            'react-markdown', 
+            'remark-gfm',
+            'react-syntax-highlighter'
+          ],
+          'utils-vendor': ['zustand']
+        },
+        chunkFileNames: (chunkInfo) => {
+          if (chunkInfo.name === 'vendor') {
+            return 'assets/vendor-[hash].js';
+          }
+          return 'assets/[name]-[hash].js';
+        }
+      }
+    },
+    target: 'esnext',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
+    cssCodeSplit: true,
+    sourcemap: false
+  },
+  optimizeDeps: {
+    include: [
+      'react',
+      'react-dom',
+      'zustand',
+      'react-markdown',
+      'remark-gfm'
+    ],
+    exclude: [
+      'react-syntax-highlighter',
+      'winston'
+    ]
   },
   server: {
     port: process.env.DEV_SERVER_PORT ? Number(process.env.DEV_SERVER_PORT) : 5173,
