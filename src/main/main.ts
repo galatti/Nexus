@@ -55,9 +55,9 @@ const createWindow = (): void => {
       contextIsolation: true,
       // Preload script path
       preload: join(__dirname, '../preload/preload.mjs'),
-      // Disable web security in dev for debugging
+      // Disable web security in dev for debugging (warnings are dev-only)
       webSecurity: !isDev,
-      // Enable ES modules support in sandbox
+      // Disable sandbox to allow preload script to work
       sandbox: false,
       // Enable ES modules in preload
       additionalArguments: [

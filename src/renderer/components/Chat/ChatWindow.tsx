@@ -153,12 +153,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       const result = await window.electronAPI.sendMessage(conversationHistory) as any;
       
       if (result.success) {
-        console.log('🔍 LLM Response Debug:', {
-          hasResponse: !!result.response,
-          hasToolCalls: !!result.toolCalls,
-          toolCallsLength: result.toolCalls?.length || 0,
-          toolCalls: result.toolCalls
-        });
+        // Debug logging removed for cleaner console
         
         const assistantMessage: ChatMessage = {
           id: (Date.now() + 1).toString(),
@@ -169,7 +164,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           tools: result.toolCalls || undefined
         };
         
-        console.log('📨 Assistant Message:', assistantMessage);
+        // Debug logging removed for cleaner console
         
         setMessages(prev => [...prev, assistantMessage]);
       } else {
@@ -263,7 +258,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       }
 
       // Execute the prompt
-      console.log(`Executing prompt: ${promptName} with args:`, args);
+      // Debug logging removed for cleaner console
       const result = await (window as any).electronAPI.executePrompt(targetServerId, promptName, args);
 
       if (result.success && result.result) {
@@ -357,14 +352,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const renderMessage = (message: ChatMessage) => {
     const isUser = message.role === 'user';
     
-    // Only log for debugging in development and avoid excessive logging
-    if (process.env.NODE_ENV === 'development' && message.tools?.length) {
-      console.log('🎨 Rendering message with tools:', {
-        id: message.id,
-        role: message.role,
-        toolsLength: message.tools.length
-      });
-    }
+    // Debug logging removed for cleaner console
     
     return (
       <div

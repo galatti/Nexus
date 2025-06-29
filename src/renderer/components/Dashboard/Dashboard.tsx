@@ -71,11 +71,11 @@ export const Dashboard: React.FC = () => {
 
   const loadCapabilitiesForServers = async (serversToUse: McpServerConfig[]) => {
     try {
-      console.log('Dashboard: Loading capabilities, servers:', serversToUse.length, serversToUse.map(s => `${s.name}:${s.state}`));
+      // Debug logging removed for cleaner console
       
       // Get overall capabilities
       const allCapabilitiesResult = await (window as any).electronAPI.getAllCapabilities();
-      console.log('Dashboard: All capabilities result:', allCapabilitiesResult);
+      // Debug logging removed for cleaner console
       if (allCapabilitiesResult.success) {
         setTotalCapabilities(allCapabilitiesResult.capabilities);
       }
@@ -83,13 +83,13 @@ export const Dashboard: React.FC = () => {
       // Get capabilities for each connected server
       const capabilitiesData: Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }> = {};
       const readyServers = serversToUse.filter(s => s.state === 'ready');
-      console.log('Dashboard: Ready servers:', readyServers.length, readyServers.map(s => s.name));
+      // Debug logging removed for cleaner console
       
       for (const server of readyServers) {
         try {
-          console.log(`Dashboard: Getting capabilities for ${server.name} (${server.id})`);
+          // Debug logging removed for cleaner console
           const result = await (window as any).electronAPI.getServerCapabilities(server.id);
-          console.log(`Dashboard: Capabilities result for ${server.name}:`, result);
+          // Debug logging removed for cleaner console
           if (result.success) {
             capabilitiesData[server.id] = result.capabilities;
           }
@@ -98,7 +98,7 @@ export const Dashboard: React.FC = () => {
         }
       }
       
-      console.log('Dashboard: Final capabilities data:', capabilitiesData);
+      // Debug logging removed for cleaner console
       setServerCapabilities(capabilitiesData);
     } catch (error) {
       console.error('Failed to load capabilities:', error);

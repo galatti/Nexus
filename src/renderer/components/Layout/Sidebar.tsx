@@ -11,21 +11,21 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [serverCapabilities, setServerCapabilities] = useState<Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }>>({});
 
-  useEffect(() => {
-    if (isOpen) {
+      useEffect(() => {
+      if (isOpen) {
+        loadServers();
+      }
+    }, [isOpen]);
+  
+    // Also refresh when component mounts to get current status
+    useEffect(() => {
       loadServers();
-    }
-  }, [isOpen]);
-
-  // Also refresh when component mounts to get current status
-  useEffect(() => {
-    loadServers();
-  }, []);
+    }, []);
 
   // Load capabilities when servers change
   useEffect(() => {
     if (servers.length > 0) {
-      loadCapabilitiesForServers(servers);
+      loadCapabilities();
     }
   }, [servers]);
 
@@ -37,7 +37,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
       
       const result = await (window as any).electronAPI.getMcpServers();
       if (result.success) {
-        console.log('Sidebar: Loaded servers:', result.servers);
         setServers(result.servers);
       }
     } catch (error) {
@@ -51,18 +50,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
   const loadCapabilitiesForServers = async (serversToUse: McpServerConfig[]) => {
     try {
-      console.log('Sidebar: Loading capabilities for servers:', serversToUse.length);
-      
       // Get capabilities for each ready server (same as Dashboard)
       const capabilitiesData: Record<string, { tools: number; resources: number; prompts: number; toolsList: any[] }> = {};
       const readyServers = serversToUse.filter(s => s.state === 'ready');
-      console.log('Sidebar: Ready servers:', readyServers.length, readyServers.map(s => s.name));
       
       for (const server of readyServers) {
         try {
-          console.log(`Sidebar: Getting capabilities for ${server.name} (${server.id})`);
           const result = await (window as any).electronAPI.getServerCapabilities(server.id);
-          console.log(`Sidebar: Capabilities result for ${server.name}:`, result);
           if (result.success) {
             capabilitiesData[server.id] = result.capabilities;
           }
@@ -71,7 +65,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
         }
       }
       
-      console.log('Sidebar: Final capabilities data:', capabilitiesData);
       setServerCapabilities(capabilitiesData);
     } catch (error) {
       console.error('Failed to load server capabilities:', error);
@@ -83,15 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
 
   // Listen for server state changes
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Sidebar: Setting up state change listener');
-    }
-    
     const cleanup = (window as any).electronAPI.onMcpServerStateChange?.((serverId: string, state: string) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Sidebar: Received state change:', serverId, state);
-      }
-      
       setServers(prev => {
         const updatedServers = prev.map(server => 
           server.id === serverId ? { ...server, state: state as any } : server
@@ -116,7 +101,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
         const result = await (window as any).electronAPI.getMcpServers();
         if (result.success && result.servers.length !== servers.length) {
           // Server count changed, refresh the list
-          console.log('Sidebar: Server count changed, refreshing list');
           setServers(result.servers);
         }
       } catch (error) {

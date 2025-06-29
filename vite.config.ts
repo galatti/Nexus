@@ -17,8 +17,7 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'markdown-vendor': [
             'react-markdown', 
-            'remark-gfm',
-            'react-syntax-highlighter'
+            'remark-gfm'
           ],
           'utils-vendor': ['zustand']
         },
@@ -50,7 +49,6 @@ export default defineConfig({
       'remark-gfm'
     ],
     exclude: [
-      'react-syntax-highlighter',
       'winston'
     ]
   },

@@ -1,6 +1,4 @@
 import React from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
 interface OptimizedSyntaxHighlighterProps {
   children: string;
@@ -8,52 +6,59 @@ interface OptimizedSyntaxHighlighterProps {
   className?: string;
 }
 
-// Map of common language aliases to standardized names
-const languageMap: { [key: string]: string } = {
-  'js': 'javascript',
-  'ts': 'typescript',
-  'py': 'python',
-  'sh': 'bash',
-  'shell': 'bash',
-  'yml': 'yaml',
-  'md': 'markdown',
-  'htm': 'markup',
-  'html': 'markup',
+// Simple syntax highlighting using CSS classes only
+const languageColors: { [key: string]: string } = {
+  'javascript': '#f7df1e',
+  'typescript': '#3178c6', 
+  'python': '#3776ab',
+  'json': '#000000',
+  'bash': '#4eaa25',
+  'sql': '#e38c00',
+  'yaml': '#cb171e',
+  'css': '#1572b6',
+  'html': '#e34c26',
+  'xml': '#e34c26'
 };
-
-// List of languages that Prism supports by default (no additional imports needed)
-const defaultLanguages = new Set([
-  'javascript', 'typescript', 'jsx', 'tsx', 'python', 'json', 
-  'bash', 'sql', 'yaml', 'markdown', 'css', 'markup', 'text'
-]);
 
 export const OptimizedSyntaxHighlighter: React.FC<OptimizedSyntaxHighlighterProps> = ({ 
   children, 
   language = 'text',
   className = '' 
 }) => {
-  // Normalize language name
   const normalizedLanguage = language.toLowerCase();
-  const mappedLanguage = languageMap[normalizedLanguage] || normalizedLanguage;
-  
-  // Use 'text' for unsupported languages to avoid errors
-  const finalLanguage = defaultLanguages.has(mappedLanguage) ? mappedLanguage : 'text';
+  const color = languageColors[normalizedLanguage] || '#ffffff';
   
   return (
-    <SyntaxHighlighter
-      language={finalLanguage}
-      style={oneDark}
-      className={className}
-      showLineNumbers={false}
-      wrapLines={true}
-      customStyle={{
-        margin: 0,
-        borderRadius: '0.375rem',
-        fontSize: '0.875rem',
-        lineHeight: '1.5'
-      }}
-    >
-      {children}
-    </SyntaxHighlighter>
+    <div className={`relative ${className}`}>
+      {/* Language badge */}
+      {language && language !== 'text' && (
+        <div 
+          className="absolute top-2 right-2 px-2 py-1 text-xs rounded font-mono opacity-75"
+          style={{ 
+            backgroundColor: color,
+            color: '#ffffff',
+            fontSize: '0.7rem'
+          }}
+        >
+          {normalizedLanguage}
+        </div>
+      )}
+      
+      {/* Code block */}
+      <pre
+        className="overflow-x-auto p-4 rounded-md text-sm font-mono leading-relaxed"
+        style={{
+          backgroundColor: '#1e1e1e',
+          color: '#d4d4d4',
+          margin: 0,
+          fontSize: '0.875rem',
+          lineHeight: '1.5'
+        }}
+      >
+        <code className="block whitespace-pre">
+          {children}
+        </code>
+      </pre>
+    </div>
   );
 }; 
