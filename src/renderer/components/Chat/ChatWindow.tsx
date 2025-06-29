@@ -18,6 +18,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const [error, setError] = useState<string | null>(null);
   const [llmStatus, setLlmStatus] = useState<LlmStatusResponse | null>(null);
   const [currentModel, setCurrentModel] = useState<LlmModel | null>(null);
+  const [showThinking, setShowThinking] = useState(true);
+  const [expandedThinkBlocks, setExpandedThinkBlocks] = useState<Set<string>>(new Set());
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -44,87 +48,97 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     inputRef.current?.focus();
   }, []);
 
-  // Load LLM status and model information
-  useEffect(() => {
-    const loadLlmInfo = async () => {
-      try {
-        console.log('ChatWindow: Loading LLM status...');
-        const statusResult = await window.electronAPI.getLlmStatus();
-        console.log('ChatWindow: LLM status result:', statusResult);
+  // Load LLM status and model information function
+  const loadLlmInfo = useCallback(async () => {
+    try {
+      console.log('ChatWindow: Loading LLM status...');
+      const statusResult = await window.electronAPI.getLlmStatus();
+      console.log('ChatWindow: LLM status result:', statusResult);
+      
+      if (statusResult.success && statusResult.data) {
+        console.log('ChatWindow: Setting LLM status:', statusResult.data);
+        console.log('ChatWindow: Provider info - currentProvider:', statusResult.data.currentProvider, 'currentProviderName:', statusResult.data.currentProviderName, 'currentModel:', statusResult.data.currentModel);
+        setLlmStatus(statusResult.data);
         
-        if (statusResult.success && statusResult.data) {
-          console.log('ChatWindow: Setting LLM status:', statusResult.data);
-          setLlmStatus(statusResult.data);
+        // Get the configured model information
+        if (statusResult.data.currentModel) {
+          console.log('ChatWindow: Loading model info for:', statusResult.data.currentModel);
           
-          // Get the configured model information
-          if (statusResult.data.currentModel) {
-            console.log('ChatWindow: Loading model info for:', statusResult.data.currentModel);
-            
-            // Try to get detailed model info from available models
-            const modelsResult = await window.electronAPI.getAvailableModels();
-            console.log('ChatWindow: Available models result:', modelsResult);
-            
-            if (modelsResult.success && modelsResult.data && modelsResult.data.length > 0) {
-              // Find the currently configured model in the available models
-              const modelInfo = modelsResult.data.find((m: LlmModel) => m.name === statusResult.data!.currentModel);
-              if (modelInfo) {
-                console.log('ChatWindow: Found detailed model info:', modelInfo);
-                setCurrentModel(modelInfo);
-              } else {
-                // Fallback: create a basic model object with just the name
-                const fallbackModel = {
-                  name: statusResult.data.currentModel,
-                  description: `${statusResult.data.currentProviderType} model`
-                };
-                console.log('ChatWindow: Using fallback model info:', fallbackModel);
-                setCurrentModel(fallbackModel);
-              }
+          // Try to get detailed model info from available models
+          const modelsResult = await window.electronAPI.getAvailableModels();
+          console.log('ChatWindow: Available models result:', modelsResult);
+          
+          if (modelsResult.success && modelsResult.data && modelsResult.data.length > 0) {
+            // Find the currently configured model in the available models
+            const modelInfo = modelsResult.data.find((m: LlmModel) => m.name === statusResult.data!.currentModel);
+            if (modelInfo) {
+              console.log('ChatWindow: Found detailed model info:', modelInfo);
+              setCurrentModel(modelInfo);
             } else {
               // Fallback: create a basic model object with just the name
               const fallbackModel = {
                 name: statusResult.data.currentModel,
                 description: `${statusResult.data.currentProviderType} model`
               };
-              console.log('ChatWindow: Using fallback model info (no models available):', fallbackModel);
+              console.log('ChatWindow: Using fallback model info:', fallbackModel);
               setCurrentModel(fallbackModel);
             }
           } else {
-            console.log('ChatWindow: No current model in status');
+            // Fallback: create a basic model object with just the name
+            const fallbackModel = {
+              name: statusResult.data.currentModel,
+              description: `${statusResult.data.currentProviderType} model`
+            };
+            console.log('ChatWindow: Using fallback model info (no models available):', fallbackModel);
+            setCurrentModel(fallbackModel);
           }
         } else {
-          console.warn('ChatWindow: Failed to get LLM status:', statusResult);
+          console.log('ChatWindow: No current model in status');
         }
-      } catch (error) {
-        console.error('Failed to load LLM info:', error);
+      } else {
+        console.warn('ChatWindow: Failed to get LLM status:', statusResult);
       }
-    };
+    } catch (error) {
+      console.error('Failed to load LLM info:', error);
+    }
+  }, []);
 
+  // Load LLM status and model information
+  useEffect(() => {
     loadLlmInfo();
 
-    // Listen for LLM provider changes
-    const handleProviderChange = () => {
-      console.log('ChatWindow: Provider change event detected, reloading LLM info');
+    // Listen for LLM provider changes with more robust handling
+    const handleProviderChange = (data?: any) => {
+      console.log('ChatWindow: Provider change event detected, updating info...', data);
+      // Immediately update with new data to prevent out-of-sync state
       loadLlmInfo();
     };
 
-    // Add event listeners
+    // Add event listeners with improved error handling
     let settingsCleanup: (() => void) | undefined;
     let providerCleanup: (() => void) | undefined;
     
-    if (window.electronAPI.onSettingsChange) {
-      settingsCleanup = window.electronAPI.onSettingsChange(handleProviderChange);
-    }
-    
-    // Also listen for direct LLM provider change events
-    if (window.electronAPI.onLlmProviderChange) {
-      providerCleanup = window.electronAPI.onLlmProviderChange(handleProviderChange);
+    try {
+      if (window.electronAPI.onSettingsChange) {
+        settingsCleanup = window.electronAPI.onSettingsChange(handleProviderChange);
+      }
+      
+      if (window.electronAPI.onLlmProviderChange) {
+        providerCleanup = window.electronAPI.onLlmProviderChange(handleProviderChange);
+      }
+    } catch (error) {
+      console.warn('ChatWindow: Failed to set up event listeners:', error);
     }
 
     return () => {
-      settingsCleanup?.();
-      providerCleanup?.();
+      try {
+        settingsCleanup?.();
+        providerCleanup?.();
+      } catch (error) {
+        console.warn('ChatWindow: Error during cleanup:', error);
+      }
     };
-  }, []);
+  }, [loadLlmInfo]);
 
   // Load message history from localStorage
   useEffect(() => {
@@ -346,9 +360,113 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     setError(null);
   };
 
-  const copyMessage = (content: string) => {
-    navigator.clipboard.writeText(content);
+  const copyMessage = async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      setToastType('success');
+      setToastMessage('Message copied to clipboard!');
+      setTimeout(() => setToastMessage(null), 2000);
+    } catch (error) {
+      console.error('Failed to copy message:', error);
+      setToastType('error');
+      setToastMessage('Failed to copy message');
+      setTimeout(() => setToastMessage(null), 2000);
+    }
   };
+
+  // Parse content to separate thinking blocks from regular content
+  const parseThinkingBlocks = (content: string, messageId?: string) => {
+    const parts: Array<{ type: 'text'; content: string; } | { type: 'think'; content: string; id: string }> = [];
+    const thinkRegex = /<think>([\s\S]*?)<\/think>/g;
+    let lastIndex = 0;
+    let match;
+    let thinkBlockIndex = 0;
+
+    while ((match = thinkRegex.exec(content)) !== null) {
+      // Add text before the think block
+      if (match.index > lastIndex) {
+        const textContent = content.slice(lastIndex, match.index).trim();
+        if (textContent) {
+          parts.push({ type: 'text', content: textContent });
+        }
+      }
+
+      // Add the think block with deterministic ID based on content
+      const contentHash = match[1].trim().substring(0, 50).replace(/[^a-zA-Z0-9]/g, '');
+      parts.push({
+        type: 'think',
+        content: match[1].trim(),
+        id: `think-${messageId || 'msg'}-${thinkBlockIndex++}-${contentHash}`
+      });
+
+      lastIndex = thinkRegex.lastIndex;
+    }
+
+    // Add remaining text after the last think block
+    if (lastIndex < content.length) {
+      const textContent = content.slice(lastIndex).trim();
+      if (textContent) {
+        parts.push({ type: 'text', content: textContent });
+      }
+    }
+
+    return parts.length > 0 ? parts : [{ type: 'text', content }];
+  };
+
+  const toggleThinkBlock = (blockId: string) => {
+    console.log('toggleThinkBlock called with blockId:', blockId);
+    console.log('Current expandedThinkBlocks:', Array.from(expandedThinkBlocks));
+    setExpandedThinkBlocks(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(blockId)) {
+        console.log('Collapsing block:', blockId);
+        newSet.delete(blockId);
+      } else {
+        console.log('Expanding block:', blockId);
+        newSet.add(blockId);
+      }
+      console.log('New expandedThinkBlocks:', Array.from(newSet));
+      return newSet;
+    });
+  };
+
+  const renderThinkBlock = useCallback((thinkContent: string, blockId: string) => {
+    const isExpanded = expandedThinkBlocks.has(blockId);
+    console.log('renderThinkBlock - blockId:', blockId, 'isExpanded:', isExpanded, 'expandedThinkBlocks:', Array.from(expandedThinkBlocks));
+    
+    return (
+      <div key={blockId} className="my-3 border border-purple-200 dark:border-purple-700 rounded-lg bg-purple-50 dark:bg-purple-900/20">
+        <button
+          onClick={() => toggleThinkBlock(blockId)}
+          className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-purple-100 dark:hover:bg-purple-800/30 transition-colors rounded-t-lg"
+        >
+          <div className="flex items-center space-x-2">
+            <span className="text-purple-600 dark:text-purple-400">🧠</span>
+            <span className="text-sm font-medium text-purple-700 dark:text-purple-300">
+              AI Thinking Process
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-purple-600 dark:text-purple-400">
+              {isExpanded ? 'Hide' : 'Show'}
+            </span>
+            <span className={`text-purple-600 dark:text-purple-400 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
+          </div>
+        </button>
+        {isExpanded && (
+          <div className="px-3 pb-3 border-t border-purple-200 dark:border-purple-700">
+            <div className="mt-2 p-3 bg-white dark:bg-gray-800 rounded border border-purple-100 dark:border-purple-800">
+              <div className="text-sm font-mono text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+                {thinkContent}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }, [expandedThinkBlocks]);
 
   const renderToolCall = (toolCall: ToolCall) => {
     return (
@@ -408,29 +526,43 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
                 {isUser ? (
                   <div className="whitespace-pre-wrap">{message.content}</div>
                 ) : (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code({ className, children, ...props }) {
-                        const match = /language-(\w+)/.exec(className || '');
-                        const isCodeBlock = match && String(children).includes('\n');
-                        return isCodeBlock ? (
-                          <OptimizedSyntaxHighlighter
-                            language={match[1]}
-                            className="rounded-md"
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </OptimizedSyntaxHighlighter>
-                        ) : (
-                          <code className={className} {...props}>
-                            {children}
-                          </code>
+                  <div>
+                    {parseThinkingBlocks(message.content, message.id).map((part, index) => {
+                      if (part.type === 'think') {
+                        if (!showThinking) return null;
+                        const thinkPart = part as { type: 'think'; content: string; id: string };
+                        return renderThinkBlock(thinkPart.content, thinkPart.id);
+                      } else {
+                        return (
+                          <div key={index}>
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                code({ className, children, ...props }) {
+                                  const match = /language-(\w+)/.exec(className || '');
+                                  const isCodeBlock = match && String(children).includes('\n');
+                                  return isCodeBlock ? (
+                                    <OptimizedSyntaxHighlighter
+                                      language={match[1]}
+                                      className="rounded-md"
+                                    >
+                                      {String(children).replace(/\n$/, '')}
+                                    </OptimizedSyntaxHighlighter>
+                                  ) : (
+                                    <code className={className} {...props}>
+                                      {children}
+                                    </code>
+                                  );
+                                }
+                              }}
+                            >
+                              {part.content}
+                            </ReactMarkdown>
+                          </div>
                         );
                       }
-                    }}
-                  >
-                    {message.content}
-                  </ReactMarkdown>
+                    })}
+                  </div>
                 )}
               </div>
               <button
@@ -494,6 +626,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           )}
         </div>
         <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setShowThinking(!showThinking)}
+            className={`px-3 py-1 text-sm rounded-md transition-colors ${
+              showThinking 
+                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
+                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+            }`}
+            title={showThinking ? 'Hide AI thinking process' : 'Show AI thinking process'}
+          >
+            🧠 {showThinking ? 'Hide' : 'Show'} Thinking
+          </button>
           {messages.length > 0 && (
             <button
               onClick={clearHistory}
@@ -672,6 +815,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           </button>
         </div>
       </div>
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className={`fixed bottom-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out translate-y-0 opacity-100 ${
+          toastType === 'success' 
+            ? 'bg-green-600 text-white' 
+            : 'bg-red-600 text-white'
+        }`}>
+          <div className="flex items-center space-x-2">
+            <span className="text-lg">
+              {toastType === 'success' ? '✓' : '✗'}
+            </span>
+            <span>{toastMessage}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }; 

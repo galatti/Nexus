@@ -48,6 +48,7 @@ export interface ElectronAPI {
   getModelsForConfig: (providerConfig: LlmProviderConfig) => Promise<ApiResponse<LlmModel[]>>;
   onMcpServerStatusChange: (callback: (serverId: string, status: string) => void) => () => void;
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
+  onLlmProviderChange: (callback: (data: any) => void) => () => void;
   
   // MCP Server management
   getMcpServers: () => Promise<ApiResponse<McpServerConfig[]>>;
