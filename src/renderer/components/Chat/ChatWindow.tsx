@@ -20,8 +20,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const [currentModel, setCurrentModel] = useState<LlmModel | null>(null);
   const [showThinking, setShowThinking] = useState(true);
   const [expandedThinkBlocks, setExpandedThinkBlocks] = useState<Set<string>>(new Set());
+  const [expandedToolCalls, setExpandedToolCalls] = useState<Set<string>>(new Set());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [toastType, setToastType] = useState<'success' | 'error'>('success');
+  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -167,6 +170,27 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     }
   }, [messages, initialLoadComplete]);
 
+  // Chronometer for tracking request time
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    
+    if (isLoading && startTime) {
+      timer = setInterval(() => {
+        const now = new Date();
+        const elapsed = Math.floor((now.getTime() - startTime.getTime()) / 1000);
+        setElapsedTime(elapsed);
+      }, 1000);
+    } else {
+      setElapsedTime(0);
+    }
+
+    return () => {
+      if (timer) {
+        clearInterval(timer);
+      }
+    };
+  }, [isLoading, startTime]);
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
@@ -187,6 +211,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
 
     setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setStartTime(new Date());
     setIsLoading(true);
     setError(null);
 
@@ -225,8 +250,37 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     }
   };
 
+  // Format elapsed time for chronometer display
+  const formatElapsedTime = (seconds: number): string => {
+    if (seconds < 60) {
+      return `${seconds}s`;
+    } else if (seconds < 3600) {
+      const minutes = Math.floor(seconds / 60);
+      const remainingSeconds = seconds % 60;
+      return `${minutes}m ${remainingSeconds}s`;
+    } else {
+      const hours = Math.floor(seconds / 3600);
+      const minutes = Math.floor((seconds % 3600) / 60);
+      const remainingSeconds = seconds % 60;
+      return `${hours}h ${minutes}m ${remainingSeconds}s`;
+    }
+  };
+
+  // Format tool result for display
+  const formatToolResult = (result: unknown): string => {
+    try {
+      if (typeof result === 'string') {
+        return result;
+      }
+      return JSON.stringify(result, null, 2);
+    } catch (error) {
+      return String(result);
+    }
+  };
+
   const handleSlashCommand = async (command: string) => {
     setInputMessage('');
+    setStartTime(new Date());
     setIsLoading(true);
     setError(null);
 
@@ -434,9 +488,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     });
   };
 
+  const toggleToolCall = (toolCallId: string) => {
+    setExpandedToolCalls(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(toolCallId)) {
+        newSet.delete(toolCallId);
+      } else {
+        newSet.add(toolCallId);
+      }
+      return newSet;
+    });
+  };
+
   const renderThinkBlock = useCallback((thinkContent: string, blockId: string) => {
     const isExpanded = expandedThinkBlocks.has(blockId);
-    console.log('renderThinkBlock - blockId:', blockId, 'isExpanded:', isExpanded, 'expandedThinkBlocks:', Array.from(expandedThinkBlocks));
     
     return (
       <div key={blockId} className="my-3 border border-purple-200 dark:border-purple-700 rounded-lg bg-purple-50 dark:bg-purple-900/20">
@@ -472,26 +537,80 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     );
   }, [expandedThinkBlocks]);
 
-  const renderToolCall = (toolCall: ToolCall) => {
+  const renderToolCall = (toolCall: ToolCall, index: number) => {
+    // Create a consistent ID for each tool call
+    const toolCallId = toolCall.id || `tool-${index}-${toolCall.name || 'unknown'}`;
+    const isExpanded = expandedToolCalls.has(toolCallId);
+    
     return (
-      <div className="my-4 border-l-4 border-blue-500 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-r-lg">
-        <div className="flex items-center justify-between mb-2">
-          <div className="font-semibold text-blue-700 dark:text-blue-300">
-            🔧 Tool Call: {toolCall.name}
+      <div className="my-3 border border-blue-200 dark:border-blue-700 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+        <button
+          onClick={() => toggleToolCall(toolCallId)}
+          className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors rounded-t-lg"
+        >
+          <div className="flex items-center space-x-2">
+            <span className="text-blue-600 dark:text-blue-400">🔧</span>
+            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+              Tool Call: {toolCall.name || 'Unknown Tool'}
+            </span>
           </div>
-          <div className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-2 py-1 rounded">
-            {toolCall.id}
+          <div className="flex items-center space-x-2">
+            {toolCall.id && (
+              <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-2 py-0.5 rounded">
+                {toolCall.id.substring(0, 8)}...
+              </span>
+            )}
+            <span className="text-xs text-blue-600 dark:text-blue-400">
+              {isExpanded ? 'Hide' : 'Show'}
+            </span>
+            <span className={`text-blue-600 dark:text-blue-400 transform transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
+              ▼
+            </span>
           </div>
-        </div>
-        {toolCall.args && Object.keys(toolCall.args).length > 0 && (
-          <div className="mt-2">
-            <div className="text-sm text-blue-600 dark:text-blue-400 mb-1 font-medium">Parameters:</div>
-            <pre className="text-xs bg-blue-100 dark:bg-blue-800/30 p-2 rounded overflow-x-auto text-blue-800 dark:text-blue-200">
-              {JSON.stringify(toolCall.args, null, 2)}
-            </pre>
+        </button>
+        {isExpanded && (
+          <div className="px-3 pb-3 border-t border-blue-200 dark:border-blue-700">
+            {/* Input JSON */}
+            {toolCall.args && Object.keys(toolCall.args).length > 0 && (
+              <div className="mt-3">
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2 flex items-center">
+                  <span className="text-green-600 dark:text-green-400 mr-2">📤</span>
+                  Input (JSON sent to tool):
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded border border-blue-100 dark:border-blue-800">
+                  <pre className="text-xs p-3 overflow-x-auto text-gray-800 dark:text-gray-200 font-mono">
+                    {JSON.stringify(toolCall.args, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
+            
+            {/* Output JSON */}
+            {toolCall.result && (
+              <div className="mt-3">
+                <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2 flex items-center">
+                  <span className="text-orange-600 dark:text-orange-400 mr-2">📥</span>
+                  Output (JSON received from tool):
+                </div>
+                <div className="bg-white dark:bg-gray-800 rounded border border-blue-100 dark:border-blue-800">
+                  <pre className="text-xs p-3 overflow-x-auto text-gray-800 dark:text-gray-200 font-mono">
+                    {formatToolResult(toolCall.result)}
+                  </pre>
+                </div>
+              </div>
+            )}
+            
+            {/* Show message if no result yet */}
+            {!toolCall.result && (
+              <div className="mt-3">
+                <div className="text-sm text-blue-600 dark:text-blue-400 italic flex items-center">
+                  <span className="text-yellow-600 dark:text-yellow-400 mr-2">⏳</span>
+                  Tool execution result not available yet
+                </div>
+              </div>
+            )}
           </div>
         )}
-
       </div>
     );
   };
@@ -512,7 +631,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
             <div className="mb-2">
               {message.tools.map((toolCall, index) => (
                 <div key={index}>
-                  {renderToolCall(toolCall)}
+                  {renderToolCall(toolCall, index)}
                 </div>
               ))}
             </div>
@@ -752,13 +871,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           </div>
         )}
 
-        {/* Loading indicator */}
+        {/* Loading indicator with chronometer */}
         {isLoading && !_isStreaming && (
           <div className="flex justify-start mb-4">
             <div className="max-w-3xl px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                 <span>Thinking...</span>
+                {elapsedTime > 0 && (
+                  <>
+                    <span className="text-gray-400 dark:text-gray-500">•</span>
+                    <span className="text-sm text-blue-600 dark:text-blue-400 font-mono">
+                      {formatElapsedTime(elapsedTime)}
+                    </span>
+                  </>
+                )}
               </div>
             </div>
           </div>
@@ -811,7 +938,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
             {isLoading || _isStreaming ? (
               <div className="flex items-center space-x-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                <span>Sending</span>
+                <span>
+                  {elapsedTime > 0 ? formatElapsedTime(elapsedTime) : 'Sending'}
+                </span>
               </div>
             ) : (
               'Send'

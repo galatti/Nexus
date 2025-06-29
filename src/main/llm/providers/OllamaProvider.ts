@@ -2,6 +2,10 @@ import { BaseProvider, LlmResponse, StreamingResponse } from './BaseProvider.js'
 import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types.js';
 import { logger } from '../../utils/logger.js';
 
+// Configuration constants
+const OLLAMA_CHAT_TIMEOUT_MS = 120000; // 2 minutes timeout for chat requests
+const OLLAMA_HEALTH_CHECK_TIMEOUT_MS = 5000; // 5 seconds for health checks
+
 interface OllamaMessage {
   role: string;
   content: string;
@@ -72,7 +76,7 @@ export class OllamaProvider extends BaseProvider {
         headers: {
           'Content-Type': 'application/json'
         }
-      }, 5000); // Shorter timeout for health check
+      }, OLLAMA_HEALTH_CHECK_TIMEOUT_MS);
 
       return response.ok;
     } catch (error: any) {
@@ -162,7 +166,7 @@ export class OllamaProvider extends BaseProvider {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody)
-      });
+      }, OLLAMA_CHAT_TIMEOUT_MS);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -212,7 +216,7 @@ export class OllamaProvider extends BaseProvider {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody)
-      });
+      }, OLLAMA_CHAT_TIMEOUT_MS);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);

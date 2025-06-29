@@ -1221,8 +1221,8 @@ ipcMain.handle('permissions:clearExpired', () => {
 });
 
 // Function to detect tool usage from response content
-function detectToolUsageFromContent(content: string, availableTools: Array<{ serverId: string; name: string; description: string }>): Array<{ id: string; name: string; args: Record<string, unknown> }> {
-  const detectedTools: Array<{ id: string; name: string; args: Record<string, unknown> }> = [];
+function detectToolUsageFromContent(content: string, availableTools: Array<{ serverId: string; name: string; description: string }>): Array<{ id: string; name: string; args: Record<string, unknown>; result?: unknown }> {
+  const detectedTools: Array<{ id: string; name: string; args: Record<string, unknown>; result?: unknown }> = [];
   
   // Patterns to detect common tool usage scenarios
   const toolPatterns = [
@@ -1296,7 +1296,7 @@ function detectToolUsageFromContent(content: string, availableTools: Array<{ ser
 ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = {}) => {
   try {
     let messages = [...conversationHistory];
-    let extractedToolCalls: Array<{ id: string; name: string; args: Record<string, unknown> }> = [];
+    let extractedToolCalls: Array<{ id: string; name: string; args: Record<string, unknown>; result?: unknown }> = [];
     
     // Get available tools and convert to OpenRouter format
     const availableTools = serverManager.getAllAvailableTools();
@@ -1433,6 +1433,16 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
       
       // Wait for all tool executions to complete
       const toolResults = await Promise.allSettled(toolExecutionPromises);
+      
+      // Merge tool results back into extractedToolCalls for frontend display
+      toolResults.forEach((result, index) => {
+        if (result.status === 'fulfilled' && index < extractedToolCalls.length) {
+          const { content } = result.value;
+          extractedToolCalls[index].result = content;
+        } else if (result.status === 'rejected' && index < extractedToolCalls.length) {
+          extractedToolCalls[index].result = `Error: ${result.reason}`;
+        }
+      });
       
       // Add tool result messages to conversation
       toolResults.forEach((result, index) => {
