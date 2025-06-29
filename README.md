@@ -20,9 +20,11 @@ NEXUS is a modern desktop application that provides a seamless interface for man
 - **Multi-LLM Support** - Ollama (local) and OpenRouter (cloud) with real-time model switching
 - **Advanced MCP Integration** - Full protocol support with tool execution and resource management
 - **Professional Chat Interface** - Markdown rendering, syntax highlighting, and message persistence
+- **Dashboard View** - Overview of system status, MCP servers, and recent activity
 - **Comprehensive Security** - Permission system with risk assessment and user approval workflows
 - **Configuration Management** - Visual forms, validation, and automatic backup
 - **Modern UI** - Dark/light themes with responsive design and smooth animations
+- **Cross-Platform Scripts** - Both .sh (bash/zsh) and .ps1 (PowerShell) versions for all automation
 
 ---
 
@@ -58,7 +60,7 @@ The application launches automatically with hot reload enabled.
    - Configure connection parameters
    - Test connections before enabling
 
-3. **Start Chatting** - Return to main interface and begin conversations
+3. **Start Chatting** - Switch between Dashboard and Chat views to begin conversations
 
 ---
 
@@ -75,6 +77,13 @@ The application launches automatically with hot reload enabled.
 - **Permission Prompts** - User approval required for tool execution
 - **Progress Tracking** - Real-time updates for long-running operations
 - **Error Handling** - Graceful degradation with helpful error messages
+
+### Dashboard View
+
+- **System Status** - Overview of LLM providers and MCP server health
+- **Server Management** - Quick access to MCP server controls
+- **Recent Activity** - History of tool executions and interactions
+- **Performance Metrics** - Connection status and response times
 
 ### LLM Provider Support
 
@@ -101,6 +110,7 @@ The application launches automatically with hot reload enabled.
 - **Filesystem Server** - Secure file system access with permission controls
 - **Web Search Server** - Brave Search API integration for real-time web queries
 - **Weather Server** - OpenWeatherMap integration for weather data
+- **Everything Server** - Comprehensive test server with multiple tools
 - **Custom Servers** - Support for any MCP-compliant server
 
 **Management Features**
@@ -166,7 +176,8 @@ The application launches automatically with hot reload enabled.
 - **Backend**: Electron 28 + Node.js
 - **MCP**: @modelcontextprotocol/sdk v0.5.0
 - **Build**: Vite + ESLint + Prettier
-- **State**: React Context + Local Storage
+- **State**: Zustand + React Context + Local Storage
+- **Testing**: Vitest + @testing-library/react
 
 ### Project Structure
 ```
@@ -178,9 +189,25 @@ src/
 │   └── permissions/     # Security and permissions
 ├── renderer/            # React Frontend
 │   ├── components/      # UI components
+│   │   ├── Chat/        # Chat interface components
+│   │   ├── Dashboard/   # Dashboard view components
+│   │   ├── Layout/      # Application layout components
+│   │   ├── MCP/         # MCP-specific components
+│   │   ├── Permissions/ # Permission management UI
+│   │   └── Settings/    # Settings and configuration UI
 │   ├── context/         # React contexts
 │   └── styles/          # Styling
 └── preload/             # IPC bridge
+
+scripts/                 # Automation Scripts
+├── *.sh                # Bash/Zsh scripts (Linux/macOS)
+├── *.ps1               # PowerShell scripts (Windows)
+├── build-prod.*        # Production build automation
+├── dev-server.*        # Development server management
+├── kill-port.*         # Port cleanup utilities
+├── mcp-verify.*        # MCP server testing and validation
+├── setup-project.*     # Project initialization
+└── test-mcp-everything.* # Comprehensive MCP testing
 ```
 
 ---
@@ -188,6 +215,8 @@ src/
 ## Development
 
 ### Available Scripts
+
+**Core Development**
 ```bash
 # Development
 npm run dev              # Start development server with hot reload
@@ -198,7 +227,7 @@ npm run build:renderer   # Build React frontend
 npm run build:main       # Build Electron main process
 
 # Testing
-npm test                 # Run all tests
+npm test                 # Run all tests with Vitest
 npm run test:watch       # Run tests in watch mode
 npm run test:coverage    # Generate test coverage report
 
@@ -206,6 +235,39 @@ npm run test:coverage    # Generate test coverage report
 npm run lint             # Run ESLint
 npm run lint:fix         # Fix ESLint issues automatically
 npm run type-check       # TypeScript compilation check
+npm run clean            # Clean dist directory
+
+# Distribution
+npm run dist             # Build distribution packages
+npm run dist:dir         # Build to directory (no packaging)
+```
+
+**Platform-Specific Scripts**
+
+The `scripts/` directory contains automation scripts with both .sh and .ps1 versions:
+
+```bash
+# Project Setup (run once after clone)
+./scripts/setup-project.sh          # Linux/macOS
+./scripts/setup-project.ps1         # Windows
+
+# Development Server Management
+./scripts/dev-server.sh              # Linux/macOS
+./scripts/dev-server.ps1             # Windows
+
+# Production Builds
+./scripts/build-prod.sh              # Linux/macOS
+./scripts/build-prod.ps1             # Windows
+
+# MCP Server Testing
+./scripts/mcp-verify.sh              # Linux/macOS
+./scripts/mcp-verify.ps1             # Windows
+./scripts/test-mcp-everything.sh     # Linux/macOS
+./scripts/test-mcp-everything.ps1    # Windows
+
+# Utilities
+./scripts/kill-port.sh 5173          # Linux/macOS
+./scripts/kill-port.ps1 5173         # Windows
 ```
 
 ### Development Features
@@ -215,9 +277,11 @@ npm run type-check       # TypeScript compilation check
 - Complete debugging support with source maps
 - Comprehensive testing with Vitest
 - Test coverage reporting
+- Cross-platform script automation
 
 ### Testing
-The project includes comprehensive unit and integration tests:
+
+The project uses **Vitest** as the test runner with comprehensive coverage:
 
 ```bash
 # Run all tests
@@ -228,6 +292,9 @@ npm run test:coverage
 
 # Run tests in watch mode during development
 npm run test:watch
+
+# Run specific test pattern
+npx vitest run --grep "ConnectionManager"
 ```
 
 **Current Test Coverage:**
@@ -235,7 +302,36 @@ npm run test:watch
 - **UI Components**: 50-80% (key components well tested)
 - **Integration Tests**: Full end-to-end MCP server lifecycle testing
 
+**Test Framework:**
+- **Test Runner**: Vitest (fast, modern testing framework)
+- **UI Testing**: @testing-library/react with Jest DOM matchers
+- **Mocking**: Vitest mocks with comprehensive Electron API simulation
+- **Coverage**: V8 coverage reporting
+
 See [TESTING.md](TESTING.md) for detailed testing information.
+
+### Automation Scripts
+
+The project includes comprehensive automation scripts for all platforms. See [SCRIPTS.md](SCRIPTS.md) for detailed documentation of available scripts including:
+- Project setup and initialization
+- Development server management
+- Production builds and distribution
+- MCP server testing and validation
+- Utility scripts for port management and cleanup
+
+---
+
+## Known Issues
+
+### MCP Server Shutdown
+- **EPIPE Errors**: Occasional broken pipe errors during MCP server shutdown (non-fatal)
+- **Workaround**: Errors are logged but don't affect application functionality
+- **Status**: Under investigation for clean shutdown handling
+
+### WSL Compatibility
+- **Hardware Acceleration**: Disabled in WSL environments for compatibility
+- **Rendering**: Uses software rendering with additional compatibility flags
+- **Performance**: May be slower than native Linux/Windows installations
 
 ---
 

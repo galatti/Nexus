@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Documentation Updates**
+  - Comprehensive scripts documentation in SCRIPTS.md
+  - Updated README with accurate implementation details
+  - Corrected testing documentation to reflect Vitest usage
+  - Enhanced contributing guidelines with cross-platform support
+
+### Changed
+- **Test Framework Migration**
+  - Fully migrated from Jest to Vitest for better ES module support
+  - Removed legacy jest.config.js file
+  - Updated all test documentation and examples
+
+### Fixed
+- **Documentation Accuracy**
+  - Corrected state management description (Zustand + React Context)
+  - Updated available scripts list to match package.json
+  - Fixed test framework references throughout documentation
+  - Added known issues section for EPIPE errors and WSL compatibility
+
 ### Planned
 - Multiple chat sessions/tabs
 - MCP marketplace integration
@@ -35,8 +55,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Modern React 18 + TypeScript + Tailwind CSS interface
   - Professional dark/light theme support
   - Responsive design with accessibility features
+  - Dashboard view for system overview
   - MCP server management wizard
   - Settings management with real-time validation
+
+- **State Management**
+  - Zustand for complex application state
+  - React Context for theme and global UI state
+  - Local Storage for configuration persistence
+
+- **Cross-Platform Automation**
+  - Comprehensive script library with .sh and .ps1 versions
+  - Project setup and initialization scripts
+  - Development server management scripts
+  - Production build automation
+  - MCP server testing and verification scripts
+  - Port management and cleanup utilities
 
 - **Security Features**
   - Comprehensive permission system with risk assessment
@@ -45,16 +79,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Parameter sanitization and type checking
 
 - **Testing Infrastructure**
-  - Comprehensive test suite with 104+ tests
+  - Vitest-based test suite with 104+ tests
   - 96.11% coverage for core MCP functionality
   - Unit, integration, and UI component testing
-  - Vitest + @testing-library/react framework
   - Extensive mocking utilities for Electron and MCP APIs
+  - Platform-specific testing scripts
 
 - **Documentation**
   - Complete README with setup and usage instructions
-  - Comprehensive testing guide
-  - Contributing guidelines for open source development
+  - Comprehensive testing guide (TESTING.md)
+  - Contributing guidelines for open source development (CONTRIBUTING.md)
+  - Scripts documentation (SCRIPTS.md)
   - Legal documents (MIT License, Terms of Use, Disclaimer)
 
 ### Technical Details
@@ -62,6 +97,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Frontend**: React 18 + TypeScript + Tailwind CSS
 - **Build System**: Vite + ESLint + Prettier
 - **Testing**: Vitest + Jest DOM + Testing Library
+- **State Management**: Zustand + React Context + Local Storage
 - **Architecture**: Clean separation of main/renderer/preload processes
 
 ### Development
@@ -69,6 +105,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - TypeScript strict mode with comprehensive type safety
 - Automated linting and formatting
 - Cross-platform support (Windows, macOS, Linux)
+- WSL compatibility with hardware acceleration handling
+
+### Known Issues
+- Occasional EPIPE errors during MCP server shutdown (non-fatal)
+- WSL environments use software rendering for compatibility
+- Legacy jest.config.js removed in favor of vitest.config.ts
 
 ---
 
@@ -89,4 +131,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-**Note**: This project is in active development. Features and APIs may change between versions. 
+**Note**: This project is in active development. Features and APIs may change between versions. Documentation has been updated to reflect the current implementation accurately. 

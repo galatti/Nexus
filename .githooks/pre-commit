@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Pre-commit hook to validate documentation
+echo "🔍 Validating documentation before commit..."
+
+# Run documentation validation
+if [ -f "scripts/validate-docs.sh" ]; then
+    ./scripts/validate-docs.sh
+    if [ $? -ne 0 ]; then
+        echo "❌ Documentation validation failed. Please fix issues before committing."
+        exit 1
+    fi
+fi
+
+echo "✅ Documentation validation passed!"
+exit 0 

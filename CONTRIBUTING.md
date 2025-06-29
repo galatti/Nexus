@@ -23,19 +23,29 @@ Thank you for your interest in contributing to Nexus! This document provides gui
    npm install
    ```
 
-3. **Start Development Server**
+3. **Initialize Project (Optional)**
    ```bash
-   npm run dev
+   # Run platform-specific setup script
+   ./scripts/setup-project.sh      # Linux/macOS
+   ./scripts/setup-project.ps1     # Windows
    ```
 
-4. **Run Tests**
+4. **Start Development Server**
+   ```bash
+   npm run dev
+   # OR use platform-specific script
+   ./scripts/dev-server.sh         # Linux/macOS
+   ./scripts/dev-server.ps1        # Windows
+   ```
+
+5. **Run Tests**
    ```bash
    npm test
    ```
 
 ## 🧪 Testing Requirements
 
-**All contributions must include appropriate tests.** We maintain high test coverage for core functionality.
+**All contributions must include appropriate tests.** We maintain high test coverage for core functionality using **Vitest** as our test runner.
 
 ### Running Tests
 ```bash
@@ -49,12 +59,25 @@ npm run test:watch
 npm run test:coverage
 ```
 
+### Platform-Specific Testing
+```bash
+# MCP server verification
+./scripts/mcp-verify.sh             # Linux/macOS
+./scripts/mcp-verify.ps1            # Windows
+
+# Comprehensive MCP testing
+./scripts/test-mcp-everything.sh    # Linux/macOS
+./scripts/test-mcp-everything.ps1   # Windows
+```
+
 ### Test Guidelines
 - Write tests for new features and bug fixes
 - Maintain or improve existing test coverage
 - Use descriptive test names that explain expected behavior
 - Test both success and error cases
 - Follow existing testing patterns (see `tests/` directory)
+- **Use Vitest syntax** (`vi.fn()`, `vi.mock()`, etc.)
+- Include tests for both UI components and backend functionality
 
 ## 📝 Code Standards
 
@@ -63,6 +86,13 @@ npm run test:coverage
 - Provide proper type annotations
 - Avoid `any` types unless absolutely necessary
 - Follow existing code style and patterns
+- Use shared types from `src/shared/types.ts`
+
+### Cross-Platform Development
+- **Always provide both .sh and .ps1 versions** of any automation scripts
+- Use environment variables instead of hardcoded paths
+- Test on multiple platforms when possible
+- Follow platform-specific best practices
 
 ### Linting and Formatting
 ```bash
@@ -83,6 +113,7 @@ feat: add new MCP server configuration validation
 fix: resolve connection timeout issue in HTTP transport
 docs: update API documentation for tool execution
 test: add unit tests for permission manager
+scripts: add cross-platform build automation
 ```
 
 ## 🎯 Areas for Contribution
@@ -92,18 +123,21 @@ test: add unit tests for permission manager
 - **Documentation**: Improve setup guides, API documentation, and examples
 - **Bug Fixes**: Address issues reported in GitHub Issues
 - **Performance**: Optimize MCP server connection handling
+- **Cross-Platform Scripts**: Enhance automation scripts for better platform support
 
 ### Medium Priority
 - **UI/UX Improvements**: Enhance user interface and experience
 - **Error Handling**: Improve error messages and recovery mechanisms
 - **Platform Support**: Better cross-platform compatibility
 - **Accessibility**: Enhance keyboard navigation and screen reader support
+- **Dashboard Enhancements**: Add more metrics and status indicators
 
 ### Feature Requests
 - **MCP Server Templates**: Additional pre-configured server templates
 - **Configuration Import/Export**: Backup and restore functionality
 - **Advanced Logging**: Enhanced debugging and monitoring tools
 - **Plugin System**: Extensibility for custom integrations
+- **Multiple Chat Sessions**: Tab-based conversation management
 
 ## 🔄 Development Workflow
 
@@ -114,9 +148,10 @@ git checkout -b feature/your-feature-name
 
 ### 2. Make Changes
 - Write code following project conventions
-- Add tests for new functionality
+- Add tests for new functionality (using Vitest)
 - Update documentation as needed
 - Ensure all tests pass
+- **Create both .sh and .ps1 versions** of any scripts
 
 ### 3. Test Your Changes
 ```bash
@@ -131,13 +166,28 @@ npm run type-check
 
 # Test the application manually
 npm run dev
+
+# Test MCP functionality (if applicable)
+./scripts/mcp-verify.sh     # Linux/macOS
+./scripts/mcp-verify.ps1    # Windows
 ```
 
-### 4. Submit Pull Request
+### 4. Build Verification
+```bash
+# Test production build
+npm run build
+
+# OR use platform-specific build script
+./scripts/build-prod.sh     # Linux/macOS
+./scripts/build-prod.ps1    # Windows
+```
+
+### 5. Submit Pull Request
 - Create a descriptive pull request title
 - Provide detailed description of changes
 - Reference any related issues
 - Ensure all CI checks pass
+- Include screenshots for UI changes
 
 ## 🐛 Bug Reports
 
@@ -145,6 +195,7 @@ npm run dev
 1. Check existing issues for duplicates
 2. Test with the latest version
 3. Reproduce with minimal test case
+4. Test on multiple platforms if possible
 
 ### Bug Report Template
 ```markdown
@@ -166,6 +217,10 @@ What actually happens
 - OS: [e.g., Windows 11, macOS 13, Ubuntu 22.04]
 - Node.js version: [e.g., 18.17.0]
 - Nexus version: [e.g., 0.1.0]
+- MCP servers: [list any relevant MCP servers]
+
+**Logs**
+Any relevant error messages or logs
 
 **Additional Context**
 Any other relevant information
@@ -177,6 +232,7 @@ Any other relevant information
 1. Check existing issues and roadmap
 2. Consider if it fits the project scope
 3. Think about implementation complexity
+4. Consider cross-platform implications
 
 ### Feature Request Template
 ```markdown
@@ -185,6 +241,9 @@ What problem does this solve?
 
 **Proposed Solution**
 How should this be implemented?
+
+**Platform Considerations**
+How should this work across different platforms?
 
 **Alternatives Considered**
 What other approaches were considered?
@@ -204,70 +263,89 @@ src/
 │   ├── mcp/             # MCP server management
 │   └── permissions/     # Security and permissions
 ├── renderer/            # React Frontend
-│   ├── components/      # UI components
-│   ├── context/         # React contexts
-│   └── styles/          # Styling
-├── preload/             # IPC bridge
-└── shared/              # Shared utilities and types
+│   ├── components/      # UI components organized by feature
+│   ├── context/         # React contexts for state management
+│   └── styles/          # Tailwind CSS styling
+├── preload/             # IPC bridge between main and renderer
+└── shared/              # Shared types and utilities
+
+scripts/                 # Automation Scripts
+├── *.sh                # Bash/Zsh scripts (Linux/macOS)
+├── *.ps1               # PowerShell scripts (Windows)
+└── *.js                # Node.js utilities
 ```
 
-### Design Principles
-- **Security First**: All external communication must be secure
-- **Type Safety**: Comprehensive TypeScript usage
-- **Testability**: Code should be easily testable
-- **Modularity**: Clear separation of concerns
-- **Performance**: Efficient resource usage
+### Component Organization
+- **Chat/**: Chat interface and message handling
+- **Dashboard/**: System overview and status display
+- **Layout/**: Application layout and navigation
+- **MCP/**: MCP server management and integration
+- **Permissions/**: Permission management UI
+- **Settings/**: Configuration and settings UI
 
-## 📚 Documentation
+### State Management
+- **Zustand**: Primary state management for complex application state
+- **React Context**: Theme management and global UI state
+- **Local Storage**: Configuration persistence and user preferences
 
-### Types of Documentation
-- **Code Comments**: For complex logic and algorithms
-- **API Documentation**: For public interfaces
-- **User Guides**: For setup and usage instructions
-- **Developer Guides**: For contribution and architecture
+### Testing Strategy
+- **Unit Tests**: Individual component and function testing
+- **Integration Tests**: Full MCP server lifecycle testing  
+- **UI Tests**: User interaction and accessibility testing
+- **Platform Tests**: Cross-platform script validation
 
-### Documentation Standards
-- Write clear, concise explanations
-- Include code examples where helpful
-- Keep documentation up-to-date with changes
-- Use proper markdown formatting
+## 🔧 Development Tools
+
+### Available Scripts
+All development scripts are available in both .sh and .ps1 versions:
+
+| Purpose | Linux/macOS | Windows |
+|---------|-------------|---------|
+| Project Setup | `./scripts/setup-project.sh` | `./scripts/setup-project.ps1` |
+| Dev Server | `./scripts/dev-server.sh` | `./scripts/dev-server.ps1` |
+| Production Build | `./scripts/build-prod.sh` | `./scripts/build-prod.ps1` |
+| MCP Verification | `./scripts/mcp-verify.sh` | `./scripts/mcp-verify.ps1` |
+| Full MCP Testing | `./scripts/test-mcp-everything.sh` | `./scripts/test-mcp-everything.ps1` |
+| Port Cleanup | `./scripts/kill-port.sh 5173` | `./scripts/kill-port.ps1 5173` |
+
+### Development Environment
+- **Hot Reload**: Instant updates during development
+- **Type Safety**: Full TypeScript integration with strict mode
+- **Code Quality**: ESLint + Prettier for consistent formatting
+- **Testing**: Vitest with comprehensive coverage reporting
+- **Debugging**: Full source map support and Chrome DevTools integration
+
+## 📋 Checklist for Contributors
+
+Before submitting a pull request, ensure:
+
+- [ ] Code follows TypeScript best practices
+- [ ] All tests pass (`npm test`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Type checking passes (`npm run type-check`)
+- [ ] New features include appropriate tests
+- [ ] Documentation is updated for new features
+- [ ] Cross-platform scripts are provided (.sh and .ps1)
+- [ ] Changes work on multiple platforms (if applicable)
+- [ ] MCP functionality is tested (if applicable)
+- [ ] UI changes are accessible and responsive
 
 ## 🤝 Community Guidelines
 
-### Code of Conduct
-All contributors must follow our [Code of Conduct](CODE_OF_CONDUCT.md). In summary:
-- Be respectful and inclusive to all community members
-- Focus on constructive feedback and collaboration
-- Help others learn and grow
-- Maintain a professional and welcoming tone
-- Report any violations to the project maintainers
+We are committed to providing a welcoming and inclusive environment for all contributors. Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating in the project.
 
-### Communication
-- Use GitHub Issues for bug reports and feature requests
-- Use GitHub Discussions for questions and general discussion
-- Be patient and helpful with new contributors
-- Provide clear, actionable feedback in code reviews
+### Getting Help
+- **GitHub Issues**: For bug reports and feature requests
+- **GitHub Discussions**: For questions and community discussion
+- **Code Review**: Constructive feedback on pull requests
 
-## ⚖️ Legal
+## 📚 Additional Resources
 
-### License
-By contributing to Nexus, you agree that your contributions will be licensed under the MIT License.
-
-### Contributor License Agreement
-For significant contributions, you may be asked to sign a Contributor License Agreement (CLA).
-
-## 🆘 Getting Help
-
-### Resources
-- **Documentation**: Check README.md and other docs
-- **Issues**: Search existing GitHub issues
-- **Discussions**: Use GitHub Discussions for questions
-
-### Contact
-- Create an issue for bugs or feature requests
-- Use discussions for general questions
-- Tag maintainers for urgent issues
+- [TESTING.md](TESTING.md) - Comprehensive testing guide
+- [README.md](README.md) - Project overview and setup
+- [CHANGELOG.md](CHANGELOG.md) - Version history and changes
+- [Architecture Documentation](docs/) - Detailed technical documentation
 
 ---
 
-**Thank you for contributing to Nexus!** Your help makes this project better for everyone. 
+Thank you for contributing to Nexus! Your contributions help make this project better for everyone. 
