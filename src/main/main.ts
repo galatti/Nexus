@@ -1109,6 +1109,9 @@ ipcMain.handle('mcp:updateServerEnabled', async (_event, serverId, enabled) => {
       }
     }
     
+    // Emit server configuration change event to notify all components
+    mainWindow?.webContents.send('mcp:serverConfigChanged', serverId, { enabled });
+    
     return { success: true };
   } catch (error) {
     console.error('Failed to update server enabled status:', error);

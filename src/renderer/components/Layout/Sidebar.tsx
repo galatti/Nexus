@@ -94,6 +94,19 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen }) => {
     return cleanup;
   }, []);
 
+  // Listen for server configuration changes (enable/disable)
+  useEffect(() => {
+    const cleanup = (window as any).electronAPI.onMcpServerConfigChange?.((serverId: string, changes: Record<string, unknown>) => {
+      setServers(prev => 
+        prev.map(server => 
+          server.id === serverId ? { ...server, ...changes } : server
+        )
+      );
+    });
+
+    return cleanup;
+  }, []);
+
   // Refresh servers periodically to catch new additions
   useEffect(() => {
     const interval = setInterval(async () => {

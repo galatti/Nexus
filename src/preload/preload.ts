@@ -90,44 +90,52 @@ const electronAPI = {
   
   // Event listeners
   onMcpServerStateChange: (callback: (serverId: string, state: string) => void) => {
-    ipcRenderer.on('mcp:serverStateChange', (_event, serverId, state) => 
-      callback(serverId, state));
-    return () => ipcRenderer.removeAllListeners('mcp:serverStateChange');
+    const listener = (_event: any, serverId: string, state: string) => callback(serverId, state);
+    ipcRenderer.on('mcp:serverStateChange', listener);
+    return () => ipcRenderer.removeListener('mcp:serverStateChange', listener);
+  },
+
+  onMcpServerConfigChange: (callback: (serverId: string, changes: Record<string, unknown>) => void) => {
+    const listener = (_event: any, serverId: string, changes: Record<string, unknown>) => callback(serverId, changes);
+    ipcRenderer.on('mcp:serverConfigChanged', listener);
+    return () => ipcRenderer.removeListener('mcp:serverConfigChanged', listener);
   },
 
   onSettingsChange: (callback: (settings: Record<string, unknown>) => void) => {
-    ipcRenderer.on('settings:changed', (_event, settings) => callback(settings));
-    return () => ipcRenderer.removeAllListeners('settings:changed');
+    const listener = (_event: any, settings: Record<string, unknown>) => callback(settings);
+    ipcRenderer.on('settings:changed', listener);
+    return () => ipcRenderer.removeListener('settings:changed', listener);
   },
 
   // MCP notification event listeners
   onProgressNotification: (callback: (serverId: string, notification: any) => void) => {
-    ipcRenderer.on('mcp:progressNotification', (_event, serverId, notification) => 
-      callback(serverId, notification));
-    return () => ipcRenderer.removeAllListeners('mcp:progressNotification');
+    const listener = (_event: any, serverId: string, notification: any) => callback(serverId, notification);
+    ipcRenderer.on('mcp:progressNotification', listener);
+    return () => ipcRenderer.removeListener('mcp:progressNotification', listener);
   },
 
   onLogMessage: (callback: (serverId: string, logMessage: any) => void) => {
-    ipcRenderer.on('mcp:logMessage', (_event, serverId, logMessage) => 
-      callback(serverId, logMessage));
-    return () => ipcRenderer.removeAllListeners('mcp:logMessage');
+    const listener = (_event: any, serverId: string, logMessage: any) => callback(serverId, logMessage);
+    ipcRenderer.on('mcp:logMessage', listener);
+    return () => ipcRenderer.removeListener('mcp:logMessage', listener);
   },
 
   onResourcesChanged: (callback: (serverId: string, resources: any[]) => void) => {
-    ipcRenderer.on('mcp:resourcesChanged', (_event, serverId, resources) => 
-      callback(serverId, resources));
-    return () => ipcRenderer.removeAllListeners('mcp:resourcesChanged');
+    const listener = (_event: any, serverId: string, resources: any[]) => callback(serverId, resources);
+    ipcRenderer.on('mcp:resourcesChanged', listener);
+    return () => ipcRenderer.removeListener('mcp:resourcesChanged', listener);
   },
 
   onResourceUpdated: (callback: (serverId: string, uri: string) => void) => {
-    ipcRenderer.on('mcp:resourceUpdated', (_event, serverId, uri) => 
-      callback(serverId, uri));
-    return () => ipcRenderer.removeAllListeners('mcp:resourceUpdated');
+    const listener = (_event: any, serverId: string, uri: string) => callback(serverId, uri);
+    ipcRenderer.on('mcp:resourceUpdated', listener);
+    return () => ipcRenderer.removeListener('mcp:resourceUpdated', listener);
   },
 
   onLlmProviderChange: (callback: (data: any) => void) => {
-    ipcRenderer.on('llm:providerChanged', (_event, data) => callback(data));
-    return () => ipcRenderer.removeAllListeners('llm:providerChanged');
+    const listener = (_event: any, data: any) => callback(data);
+    ipcRenderer.on('llm:providerChanged', listener);
+    return () => ipcRenderer.removeListener('llm:providerChanged', listener);
   },
 };
 
