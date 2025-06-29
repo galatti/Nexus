@@ -106,17 +106,12 @@ The application launches automatically with hot reload enabled.
 ### MCP Server Management
 
 **Supported Server Types**
-- **Filesystem Server** - Secure file system access with permission controls
-- **Web Search Server** - Brave Search API integration for real-time web queries
-- **Weather Server** - OpenWeatherMap integration for weather data
-- **Everything Server** - Comprehensive test server with multiple tools
-- **Custom Servers** - Support for any MCP-compliant server
+- Support for any MCP-compliant server
 
 **Management Features**
 - Visual configuration with form-based setup
 - Real-time connection health monitoring
 - Granular tool-level permissions
-- Pre-configured server templates
 
 **Tool Execution**
 - Automatic risk assessment (low/medium/high)
@@ -321,11 +316,6 @@ The project includes comprehensive automation scripts for all platforms. See [SC
 ---
 
 ## Known Issues
-
-### MCP Server Shutdown
-- **EPIPE Errors**: Occasional broken pipe errors during MCP server shutdown (non-fatal)
-- **Workaround**: Errors are logged but don't affect application functionality
-- **Status**: Under investigation for clean shutdown handling
 
 ### WSL Compatibility
 - **Hardware Acceleration**: Disabled in WSL environments for compatibility
