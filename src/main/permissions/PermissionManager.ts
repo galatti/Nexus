@@ -70,7 +70,7 @@ export class PermissionManager extends EventEmitter {
       requireApprovalForSystemCommands: true,
       trustedServers: [],
       // Security improvements
-      alwaysPermissionDuration: 7, // 7 days instead of 30
+      alwaysPermissionDuration: 0, // An 'always' permission should persist indefinitely (0 = no expiry)
       enableArgumentValidation: true,
       enablePermissionExpireNotifications: true,
       maxSessionPermissions: 50 // Reasonable limit
@@ -105,6 +105,16 @@ export class PermissionManager extends EventEmitter {
         logger.info(`Tool execution denied by existing permission: ${tool.name}`);
         return false;
       }
+    }
+
+    // Check for existing session permission
+    const argsHash = this.hashArguments(args);
+    const sessionKeySpecific = this.getSessionKey(serverConfig.id, tool.name, argsHash);
+    const sessionKeyBase = this.getSessionKey(serverConfig.id, tool.name);
+
+    if (this.sessionPermissions.has(sessionKeySpecific) || this.sessionPermissions.has(sessionKeyBase)) {
+      logger.info(`Tool execution approved by session permission: ${tool.name}`);
+      return true;
     }
 
     // Assess risk level
@@ -331,13 +341,16 @@ export class PermissionManager extends EventEmitter {
       
       this.sessionPermissions.add(sessionKey);
     } else {
-      // For 'always' scope, use configurable duration
-      const durationMs = this.settings.alwaysPermissionDuration * 24 * 60 * 60 * 1000;
-      permission.expiresAt = new Date(Date.now() + durationMs);
+      // For 'always' scope, respect configurable duration; 0 means no expiry
+      if (this.settings.alwaysPermissionDuration > 0) {
+        const durationMs = this.settings.alwaysPermissionDuration * 24 * 60 * 60 * 1000;
+        permission.expiresAt = new Date(Date.now() + durationMs);
+      }
+
       this.permissions.set(permissionKey, permission);
-      
-      // Schedule expiration notification
-      if (this.settings.enablePermissionExpireNotifications) {
+
+      // Schedule expiration notification only when expiry is set
+      if (permission.expiresAt && this.settings.enablePermissionExpireNotifications) {
         this.scheduleExpirationNotification(permission);
       }
     }

@@ -940,8 +940,10 @@ ipcMain.handle('mcp:testConnection', async (_event, serverConfigOrId) => {
               shell: process.platform === 'win32' // Use shell on Windows
             });
             
-            // Test connection variables (kept for future use)
+            // Test connection variables (kept for future logs)
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             let output = '';
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
             let errorOutput = '';
             
             const timeout = setTimeout(() => {
