@@ -226,7 +226,6 @@ function cleanupText(text: string): string {
   return cleaned;
 }
 
-// @ts-expect-error - Unused function preserved for future use
 function formatToolResult(toolName: string, resultText: string): string {
   // Detect data types and format accordingly
   if (resultText.startsWith('Error:')) {
@@ -444,7 +443,6 @@ function getToolIcon(toolName: string): string {
   return '🔧'; // Default tool icon
 }
 
-// @ts-expect-error - Unused function preserved for future use
 function generateToolSummary(toolName: string, result: unknown): string {
   try {
     if (!result) return 'No result';
