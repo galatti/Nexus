@@ -27,6 +27,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  // Sequence counter to ensure only the latest loadLlmInfo call can update state
+  const loadSeq = useRef(0);
+
+  // Maximum number of messages to persist in localStorage to avoid exceeding
+  // browser storage quotas (which could silently fail and wipe the value)
+  const MAX_STORED_MESSAGES = 500;
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -53,29 +59,44 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
 
   // Load LLM status and model information function
   const loadLlmInfo = useCallback(async () => {
+    const seq = ++loadSeq.current; // capture sequence for this invocation
+
     try {
-      console.log('ChatWindow: Loading LLM status...');
+      console.log('ChatWindow: Loading LLM status... (seq)', seq);
       const statusResult = await window.electronAPI.getLlmStatus();
+
+      // If a newer invocation has started, abort processing
+      if (seq !== loadSeq.current) {
+        console.log('ChatWindow: Skipping outdated LLM status load (seq)', seq);
+        return;
+      }
+
       console.log('ChatWindow: LLM status result:', statusResult);
       
       if (statusResult.success && statusResult.data) {
-        console.log('ChatWindow: Setting LLM status:', statusResult.data);
+        console.log('ChatWindow: Setting LLM status:', statusResult.data, '(seq)', seq);
         console.log('ChatWindow: Provider info - currentProvider:', statusResult.data.currentProvider, 'currentProviderName:', statusResult.data.currentProviderName, 'currentModel:', statusResult.data.currentModel);
         setLlmStatus(statusResult.data);
         
         // Get the configured model information
         if (statusResult.data.currentModel) {
-          console.log('ChatWindow: Loading model info for:', statusResult.data.currentModel);
+          console.log('ChatWindow: Loading model info for:', statusResult.data.currentModel, '(seq)', seq);
           
           // Try to get detailed model info from available models
           const modelsResult = await window.electronAPI.getAvailableModels();
           console.log('ChatWindow: Available models result:', modelsResult);
           
+          // Abort if stale
+          if (seq !== loadSeq.current) {
+            console.log('ChatWindow: Skipping outdated model info load (seq)', seq);
+            return;
+          }
+          
           if (modelsResult.success && modelsResult.data && modelsResult.data.length > 0) {
             // Find the currently configured model in the available models
             const modelInfo = modelsResult.data.find((m: LlmModel) => m.name === statusResult.data!.currentModel);
             if (modelInfo) {
-              console.log('ChatWindow: Found detailed model info:', modelInfo);
+              console.log('ChatWindow: Found detailed model info:', modelInfo, '(seq)', seq);
               setCurrentModel(modelInfo);
             } else {
               // Fallback: create a basic model object with just the name
@@ -83,7 +104,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
                 name: statusResult.data.currentModel,
                 description: `${statusResult.data.currentProviderType} model`
               };
-              console.log('ChatWindow: Using fallback model info:', fallbackModel);
+              console.log('ChatWindow: Using fallback model info:', fallbackModel, '(seq)', seq);
               setCurrentModel(fallbackModel);
             }
           } else {
@@ -92,17 +113,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
               name: statusResult.data.currentModel,
               description: `${statusResult.data.currentProviderType} model`
             };
-            console.log('ChatWindow: Using fallback model info (no models available):', fallbackModel);
+            console.log('ChatWindow: Using fallback model info (no models available):', fallbackModel, '(seq)', seq);
             setCurrentModel(fallbackModel);
           }
         } else {
-          console.log('ChatWindow: No current model in status');
+          console.log('ChatWindow: No current model in status (seq)', seq);
         }
       } else {
-        console.warn('ChatWindow: Failed to get LLM status:', statusResult);
+        console.warn('ChatWindow: Failed to get LLM status:', statusResult, '(seq)', seq);
       }
     } catch (error) {
-      console.error('Failed to load LLM info:', error);
+      // Abort log if outdated
+      if (seq !== loadSeq.current) return;
+      console.error('Failed to load LLM info:', error, '(seq)', seq);
     }
   }, []);
 
@@ -165,8 +188,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
 
   // Save message history to localStorage (only after initial load)
   useEffect(() => {
-    if (initialLoadComplete) {
-      localStorage.setItem('nexus-chat-history', JSON.stringify(messages));
+    if (!initialLoadComplete) return;
+
+    try {
+      // Persist only the most recent messages to stay well below localStorage limits
+      const toPersist =
+        messages.length > MAX_STORED_MESSAGES
+          ? messages.slice(-MAX_STORED_MESSAGES)
+          : messages;
+
+      localStorage.setItem('nexus-chat-history', JSON.stringify(toPersist));
+    } catch (err) {
+      console.warn('ChatWindow: Failed to persist chat history, disabling persistence for this session.', err);
     }
   }, [messages, initialLoadComplete]);
 
@@ -586,7 +619,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
             )}
             
             {/* Output JSON */}
-            {toolCall.result && (
+            {!!toolCall.result && (
               <div className="mt-3">
                 <div className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2 flex items-center">
                   <span className="text-orange-600 dark:text-orange-400 mr-2">📥</span>

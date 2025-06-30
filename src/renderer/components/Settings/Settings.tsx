@@ -549,7 +549,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                     {(!settings?.llm.providers || settings.llm.providers.length === 0) && (
                       <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <p>No providers configured yet.</p>
-                        <p className="text-sm">Click "Add Provider" to get started.</p>
+                        <p className="text-sm">Click &quot;Add Provider&quot; to get started.</p>
                       </div>
                     )}
 

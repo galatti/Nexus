@@ -568,7 +568,12 @@ export class ServerManager extends EventEmitter {
         serverId
       })) || [];
 
-    } catch (error) {
+    } catch (error: any) {
+      // Some servers simply do not implement listResources – treat as non-fatal
+      if (error?.code === -32601) {
+        console.log(`Server ${serverId} does not provide resources – skipping.`);
+        return [];
+      }
       console.error(`Failed to discover resources for server ${serverId}:`, error);
       return [];
     }
@@ -586,7 +591,12 @@ export class ServerManager extends EventEmitter {
         serverId
       })) || [];
 
-    } catch (error) {
+    } catch (error: any) {
+      // Some servers do not implement listPrompts – handle gracefully
+      if (error?.code === -32601) {
+        console.log(`Server ${serverId} does not provide prompts – skipping.`);
+        return [];
+      }
       console.error(`Failed to discover prompts for server ${serverId}:`, error);
       return [];
     }
