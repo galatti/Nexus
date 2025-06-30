@@ -322,6 +322,17 @@ The project includes comprehensive automation scripts for all platforms. See [SC
 - **Rendering**: Uses software rendering with additional compatibility flags
 - **Performance**: May be slower than native Linux/Windows installations
 
+### Broken pipe (EPIPE) warnings on shutdown
+
+When an MCP server launched via **STDIO transport** is stopped, the child process can sometimes close its side of the pipe before Electron finishes flushing buffered data.  This manifests as repeated log lines similar to:
+
+```
+Error: write EPIPE
+    at ChildProcess.target._send (node:internal/child_process.js:811:25)
+```
+
+These EPIPE messages are harmless – the server is already shutting down – and are swallowed by Nexus at runtime (see `ConnectionManager.ts -> swallowEpipe`).  No user action is required.
+
 ---
 
 ## Deployment
