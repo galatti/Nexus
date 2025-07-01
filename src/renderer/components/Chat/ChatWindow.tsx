@@ -780,26 +780,15 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
               </span>
             </div>
           )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <button
-            onClick={() => setShowThinking(!showThinking)}
-            className={`px-3 py-1 text-sm rounded-md transition-colors ${
-              showThinking 
-                ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' 
-                : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-            }`}
-            title={showThinking ? 'Hide AI thinking process' : 'Show AI thinking process'}
-          >
-            🧠 {showThinking ? 'Hide' : 'Show'} Thinking
-          </button>
           {messages.length > 0 && (
-            <button
-              onClick={clearHistory}
-              className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Clear History
-            </button>
+            <div className="flex justify-end mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={clearHistory}
+                className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Clear History
+              </button>
+            </div>
           )}
         </div>
       </div>
