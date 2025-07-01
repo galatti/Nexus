@@ -125,13 +125,13 @@ export class OpenRouterProvider extends BaseProvider {
   }
 
   async sendMessage(
-    messages: ChatMessage[], 
+    messages: ChatMessage[],
     options: {
       temperature?: number;
       maxTokens?: number;
       stream?: boolean;
       model?: string;
-      tools?: Array<{ 
+      tools?: Array<{
         type: 'function';
         function: {
           name: string;
@@ -145,6 +145,9 @@ export class OpenRouterProvider extends BaseProvider {
       if (!this.config.apiKey) {
         throw new Error('OpenRouter API key not configured');
       }
+
+      logger.debug('OpenRouter: Starting message send with model:', options.model);
+      const startTime = Date.now();
 
       const modelName = this.getModelName(options.model);
       const formattedMessages = this.formatMessages(messages);
@@ -166,6 +169,9 @@ export class OpenRouterProvider extends BaseProvider {
         });
       }
 
+      const timeout = 120000; // 2 minutes timeout
+      logger.debug('OpenRouter: Making request with timeout:', timeout);
+      
       const response = await this.makeRequest(`${this.API_BASE}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -175,7 +181,7 @@ export class OpenRouterProvider extends BaseProvider {
           'X-Title': 'Nexus MVP'
         },
         body: JSON.stringify(requestBody)
-      });
+      }, timeout);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -212,7 +218,7 @@ export class OpenRouterProvider extends BaseProvider {
   }
 
   async streamMessage(
-    messages: ChatMessage[], 
+    messages: ChatMessage[],
     onChunk: (chunk: StreamingResponse) => void,
     options: {
       temperature?: number;
@@ -221,6 +227,7 @@ export class OpenRouterProvider extends BaseProvider {
     } = {}
   ): Promise<void> {
     try {
+      const startTime = Date.now();
       if (!this.config.apiKey) {
         throw new Error('OpenRouter API key not configured');
       }
@@ -236,6 +243,9 @@ export class OpenRouterProvider extends BaseProvider {
         stream: true
       };
 
+      const timeout = 30000; // 30 seconds timeout
+      logger.debug('OpenRouter: Making request with timeout:', timeout);
+      
       const response = await this.makeRequest(`${this.API_BASE}/chat/completions`, {
         method: 'POST',
         headers: {
@@ -245,7 +255,10 @@ export class OpenRouterProvider extends BaseProvider {
           'X-Title': 'Nexus MVP'
         },
         body: JSON.stringify(requestBody)
-      });
+      }, timeout);
+
+      const duration = Date.now() - startTime;
+      logger.debug(`OpenRouter: Request completed in ${duration}ms`);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -400,6 +413,8 @@ export class OpenRouterProvider extends BaseProvider {
   }
 
   protected handleError(error: any, context: string): Error {
+    logger.error(`OpenRouter error in ${context}:`, error);
+    
     // Handle OpenRouter-specific errors
     if (error.status === 402) {
       return new Error('Insufficient credits in OpenRouter account. Please add more credits.');
@@ -411,6 +426,15 @@ export class OpenRouterProvider extends BaseProvider {
 
     if (error.status === 400 && error.message?.includes('model')) {
       return new Error('Selected model is not available or invalid for OpenRouter.');
+    }
+
+    // Handle timeout/abort errors
+    if (error.name === 'AbortError') {
+      return new Error(`Request timeout for OpenRouter (${context})`);
+    }
+
+    if (error.message?.includes('timeout')) {
+      return new Error(`Request timeout for OpenRouter (${context})`);
     }
 
     // Fall back to base error handling
