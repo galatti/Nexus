@@ -174,13 +174,30 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         {currentModel && (
           <div className="flex items-center space-x-2">
             <span className="text-blue-400 dark:text-blue-500">•</span>
-            <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            <span 
+              className="text-sm font-medium text-blue-700 dark:text-blue-300 cursor-help"
+              title={currentModel.description || currentModel.name}
+            >
               {currentModel.name}
             </span>
             {currentModel.size && (
               <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-1.5 py-0.5 rounded">
                 {currentModel.size}
               </span>
+            )}
+            {currentModel.description && (
+              <div title={currentModel.description}>
+                <svg 
+                  className="w-3 h-3 text-blue-500 cursor-help" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9,9h0a3,3,0,0,1,5.12-2.12A3,3,0,0,1,15,11.5c0,1-1,1.5-1,1.5"/>
+                  <circle cx="12" cy="17" r=".5"/>
+                </svg>
+              </div>
             )}
           </div>
         )}

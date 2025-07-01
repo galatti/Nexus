@@ -758,13 +758,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
             />
           </div>
 
-          {currentModel && currentModel.description && (
-            <div className="mt-1">
-              <span className="text-xs text-gray-500 dark:text-gray-500">
-                {currentModel.description}
-              </span>
-            </div>
-          )}
           {messages.length > 0 && (
             <div className="flex justify-end mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
               <button
