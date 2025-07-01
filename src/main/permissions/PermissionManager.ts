@@ -57,6 +57,7 @@ export class PermissionManager extends EventEmitter {
   private pendingApprovals = new Map<string, PendingApproval>();
   private settings: PermissionSettings;
   private sessionPermissions = new Set<string>();
+  private expirationTimeouts = new Set<NodeJS.Timeout>();
 
   constructor() {
     super();
@@ -494,10 +495,13 @@ export class PermissionManager extends EventEmitter {
     const oneDayBeforeExpiration = timeUntilExpiration - (24 * 60 * 60 * 1000);
     
     if (oneDayBeforeExpiration > 0) {
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
+        this.expirationTimeouts.delete(timeoutId);
         logger.warn(`Permission expiring soon: ${permission.toolName} for server ${permission.serverId}`);
         this.emit('permissionExpiringSoon', permission);
       }, oneDayBeforeExpiration);
+      
+      this.expirationTimeouts.add(timeoutId);
     }
   }
 
@@ -565,6 +569,34 @@ export class PermissionManager extends EventEmitter {
       expired,
       expiringSoon
     };
+  }
+
+  shutdown(): void {
+    logger.info('Shutting down PermissionManager');
+    
+    // Clear all pending approval timeouts
+    for (const [approvalId, pending] of this.pendingApprovals.entries()) {
+      if (pending.timeout) {
+        clearTimeout(pending.timeout);
+      }
+      // Reject pending approvals
+      pending.resolve({ approved: false, reason: 'Application shutdown' });
+    }
+    this.pendingApprovals.clear();
+    
+    // Clear all expiration notification timeouts
+    for (const timeoutId of this.expirationTimeouts) {
+      clearTimeout(timeoutId);
+    }
+    this.expirationTimeouts.clear();
+    
+    // Clear all permissions and session data
+    this.clearAllPermissions();
+    
+    // Remove all event listeners
+    this.removeAllListeners();
+    
+    logger.info('PermissionManager shutdown complete');
   }
 }
 

@@ -1621,6 +1621,7 @@ const cleanup = async () => {
   try {
     await serverManager.stopAllServers();
     await llmManager.shutdown();
+    permissionManager.shutdown();
     console.log('Application cleanup completed');
   } catch (error) {
     console.error('Error during cleanup:', error);
