@@ -752,7 +752,10 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                       className={`px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 ${
                                         index === selectedModelIndex ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                                       }`}
-                                      onClick={() => handleModelSelect(model.name)}
+                                      onMouseDown={(e) => {
+                                        e.preventDefault();
+                                        handleModelSelect(model.name);
+                                      }}
                                     >
                                       <div className="text-sm text-gray-900 dark:text-white font-medium">
                                         {model.name}
