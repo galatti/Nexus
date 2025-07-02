@@ -3,11 +3,12 @@ import { join } from 'path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { AppSettings, LlmProviderConfig, McpServerConfig } from '../../shared/types.js';
 import { logger } from '../utils/logger.js';
+import { APP_CONSTANTS } from '../../shared/constants.js';
 
 export class ConfigManager {
   private configPath: string;
   private settings: AppSettings;
-  private readonly CONFIG_FILE_NAME = 'nexus-config.json';
+  private readonly CONFIG_FILE_NAME = APP_CONSTANTS.CONFIG_FILE_NAME;
 
   constructor() {
     this.configPath = this.getConfigPath();
@@ -17,7 +18,7 @@ export class ConfigManager {
   private getConfigPath(): string {
     try {
       const userDataPath = app.getPath('userData');
-      const configDir = join(userDataPath, 'config');
+      const configDir = join(userDataPath, APP_CONSTANTS.CONFIG_DIR_NAME);
       
       // Ensure config directory exists
       if (!existsSync(configDir)) {
@@ -48,7 +49,7 @@ export class ConfigManager {
             id: 'ollama-local',
             type: 'ollama',
             name: 'Ollama Local',
-            baseUrl: 'http://127.0.0.1:11434',
+            baseUrl: APP_CONSTANTS.DEFAULT_OLLAMA_URL,
             model: '',
             enabled: false,
             temperature: 0.7,
