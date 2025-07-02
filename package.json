@@ -1,7 +1,7 @@
 {
-  "name": "nexus-mvp",
-  "version": "0.1.0",
-  "description": "NEXUS - A modern MCP-first desktop application built with Electron",
+  "name": "nexus",
+  "version": "0.2.0",
+  "description": "NEXUS - A comprehensive AI interaction platform with advanced session management",
   "main": "dist/main/main.js",
   "homepage": "./",
   "private": false,
@@ -90,8 +90,8 @@
     "wait-on": "^7.2.0"
   },
   "build": {
-    "appId": "com.nexus.mvp",
-    "productName": "Nexus MVP",
+    "appId": "com.nexus.app",
+    "productName": "Nexus",
     "directories": {
       "output": "release"
     },

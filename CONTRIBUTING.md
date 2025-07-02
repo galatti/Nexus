@@ -132,12 +132,16 @@ scripts: add cross-platform build automation
 - **Accessibility**: Enhance keyboard navigation and screen reader support
 - **Dashboard Enhancements**: Add more metrics and status indicators
 
-### Feature Requests
+### Currently In Development
+- **Multiple Chat Sessions**: Tab-based conversation management (see `CHAT_SESSIONS_IMPLEMENTATION.md`)
+- **Project Workspaces**: Contextual organization for related conversations
+- **Advanced Session Organization**: Smart categorization, search, and filtering
+
+### Future Feature Requests
 - **MCP Server Templates**: Additional pre-configured server templates
 - **Configuration Import/Export**: Backup and restore functionality
 - **Advanced Logging**: Enhanced debugging and monitoring tools
 - **Plugin System**: Extensibility for custom integrations
-- **Multiple Chat Sessions**: Tab-based conversation management
 
 ## 🔄 Development Workflow
 
