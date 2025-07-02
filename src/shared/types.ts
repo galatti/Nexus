@@ -189,4 +189,114 @@ declare global {
   interface Window {
     electronAPI: ElectronAPI;
   }
+}
+
+// === CHAT SESSIONS TYPES (Phase 1.1) ===
+
+// Core session types
+export interface ChatSession {
+  id: string;
+  title: string;
+  created: Date;
+  lastActive: Date;
+  messageCount: number;
+  tokenCount: number;
+  model?: string;
+  provider?: string;
+  category?: string;
+  tags: string[];
+  isPinned: boolean;
+  isArchived: boolean;
+  projectId?: string;
+  metadata: SessionMetadata;
+}
+
+export interface SessionMetadata {
+  firstMessage?: string; // Preview of the first user message
+  lastMessage?: string;  // Preview of the last message
+  topics: string[];      // Auto-extracted topics
+  hasAttachments: boolean;
+  hasToolCalls: boolean;
+  language?: string;     // Detected conversation language
+  summary?: string;      // AI-generated session summary
+}
+
+export interface ChatProject {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  created: Date;
+  lastActive: Date;
+  sessionIds: string[];
+  tags: string[];
+  sharedContext?: string; // Context shared across all sessions in project
+}
+
+export interface SessionFilters {
+  dateRange?: [Date, Date];
+  models?: string[];
+  categories?: string[];
+  projects?: string[];
+  hasAttachments?: boolean;
+  minMessages?: number;
+  topics?: string[];
+  searchQuery?: string;
+}
+
+// Storage schema for sessions
+export interface SessionStorage {
+  session: ChatSession;
+  messages: ChatMessage[];
+  context?: SessionContext;
+}
+
+export interface SessionContext {
+  modelHistory: string[];    // Models used in this session
+  toolsUsed: string[];      // Tools that have been called
+  attachments: any[];       // Future: file attachments
+  branchPoints: string[];   // Future: conversation branches
+}
+
+// App storage structure (replacing simple localStorage)
+export interface AppStorage {
+  sessions: {
+    [sessionId: string]: SessionStorage;
+  };
+  projects: {
+    [projectId: string]: ChatProject;
+  };
+  userPreferences: UserPreferences;
+  sessionIndex: SessionIndex;
+  currentSessionId?: string;
+}
+
+export interface UserPreferences {
+  sidebarState: 'collapsed' | 'condensed' | 'expanded';
+  defaultModel?: string;
+  sessionOrganization: 'chronological' | 'categorical' | 'project';
+  autoArchive: boolean;
+  searchHistory: string[];
+  maxStoredSessions: number;
+}
+
+export interface SessionIndex {
+  byDate: string[];
+  byProject: { [projectId: string]: string[] };
+  byCategory: { [category: string]: string[] };
+  searchable: SearchIndex;
+}
+
+export interface SearchIndex {
+  sessions: {
+    [sessionId: string]: {
+      title: string;
+      content: string;
+      topics: string[];
+      metadata: string;
+    }
+  };
+  invertedIndex: {
+    [term: string]: string[];
+  };
 } 

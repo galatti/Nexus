@@ -49,7 +49,7 @@ export class ConfigManager {
             type: 'ollama',
             name: 'Ollama Local',
             baseUrl: 'http://127.0.0.1:11434',
-            model: 'llama2',
+            model: '',
             enabled: false,
             temperature: 0.7,
             maxTokens: 2048

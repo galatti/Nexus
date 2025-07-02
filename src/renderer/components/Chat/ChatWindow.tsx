@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { OptimizedSyntaxHighlighter } from './SyntaxHighlighter';
 import { ChatMessage, LlmStatusResponse, LlmModel, ToolCall } from '../../../shared/types';
 import { ModelSelector } from './ModelSelector';
+import { useSession } from '../../context/SessionContext';
 
 interface ChatWindowProps {
   className?: string;
@@ -11,7 +12,19 @@ interface ChatWindowProps {
 }
 
 export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive = false }) => {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  // Session context
+  const {
+    currentSession,
+    currentSessionId,
+    getSessionMessages,
+    addMessage,
+    setSessionMessages,
+    createSession,
+    updateSession,
+    isLoading: sessionLoading
+  } = useSession();
+
+  // Local state
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [_isStreaming] = useState(false);
@@ -31,9 +44,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   // Sequence counter to ensure only the latest loadLlmInfo call can update state
   const loadSeq = useRef(0);
 
-  // Maximum number of messages to persist in localStorage to avoid exceeding
-  // browser storage quotas (which could silently fail and wipe the value)
-  const MAX_STORED_MESSAGES = 500;
+  // Get current session messages
+  const messages = currentSessionId ? getSessionMessages(currentSessionId) : [];
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -167,42 +179,17 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     };
   }, [loadLlmInfo]);
 
-  // Track if initial load is complete
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
-
-  // Load message history from localStorage
+  // Initialize session if none exists
   useEffect(() => {
-    const savedMessages = localStorage.getItem('nexus-chat-history');
-    if (savedMessages) {
-      try {
-        const parsed = JSON.parse(savedMessages);
-        setMessages(parsed.map((msg: Partial<ChatMessage> & { timestamp: string }) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        } as ChatMessage)));
-      } catch (error) {
-        console.error('Failed to load message history:', error);
-      }
+    if (!sessionLoading && !currentSession && !currentSessionId) {
+      console.log('ChatWindow: No current session, creating new one...');
+      createSession({
+        title: 'New Chat',
+        model: currentModel?.name,
+        provider: llmStatus?.currentProviderName || undefined
+      });
     }
-    setInitialLoadComplete(true);
-  }, []);
-
-  // Save message history to localStorage (only after initial load)
-  useEffect(() => {
-    if (!initialLoadComplete) return;
-
-    try {
-      // Persist only the most recent messages to stay well below localStorage limits
-      const toPersist =
-        messages.length > MAX_STORED_MESSAGES
-          ? messages.slice(-MAX_STORED_MESSAGES)
-          : messages;
-
-      localStorage.setItem('nexus-chat-history', JSON.stringify(toPersist));
-    } catch (err) {
-      console.warn('ChatWindow: Failed to persist chat history, disabling persistence for this session.', err);
-    }
-  }, [messages, initialLoadComplete]);
+  }, [sessionLoading, currentSession, currentSessionId, createSession, currentModel, llmStatus]);
 
   // Chronometer for tracking request time
   useEffect(() => {
@@ -243,7 +230,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    // Add user message to current session
+    if (currentSessionId) {
+      addMessage(currentSessionId, userMessage);
+    }
     setInputMessage('');
     setStartTime(new Date());
     setIsLoading(true);
@@ -268,7 +258,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
         
         // Debug logging removed for cleaner console
         
-        setMessages(prev => [...prev, assistantMessage]);
+        // Add assistant message to current session
+        if (currentSessionId) {
+          addMessage(currentSessionId, assistantMessage);
+        }
       } else {
         setError(result.error || 'Failed to send message');
       }
@@ -325,7 +318,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       content: command,
       timestamp: new Date()
     };
-    setMessages(prev => [...prev, userMessage]);
+    // Add user message to current session
+    if (currentSessionId) {
+      addMessage(currentSessionId, userMessage);
+    }
 
     try {
       // Parse the slash command
@@ -413,7 +409,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           timestamp: new Date()
         };
 
-        setMessages(prev => [...prev, assistantMessage]);
+        // Add assistant message to current session
+        if (currentSessionId) {
+          addMessage(currentSessionId, assistantMessage);
+        }
       } else {
         throw new Error(result.error || 'Failed to execute prompt');
       }
@@ -429,7 +428,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
         timestamp: new Date()
       };
 
-      setMessages(prev => [...prev, assistantMessage]);
+      // Add error message to current session
+      if (currentSessionId) {
+        addMessage(currentSessionId, assistantMessage);
+      }
     } finally {
       setIsLoading(false);
       // Restore focus to input
@@ -447,8 +449,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   };
 
   const clearHistory = () => {
-    setMessages([]);
-    localStorage.removeItem('nexus-chat-history');
+    // Clear current session messages
+    if (currentSessionId) {
+      setSessionMessages(currentSessionId, []);
+    }
     setError(null);
   };
 

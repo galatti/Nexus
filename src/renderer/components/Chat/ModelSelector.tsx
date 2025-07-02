@@ -33,29 +33,46 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     setError(null);
     
     try {
-      const [models, providers] = await Promise.all([
-        window.electronAPI.getAvailableModels(),
-        window.electronAPI.getSettings()
-      ]);
-      
+      // Fetch current application settings. We prefer to rely on the explicit
+      // provider configurations instead of a generic "getAvailableModels"
+      // call which only returns models for the *current* provider. Basing the
+      // dropdown on all enabled providers ensures the list is always
+      // up-to-date, even when the current provider is unhealthy or not yet
+      // selected.
+
+      const settings = await window.electronAPI.getSettings();
+
       const modelOptions: ModelOption[] = [];
-      
-      for (const provider of providers.llm.providers) {
+
+      // For each enabled provider, fetch their models
+      for (const provider of settings.llm.providers) {
         if (!provider.enabled) continue;
-        
-        const providerModels = models.filter(m => m.providerId === provider.id);
-        
-        for (const model of providerModels) {
-          modelOptions.push({
-            providerId: provider.id,
-            providerName: provider.name,
-            providerType: provider.type,
-            model,
-            isHealthy: llmStatus?.currentProvider === provider.id ? (llmStatus?.isHealthy ?? false) : true
-          });
+
+        try {
+          // Get models specific to this provider
+          const providerModelsResponse = await window.electronAPI.getModelsForConfig(provider);
+
+          if (providerModelsResponse.success && providerModelsResponse.data) {
+            for (const model of providerModelsResponse.data) {
+              modelOptions.push({
+                providerId: provider.id,
+                providerName: provider.name,
+                providerType: provider.type,
+                model,
+                isHealthy: llmStatus?.currentProvider === provider.id
+                  ? (llmStatus?.isHealthy ?? false)
+                  : true
+              });
+            }
+          } else if (!providerModelsResponse.success) {
+            console.warn(`Failed to fetch models for provider ${provider.name}:`, providerModelsResponse.error);
+          }
+        } catch (providerError) {
+          console.warn(`Failed to fetch models for provider ${provider.name}:`, providerError);
+          // Continue with other providers even if one fails – we want a best-effort list.
         }
       }
-      
+
       setAvailableModels(modelOptions);
     } catch (err) {
       console.error('Failed to fetch available models:', err);
@@ -75,7 +92,25 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     setError(null);
 
     try {
-      await window.electronAPI.setCurrentProvider(option.providerId);
+      // Get current settings
+      const currentSettings = await window.electronAPI.getSettings();
+      
+      // Update the provider's model and set it as current
+      const updatedProviders = currentSettings.llm.providers.map(p => 
+        p.id === option.providerId 
+          ? { ...p, model: option.model.name }
+          : p
+      );
+      
+      // Update settings with new current provider and model
+      await window.electronAPI.setSettings({
+        ...currentSettings,
+        llm: {
+          providers: updatedProviders,
+          currentProviderId: option.providerId
+        }
+      });
+      
       onModelChange();
       setIsOpen(false);
     } catch (err) {

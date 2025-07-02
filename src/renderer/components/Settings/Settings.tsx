@@ -257,7 +257,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   const handleModelInputChange = (value: string) => {
     setModelSearchQuery(value);
     updateSelectedProvider({ model: value });
-    setShowModelDropdown(value.length > 0 && availableModels.length > 0);
+    setShowModelDropdown(availableModels.length > 0);
     setSelectedModelIndex(-1);
   };
 
@@ -310,6 +310,15 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
       
       if (result.success && result.data) {
         setAvailableModels(result.data);
+
+        // Auto-select model if none chosen or the current model is not in the fetched list
+        if (
+          (!selectedProvider.model ||
+            !result.data.some((m: any) => m.name === selectedProvider.model)) &&
+          result.data.length > 0
+        ) {
+          handleModelSelect(result.data[0].name);
+        }
       } else {
         setAvailableModels([]);
         console.error('Failed to fetch models:', result.error);
@@ -728,7 +737,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                 value={modelSearchQuery}
                                 onChange={(e) => handleModelInputChange(e.target.value)}
                                 onKeyDown={handleModelKeyDown}
-                                onFocus={() => setShowModelDropdown(availableModels.length > 0 && modelSearchQuery.length > 0)}
+                                onFocus={() => setShowModelDropdown(availableModels.length > 0)}
                                 onBlur={() => setTimeout(() => setShowModelDropdown(false), 150)}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder={availableModels.length > 0 
