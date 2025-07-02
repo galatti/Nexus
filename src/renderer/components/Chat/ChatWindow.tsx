@@ -31,7 +31,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const [_streamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [llmStatus, setLlmStatus] = useState<LlmStatusResponse | null>(null);
-  const [currentModel, setCurrentModel] = useState<LlmModel | null>(null);
   const [showThinking, setShowThinking] = useState(true);
   const [expandedThinkBlocks, setExpandedThinkBlocks] = useState<Set<string>>(new Set());
   const [expandedToolCalls, setExpandedToolCalls] = useState<Set<string>>(new Set());
@@ -88,50 +87,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       
       if (statusResult.success && statusResult.data) {
         console.log('ChatWindow: Setting LLM status:', statusResult.data, '(seq)', seq);
-        console.log('ChatWindow: Provider info - currentProvider:', statusResult.data.currentProvider, 'currentProviderName:', statusResult.data.currentProviderName, 'currentModel:', statusResult.data.currentModel);
         setLlmStatus(statusResult.data);
-        
-        // Get the configured model information
-        if (statusResult.data.currentModel) {
-          console.log('ChatWindow: Loading model info for:', statusResult.data.currentModel, '(seq)', seq);
-          
-          // Try to get detailed model info from available models
-          const modelsResult = await window.electronAPI.getAvailableModels();
-          console.log('ChatWindow: Available models result:', modelsResult);
-          
-          // Abort if stale
-          if (seq !== loadSeq.current) {
-            console.log('ChatWindow: Skipping outdated model info load (seq)', seq);
-            return;
-          }
-          
-          if (modelsResult.success && modelsResult.data && modelsResult.data.length > 0) {
-            // Find the currently configured model in the available models
-            const modelInfo = modelsResult.data.find((m: LlmModel) => m.name === statusResult.data!.currentModel);
-            if (modelInfo) {
-              console.log('ChatWindow: Found detailed model info:', modelInfo, '(seq)', seq);
-              setCurrentModel(modelInfo);
-            } else {
-              // Fallback: create a basic model object with just the name
-              const fallbackModel = {
-                name: statusResult.data.currentModel,
-                description: `${statusResult.data.currentProviderType} model`
-              };
-              console.log('ChatWindow: Using fallback model info:', fallbackModel, '(seq)', seq);
-              setCurrentModel(fallbackModel);
-            }
-          } else {
-            // Fallback: create a basic model object with just the name
-            const fallbackModel = {
-              name: statusResult.data.currentModel,
-              description: `${statusResult.data.currentProviderType} model`
-            };
-            console.log('ChatWindow: Using fallback model info (no models available):', fallbackModel, '(seq)', seq);
-            setCurrentModel(fallbackModel);
-          }
-        } else {
-          console.log('ChatWindow: No current model in status (seq)', seq);
-        }
       } else {
         console.warn('ChatWindow: Failed to get LLM status:', statusResult, '(seq)', seq);
       }
@@ -179,17 +135,23 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     };
   }, [loadLlmInfo]);
 
-  // Initialize session if none exists
+  // Wait for llmStatus before creating a new session
   useEffect(() => {
-    if (!sessionLoading && !currentSession && !currentSessionId) {
-      console.log('ChatWindow: No current session, creating new one...');
-      createSession({
-        title: 'New Chat',
-        model: currentModel?.name,
-        provider: llmStatus?.currentProviderName || undefined
+    if (sessionLoading || currentSession || currentSessionId || !llmStatus || !llmStatus.defaultProviderModel) return;
+    createSession({
+      title: 'New Chat',
+      selectedProviderModel: llmStatus.defaultProviderModel
+    });
+  }, [sessionLoading, currentSession, currentSessionId, createSession, llmStatus]);
+
+  // On session load, if no selectedProviderModel, set it to defaultProviderModel
+  useEffect(() => {
+    if (currentSession && !currentSession.selectedProviderModel && llmStatus?.defaultProviderModel) {
+      updateSession(currentSession.id, {
+        selectedProviderModel: llmStatus.defaultProviderModel
       });
     }
-  }, [sessionLoading, currentSession, currentSessionId, createSession, currentModel, llmStatus]);
+  }, [currentSession, llmStatus, updateSession]);
 
   // Chronometer for tracking request time
   useEffect(() => {
@@ -768,6 +730,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     );
   };
 
+  // Helper to get current provider/model info
+  function getCurrentProviderModel(
+    selectedProviderModel: { providerId: string; modelName: string } | undefined,
+    enabledProviders: Array<{ id: string; name: string; type: string; models: any[] }> | undefined
+  ): { provider: any | null; model: any | null } {
+    if (!selectedProviderModel || !enabledProviders) return { provider: null, model: null };
+    const provider = enabledProviders.find((p: any) => p.id === selectedProviderModel.providerId);
+    const model = provider?.models?.find((m: any) => m.name === selectedProviderModel.modelName) || null;
+    return { provider, model };
+  }
+
+  const { provider: currentProvider, model: currentModel } = getCurrentProviderModel(currentSession?.selectedProviderModel, llmStatus?.enabledProviders);
+
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
@@ -781,6 +756,13 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
               llmStatus={llmStatus}
               currentModel={currentModel}
               onModelChange={loadLlmInfo}
+              onSelectModel={(providerId, modelName) => {
+                if (currentSession) {
+                  updateSession(currentSession.id, {
+                    selectedProviderModel: { providerId, modelName }
+                  });
+                }
+              }}
             />
           </div>
 
@@ -807,28 +789,21 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
               <p className="text-sm mb-4">
                 Start a conversation with your AI assistant powered by MCP tools
               </p>
-              {llmStatus && llmStatus.currentProvider && (
+              {currentProvider && currentModel ? (
                 <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-full">
-                  <div className={`w-2 h-2 rounded-full ${llmStatus.isHealthy ? 'bg-green-500' : 'bg-red-500'}`} />
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
                   <span className="text-sm text-blue-700 dark:text-blue-300">
-                    {llmStatus.currentProviderName || llmStatus.currentProvider?.replace(/-/g, ' ')}
+                    {currentProvider.name} ({currentProvider.type})
                   </span>
-                  {currentModel && (
-                    <>
-                      <span className="text-blue-400 dark:text-blue-500">•</span>
-                      <span className="text-sm text-blue-700 dark:text-blue-300">
-                        {currentModel.name}
-                      </span>
-                    </>
-                  )}
+                  <span className="text-blue-400 dark:text-blue-500">•</span>
+                  <span className="text-sm text-blue-700 dark:text-blue-300">
+                    {currentModel.name}
+                  </span>
                 </div>
-              )}
-              {!llmStatus?.currentProvider && (
+              ) : (
                 <div className="inline-flex items-center space-x-2 px-3 py-1 bg-yellow-50 dark:bg-yellow-900/20 rounded-full">
                   <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                  <span className="text-sm text-yellow-700 dark:text-yellow-300">
-                    No LLM provider configured
-                  </span>
+                  <span className="text-sm text-yellow-700 dark:text-yellow-300">No model selected</span>
                 </div>
               )}
             </div>
@@ -932,6 +907,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* If no enabled models, show a warning */}
+        {(!llmStatus?.enabledProviders || llmStatus.enabledProviders.length === 0) && (
+          <div className="inline-flex items-center space-x-2 px-3 py-1 bg-yellow-50 dark:bg-yellow-900/20 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-yellow-500" />
+            <span className="text-sm text-yellow-700 dark:text-yellow-300">No enabled models. Please configure a provider.</span>
           </div>
         )}
 

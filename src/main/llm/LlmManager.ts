@@ -2,22 +2,26 @@ import { EventEmitter } from 'events';
 import { BaseProvider, LlmResponse, StreamingResponse } from './providers/BaseProvider.js';
 import { OllamaProvider } from './providers/OllamaProvider.js';
 import { OpenRouterProvider } from './providers/OpenRouterProvider.js';
-import { LlmProviderConfig, LlmModel, ChatMessage } from '../../shared/types.js';
+import { LlmProviderConfig, LlmModel, ChatMessage, ProviderHealth, ProviderWarning } from '../../shared/types.js';
 
 export interface LlmManagerStatus {
-  currentProvider: string | null;
-  currentProviderName: string | null;
-  currentProviderType: string | null;
-  currentModel: string | null;
-  isHealthy: boolean;
-  availableProviders: string[];
-  lastHealthCheck: Date | null;
+  enabledProviders: Array<{
+    id: string;
+    name: string;
+    type: string;
+    isHealthy: boolean;
+    models: LlmModel[];
+  }>;
+  defaultProviderModel?: {
+    providerId: string;
+    modelName: string;
+  };
 }
 
 export class LlmManager extends EventEmitter {
   private providers = new Map<string, BaseProvider>();
-  private currentProvider: BaseProvider | null = null;
-
+  private healthStatus = new Map<string, ProviderHealth>();
+  private healthCheckInterval?: NodeJS.Timeout;
 
   constructor() {
     super();
@@ -26,7 +30,18 @@ export class LlmManager extends EventEmitter {
 
   async initialize(): Promise<void> {
     console.log('Initializing LLM Manager');
+    
+    // Start health monitoring
+    this.startHealthMonitoring();
+    
     console.log('LLM Manager initialized successfully');
+  }
+
+  private startHealthMonitoring(): void {
+    // Check health every 30 seconds
+    this.healthCheckInterval = setInterval(async () => {
+      await this.checkAllProvidersHealth();
+    }, 30000);
   }
 
   async addProvider(config: LlmProviderConfig): Promise<void> {
@@ -47,11 +62,19 @@ export class LlmManager extends EventEmitter {
       const providerId = this.getProviderId(config);
       this.providers.set(providerId, provider);
 
+      // Initialize health status
+      this.healthStatus.set(providerId, {
+        providerId,
+        isHealthy: false,
+        lastChecked: new Date(),
+        retryCount: 0
+      });
+
       console.log(`LLM provider added: ${config.name} (${config.type})`);
 
-      // Set as current provider if it's the first enabled one
-      if (config.enabled && !this.currentProvider) {
-        await this.setCurrentProvider(providerId);
+      // Check health immediately if enabled
+      if (config.enabled) {
+        await this.checkProviderHealth(providerId);
       }
 
       this.emit('providerAdded', { providerId, config });
@@ -69,17 +92,10 @@ export class LlmManager extends EventEmitter {
       return;
     }
 
-    // If this was the current provider, clear it
-    if (this.currentProvider === provider) {
-      this.currentProvider = null;
-      
-      // Try to set another enabled provider as current
-      await this.selectNextAvailableProvider();
-    }
-
     this.providers.delete(providerId);
-    console.log(`LLM provider removed: ${providerId}`);
+    this.healthStatus.delete(providerId);
     
+    console.log(`LLM provider removed: ${providerId}`);
     this.emit('providerRemoved', { providerId });
   }
 
@@ -92,44 +108,20 @@ export class LlmManager extends EventEmitter {
     provider.updateConfig(updates);
     console.log(`LLM provider updated: ${providerId}`);
 
-    // If this provider was disabled, clear it as current
-    if (updates.enabled === false && this.currentProvider === provider) {
-      this.currentProvider = null;
-      await this.selectNextAvailableProvider();
-    }
-
-    // If this provider was enabled and we don't have a current provider, set it
-    if (updates.enabled === true && !this.currentProvider) {
-      await this.setCurrentProvider(providerId);
+    // Check health if enabled
+    if (updates.enabled === true) {
+      await this.checkProviderHealth(providerId);
+    } else if (updates.enabled === false) {
+      // Mark as unhealthy if disabled
+      const health = this.healthStatus.get(providerId);
+      if (health) {
+        health.isHealthy = false;
+        health.lastChecked = new Date();
+        health.error = 'Provider disabled';
+      }
     }
 
     this.emit('providerUpdated', { providerId, updates });
-  }
-
-  async setCurrentProvider(providerId: string): Promise<void> {
-    const provider = this.providers.get(providerId);
-    if (!provider) {
-      throw new Error(`Provider not found: ${providerId}`);
-    }
-
-    if (!provider.isEnabled()) {
-      throw new Error(`Provider is disabled: ${providerId}`);
-    }
-
-    // Test connection before setting as current
-    const isHealthy = await provider.checkHealth();
-    if (!isHealthy) {
-      console.warn(`Provider health check failed, but setting as current anyway: ${providerId}`);
-    }
-
-    this.currentProvider = provider;
-    console.log(`Current LLM provider set to: ${providerId}`);
-    
-    this.emit('currentProviderChanged', { providerId, isHealthy });
-  }
-
-  getCurrentProvider(): BaseProvider | null {
-    return this.currentProvider;
   }
 
   getProvider(providerId: string): BaseProvider | null {
@@ -140,13 +132,21 @@ export class LlmManager extends EventEmitter {
     return new Map(this.providers);
   }
 
+  getProviderHealth(providerId: string): ProviderHealth | undefined {
+    return this.healthStatus.get(providerId);
+  }
+
+  getAllProviderHealth(): Map<string, ProviderHealth> {
+    return new Map(this.healthStatus);
+  }
+
   async sendMessage(
     messages: ChatMessage[],
+    providerId: string,
+    modelName: string,
     options?: {
       temperature?: number;
       maxTokens?: number;
-      model?: string;
-      providerId?: string;
       tools?: Array<{ 
         type: 'function';
         function: {
@@ -157,16 +157,26 @@ export class LlmManager extends EventEmitter {
       }>;
     }
   ): Promise<LlmResponse> {
-    const provider = options?.providerId 
-      ? this.providers.get(options.providerId)
-      : this.currentProvider;
+    const provider = this.providers.get(providerId);
+    const health = this.healthStatus.get(providerId);
 
     if (!provider) {
-      throw new Error('No LLM provider available');
+      throw new Error(`Provider not found: ${providerId}`);
     }
 
     if (!provider.isEnabled()) {
-      throw new Error('Current LLM provider is disabled');
+      throw new Error(`Provider is disabled: ${providerId}`);
+    }
+
+    // Check if provider is healthy
+    if (!health?.isHealthy) {
+      // Try to recover the provider
+      await this.checkProviderHealth(providerId);
+      const updatedHealth = this.healthStatus.get(providerId);
+      
+      if (!updatedHealth?.isHealthy) {
+        throw new Error(`Provider ${providerId} is currently unhealthy: ${updatedHealth?.error || 'Unknown error'}`);
+      }
     }
 
     try {
@@ -175,13 +185,20 @@ export class LlmManager extends EventEmitter {
       const mergedOptions = {
         temperature: providerConfig.temperature,
         maxTokens: providerConfig.maxTokens,
+        model: modelName, // Use the specific model requested
         ...options // User options override provider defaults
       };
       
       const response = await provider.sendMessage(messages, mergedOptions);
       
+      // Reset retry count on successful message
+      if (health) {
+        health.retryCount = 0;
+      }
+      
       this.emit('messageProcessed', {
-        providerId: this.getProviderIdByInstance(provider),
+        providerId,
+        modelName,
         tokens: response.tokens,
         model: response.model
       });
@@ -190,8 +207,17 @@ export class LlmManager extends EventEmitter {
     } catch (error) {
       console.error('LLM message processing failed:', error);
       
+      // Update health status on error
+      if (health) {
+        health.isHealthy = false;
+        health.error = error instanceof Error ? error.message : String(error);
+        health.retryCount++;
+        health.lastChecked = new Date();
+      }
+      
       this.emit('messageError', {
-        providerId: this.getProviderIdByInstance(provider),
+        providerId,
+        modelName,
         error: error instanceof Error ? error.message : String(error)
       });
 
@@ -199,51 +225,85 @@ export class LlmManager extends EventEmitter {
     }
   }
 
-  async streamMessage(
-    messages: ChatMessage[],
-    onChunk: (chunk: StreamingResponse) => void,
-    options?: {
-      temperature?: number;
-      maxTokens?: number;
-      model?: string;
-      providerId?: string;
-    }
-  ): Promise<void> {
-    const provider = options?.providerId 
-      ? this.providers.get(options.providerId)
-      : this.currentProvider;
+  async checkProviderHealth(providerId: string): Promise<boolean> {
+    const provider = this.providers.get(providerId);
+    let health = this.healthStatus.get(providerId);
 
     if (!provider) {
-      throw new Error('No LLM provider available');
+      return false;
     }
 
-    if (!provider.isEnabled()) {
-      throw new Error('Current LLM provider is disabled');
+    if (!health) {
+      health = {
+        providerId,
+        isHealthy: false,
+        lastChecked: new Date(),
+        retryCount: 0
+      };
+      this.healthStatus.set(providerId, health);
     }
 
     try {
-      await provider.streamMessage(messages, onChunk, options);
+      const isHealthy = await provider.checkHealth();
       
-      this.emit('streamProcessed', {
-        providerId: this.getProviderIdByInstance(provider)
-      });
+      health.isHealthy = isHealthy;
+      health.lastChecked = new Date();
+      health.error = isHealthy ? undefined : 'Health check failed';
+      
+      if (isHealthy) {
+        health.retryCount = 0;
+        health.nextRetry = undefined;
+      } else {
+        health.retryCount++;
+        // Exponential backoff for retries
+        const backoffMs = Math.min(300000, 5000 * Math.pow(2, health.retryCount)); // Max 5 minutes
+        health.nextRetry = new Date(Date.now() + backoffMs);
+      }
 
+      console.log(`Health check for ${providerId}: ${isHealthy ? 'healthy' : 'unhealthy'}`);
+      
+      this.emit('providerHealthChanged', { providerId, isHealthy, health });
+      
+      return isHealthy;
     } catch (error) {
-      console.error('LLM streaming failed:', error);
-      
-      this.emit('messageError', {
-        providerId: this.getProviderIdByInstance(provider),
-        error: error instanceof Error ? error.message : String(error)
-      });
+      health.isHealthy = false;
+      health.error = error instanceof Error ? error.message : String(error);
+      health.lastChecked = new Date();
+      health.retryCount++;
 
-      throw error;
+      console.error(`Health check failed for ${providerId}:`, error);
+      
+      this.emit('providerHealthChanged', { providerId, isHealthy: false, health });
+      
+      return false;
     }
   }
 
-  async getAvailableModels(providerId?: string): Promise<LlmModel[]> {
-    const provider = providerId 
-      ? this.providers.get(providerId)
-      : this.currentProvider;
+  async checkAllProvidersHealth(): Promise<Map<string, boolean>> {
+    const results = new Map<string, boolean>();
+    
+    const healthChecks = Array.from(this.providers.keys()).map(async (providerId) => {
+      const provider = this.providers.get(providerId);
+      if (provider?.isEnabled()) {
+        const health = this.healthStatus.get(providerId);
+        
+        // Skip if we recently failed and haven't reached retry time
+        if (health?.nextRetry && health.nextRetry > new Date()) {
+          results.set(providerId, health.isHealthy);
+          return;
+        }
+        
+        const isHealthy = await this.checkProviderHealth(providerId);
+        results.set(providerId, isHealthy);
+      }
+    });
+
+    await Promise.allSettled(healthChecks);
+    return results;
+  }
+
+  async getAvailableModels(providerId: string): Promise<LlmModel[]> {
+    const provider = this.providers.get(providerId);
 
     if (!provider) {
       return [];
@@ -257,76 +317,96 @@ export class LlmManager extends EventEmitter {
     }
   }
 
-  getStatus(): LlmManagerStatus {
-    const availableProviders = Array.from(this.providers.keys())
-      .filter(id => {
-        const provider = this.providers.get(id);
-        return provider?.isEnabled() ?? false;
-      });
+  async getStatus(): Promise<LlmManagerStatus> {
+    const enabledProviders: Array<{
+      id: string;
+      name: string;
+      type: string;
+      isHealthy: boolean;
+      models: LlmModel[];
+    }> = [];
 
-    const currentConfig = this.currentProvider?.getConfig();
-
-    return {
-      currentProvider: this.currentProvider 
-        ? this.getProviderIdByInstance(this.currentProvider)
-        : null,
-      currentProviderName: currentConfig?.name || null,
-      currentProviderType: currentConfig?.type || null,
-      currentModel: currentConfig?.model || null,
-      isHealthy: this.currentProvider?.getHealthStatus().isHealthy ?? false,
-      availableProviders,
-      lastHealthCheck: new Date()
-    };
-  }
-
-  async checkAllProvidersHealth(): Promise<Map<string, boolean>> {
-    const healthStatus = new Map<string, boolean>();
-
-    for (const [id, provider] of this.providers) {
+    for (const [providerId, provider] of this.providers) {
       if (provider.isEnabled()) {
-        try {
-          const isHealthy = await provider.checkHealth();
-          healthStatus.set(id, isHealthy);
-        } catch (error) {
-          console.error(`Health check failed for provider ${id}:`, error);
-          healthStatus.set(id, false);
-        }
-      } else {
-        healthStatus.set(id, false);
+        const config = provider.getConfig();
+        const health = this.healthStatus.get(providerId);
+        const models = await this.getAvailableModels(providerId);
+
+        enabledProviders.push({
+          id: providerId,
+          name: config.name,
+          type: config.type,
+          isHealthy: health?.isHealthy ?? false,
+          models
+        });
       }
     }
 
-    return healthStatus;
+    return {
+      enabledProviders
+    };
+  }
+
+  validateProviderModel(providerId: string, modelName: string): ProviderWarning | null {
+    const provider = this.providers.get(providerId);
+    
+    if (!provider) {
+      return {
+        type: 'removed',
+        providerId,
+        modelName,
+        message: `Provider "${providerId}" no longer exists`,
+        actions: [
+          { label: 'Select Different Provider', action: 'select_provider' }
+        ]
+      };
+    }
+
+    if (!provider.isEnabled()) {
+      return {
+        type: 'disabled',
+        providerId,
+        modelName,
+        message: `Provider "${provider.getConfig().name}" is disabled`,
+        actions: [
+          { label: 'Enable Provider', action: 'enable', data: { providerId } },
+          { label: 'Select Different Provider', action: 'select_provider' }
+        ]
+      };
+    }
+
+    const health = this.healthStatus.get(providerId);
+    if (!health?.isHealthy) {
+      return {
+        type: 'unhealthy',
+        providerId,
+        modelName,
+        message: `Provider "${provider.getConfig().name}" is currently unhealthy: ${health?.error || 'Unknown error'}`,
+        actions: [
+          { label: 'Retry Connection', action: 'retry', data: { providerId } },
+          { label: 'Select Different Provider', action: 'select_provider' }
+        ]
+      };
+    }
+
+    return null; // Provider+model is valid
   }
 
   async shutdown(): Promise<void> {
     console.log('Shutting down LLM Manager');
     
-    // Clear current provider
-    this.currentProvider = null;
+    if (this.healthCheckInterval) {
+      clearInterval(this.healthCheckInterval);
+    }
+    
+    this.providers.clear();
+    this.healthStatus.clear();
+    this.removeAllListeners();
     
     console.log('LLM Manager shutdown complete');
   }
 
-  private async selectNextAvailableProvider(): Promise<void> {
-    for (const [id, provider] of this.providers) {
-      if (provider.isEnabled()) {
-        try {
-          await this.setCurrentProvider(id);
-          return;
-        } catch (error) {
-          console.warn(`Failed to set provider as current: ${id}`, error);
-        }
-      }
-    }
-    
-    console.warn('No available LLM providers found');
-  }
-
-
-
   private getProviderId(config: LlmProviderConfig): string {
-    // Use the explicit ID from config, or generate one if not present (for backward compatibility)
     return config.id || `${config.type}-${config.name.toLowerCase().replace(/\s+/g, '-')}`;
   }
 

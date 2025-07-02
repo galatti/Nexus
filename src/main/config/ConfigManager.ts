@@ -55,7 +55,7 @@ export class ConfigManager {
             maxTokens: 2048
           }
         ],
-        currentProviderId: undefined
+        defaultProviderModel: undefined
       },
       mcp: {
         servers: []
@@ -87,35 +87,14 @@ export class ConfigManager {
   }
 
   private migrateLlmSettings(userLlm: any, defaultLlm: AppSettings['llm']): AppSettings['llm'] {
-    // Handle migration from old single provider format to new multiple providers format
-    if (userLlm?.provider && !userLlm?.providers) {
-      // Old format: migrate single provider to providers array
-      const oldProvider = userLlm.provider;
-      const migratedProvider = {
-        id: oldProvider.id || `${oldProvider.type}-${(oldProvider.name || 'default').toLowerCase().replace(/\s+/g, '-')}`,
-        type: oldProvider.type || defaultLlm.providers[0].type,
-        name: oldProvider.name || defaultLlm.providers[0].name,
-        baseUrl: oldProvider.baseUrl || defaultLlm.providers[0].baseUrl,
-        apiKey: oldProvider.apiKey || defaultLlm.providers[0].apiKey,
-        model: oldProvider.model || defaultLlm.providers[0].model,
-        enabled: oldProvider.enabled ?? defaultLlm.providers[0].enabled,
-        models: oldProvider.models || defaultLlm.providers[0].models,
-        temperature: oldProvider.temperature ?? defaultLlm.providers[0].temperature,
-        maxTokens: oldProvider.maxTokens ?? defaultLlm.providers[0].maxTokens
-      };
-      
+    // Simple approach: if user has valid providers array, use it; otherwise use defaults
+    if (userLlm?.providers && Array.isArray(userLlm.providers)) {
       return {
-        providers: [migratedProvider],
-        currentProviderId: migratedProvider.enabled ? migratedProvider.id : undefined
-      };
-    } else if (userLlm?.providers) {
-      // New format: use as-is with defaults for missing fields
-      return {
-        providers: Array.isArray(userLlm.providers) ? userLlm.providers : defaultLlm.providers,
-        currentProviderId: userLlm.currentProviderId || defaultLlm.currentProviderId
+        providers: userLlm.providers,
+        defaultProviderModel: userLlm.defaultProviderModel || undefined
       };
     } else {
-      // No LLM settings: use defaults
+      // No valid LLM settings: use defaults
       return defaultLlm;
     }
   }
@@ -161,8 +140,8 @@ export class ConfigManager {
         if (updates.llm.providers) {
           this.settings.llm.providers = updates.llm.providers;
         }
-        if (updates.llm.currentProviderId !== undefined) {
-          this.settings.llm.currentProviderId = updates.llm.currentProviderId;
+        if (updates.llm.defaultProviderModel !== undefined) {
+          this.settings.llm.defaultProviderModel = updates.llm.defaultProviderModel;
         }
       }
       
@@ -178,44 +157,28 @@ export class ConfigManager {
     }
   }
 
-  // Legacy methods for backward compatibility
-  public getLlmProvider(): LlmProviderConfig | undefined {
-    // Return current provider or first provider for backward compatibility
-    const currentId = this.settings.llm.currentProviderId;
-    if (currentId) {
-      return this.settings.llm.providers.find(p => p.id === currentId);
-    }
-    return this.settings.llm.providers[0];
-  }
-
-  public updateLlmProvider(provider: Partial<LlmProviderConfig>): void {
-    const currentId = this.settings.llm.currentProviderId;
-    if (currentId) {
-      const index = this.settings.llm.providers.findIndex(p => p.id === currentId);
-      if (index >= 0) {
-        this.settings.llm.providers[index] = { ...this.settings.llm.providers[index], ...provider };
-      }
-    } else if (this.settings.llm.providers.length > 0) {
-      // Update first provider if no current provider set
-      this.settings.llm.providers[0] = { ...this.settings.llm.providers[0], ...provider };
-    }
-    this.saveSettings();
-    logger.info('LLM provider updated:', provider.type);
-  }
-
-  // New multi-provider methods
+  // Provider management methods
   public getLlmProviders(): LlmProviderConfig[] {
     return this.settings.llm.providers;
   }
 
-  public getCurrentProviderId(): string | undefined {
-    return this.settings.llm.currentProviderId;
+  public getDefaultProviderModel(): { providerId: string; modelName: string } | undefined {
+    return this.settings.llm.defaultProviderModel;
   }
 
-  public setCurrentProviderId(providerId: string): void {
-    this.settings.llm.currentProviderId = providerId;
+  public setDefaultProviderModel(providerId: string, modelName: string): void {
+    this.settings.llm.defaultProviderModel = { providerId, modelName };
     this.saveSettings();
-    logger.info('Current LLM provider set to:', providerId);
+    logger.info('Default provider+model set to:', providerId, modelName);
+  }
+
+  public findBestDefaultProviderModel(): { providerId: string; modelName: string } | undefined {
+    // Find the first enabled provider with a model
+    const enabledProvider = this.settings.llm.providers.find(p => p.enabled && p.model);
+    if (enabledProvider) {
+      return { providerId: enabledProvider.id, modelName: enabledProvider.model };
+    }
+    return undefined;
   }
 
   public addLlmProvider(provider: LlmProviderConfig): void {
@@ -235,8 +198,9 @@ export class ConfigManager {
 
   public removeLlmProvider(providerId: string): void {
     this.settings.llm.providers = this.settings.llm.providers.filter(p => p.id !== providerId);
-    if (this.settings.llm.currentProviderId === providerId) {
-      this.settings.llm.currentProviderId = undefined;
+    // Clear default if it was using this provider
+    if (this.settings.llm.defaultProviderModel?.providerId === providerId) {
+      this.settings.llm.defaultProviderModel = this.findBestDefaultProviderModel();
     }
     this.saveSettings();
     logger.info('LLM provider removed:', providerId);

@@ -525,11 +525,11 @@ async function initializeServices(): Promise<void> {
       }
     }
     
-    // Set current provider if specified
-    if (settings.llm.currentProviderId) {
-      const provider = llmManager.getProvider(settings.llm.currentProviderId);
-      if (provider) {
-        await llmManager.setCurrentProvider(settings.llm.currentProviderId);
+    // Set default provider+model if not set and we have enabled providers
+    if (!settings.llm.defaultProviderModel) {
+      const defaultProviderModel = configManager.findBestDefaultProviderModel();
+      if (defaultProviderModel) {
+        configManager.setDefaultProviderModel(defaultProviderModel.providerId, defaultProviderModel.modelName);
       }
     }
     
@@ -619,11 +619,18 @@ ipcMain.handle('settings:set', async (_event, settings) => {
         }
       }
       
-      // Set current provider if specified and exists
-      if (settings.llm.currentProviderId) {
-        const provider = llmManager.getProvider(settings.llm.currentProviderId);
-        if (provider) {
-          await llmManager.setCurrentProvider(settings.llm.currentProviderId);
+      // Update default provider+model if provided, or auto-select if not set
+      if (settings.llm.defaultProviderModel) {
+        const { providerId, modelName } = settings.llm.defaultProviderModel;
+        const provider = llmManager.getProvider(providerId);
+        if (provider?.isEnabled()) {
+          configManager.setDefaultProviderModel(providerId, modelName);
+        }
+      } else {
+        // Auto-select a default if none is set
+        const bestDefault = configManager.findBestDefaultProviderModel();
+        if (bestDefault) {
+          configManager.setDefaultProviderModel(bestDefault.providerId, bestDefault.modelName);
         }
       }
     }
@@ -1316,8 +1323,12 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
     }
 
     // Make initial LLM request with tools
-    const response = await llmManager.sendMessage(messages, {
-      ...options,
+    const { providerId, modelName, ...llmOptions } = options;
+    if (!providerId || !modelName) {
+      throw new Error('Provider and model must be specified for LLM message');
+    }
+    const response = await llmManager.sendMessage(messages, providerId, modelName, {
+      ...llmOptions,
       tools: tools.length > 0 ? tools : undefined
     });
 
@@ -1473,8 +1484,8 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
       
       // Make second LLM request with tool results
       console.log('LLM: Sending follow-up request with tool results');
-      finalResponse = await llmManager.sendMessage(messages, {
-        ...options,
+      finalResponse = await llmManager.sendMessage(messages, providerId, modelName, {
+        ...llmOptions,
         tools: tools.length > 0 ? tools : undefined
       });
     } else {

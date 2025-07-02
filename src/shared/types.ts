@@ -7,12 +7,40 @@ export interface ApiResponse<T = unknown> {
 }
 
 export interface LlmStatusResponse {
-  currentProvider: string | null;
-  currentProviderName: string | null;
-  currentProviderType: string | null;
-  currentModel: string | null;
+  enabledProviders: Array<{
+    id: string;
+    name: string;
+    type: string;
+    isHealthy: boolean;
+    models: LlmModel[];
+  }>;
+  defaultProviderModel?: {
+    providerId: string;
+    modelName: string;
+  };
+}
+
+// Provider health and status tracking
+export interface ProviderHealth {
+  providerId: string;
   isHealthy: boolean;
-  models?: LlmModel[];
+  lastChecked: Date;
+  error?: string;
+  retryCount: number;
+  nextRetry?: Date;
+}
+
+// Edge case handling types
+export interface ProviderWarning {
+  type: 'disabled' | 'removed' | 'unhealthy' | 'no_models' | 'api_error';
+  providerId?: string;
+  modelName?: string;
+  message: string;
+  actions: Array<{
+    label: string;
+    action: 'enable' | 'select_provider' | 'retry' | 'configure';
+    data?: any;
+  }>;
 }
 
 export interface PendingApproval {
@@ -75,7 +103,10 @@ export interface AppSettings {
   };
   llm: {
     providers: LlmProviderConfig[];
-    currentProviderId?: string;
+    defaultProviderModel?: {
+      providerId: string;
+      modelName: string;
+    };
   };
   mcp: {
     servers: McpServerConfig[];
@@ -201,8 +232,10 @@ export interface ChatSession {
   lastActive: Date;
   messageCount: number;
   tokenCount: number;
-  model?: string;
-  provider?: string;
+  selectedProviderModel?: {
+    providerId: string;
+    modelName: string;
+  };
   category?: string;
   tags: string[];
   isPinned: boolean;

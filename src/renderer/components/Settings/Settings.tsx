@@ -44,10 +44,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   // Set selected provider when settings load
   useEffect(() => {
     if (settings?.llm.providers && settings.llm.providers.length > 0 && !selectedProviderId) {
-      const currentId = settings.llm.currentProviderId;
-      const providerId = currentId && settings.llm.providers.find(p => p.id === currentId) 
-        ? currentId 
-        : settings.llm.providers[0].id;
+      const providerId = settings.llm.providers[0].id;
       setSelectedProviderId(providerId);
     }
   }, [settings?.llm.providers, selectedProviderId]);
@@ -170,38 +167,12 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
     });
   };
 
-  const updateSelectedProvider = (updates: Partial<LlmProviderConfig>) => {
-    if (!settings || !selectedProviderId) return;
-    
-    const updatedProviders = settings.llm.providers.map(p => 
-      p.id === selectedProviderId ? { ...p, ...updates } : p
-    );
-    
-    updateSettings({
-      llm: {
-        providers: updatedProviders,
-        currentProviderId: settings.llm.currentProviderId
-      }
-    });
-  };
-
-  const setCurrentProvider = (providerId: string) => {
-    if (!settings) return;
-    updateSettings({
-      llm: {
-        providers: settings.llm.providers,
-        currentProviderId: providerId
-      }
-    });
-  };
-
   const addNewProvider = (provider: LlmProviderConfig) => {
     if (!settings) return;
     const updatedProviders = [...settings.llm.providers, provider];
     updateSettings({
       llm: {
         providers: updatedProviders,
-        currentProviderId: settings.llm.currentProviderId
       }
     });
     setSelectedProviderId(provider.id);
@@ -210,14 +181,10 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   const removeProvider = (providerId: string) => {
     if (!settings) return;
     const updatedProviders = settings.llm.providers.filter(p => p.id !== providerId);
-    const newCurrentId = settings.llm.currentProviderId === providerId 
-      ? undefined 
-      : settings.llm.currentProviderId;
     
     updateSettings({
       llm: {
         providers: updatedProviders,
-        currentProviderId: newCurrentId
       }
     });
     
@@ -248,7 +215,6 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   });
 
   const handleModelSelect = (modelName: string) => {
-    updateSelectedProvider({ model: modelName });
     setModelSearchQuery(modelName);
     setShowModelDropdown(false);
     setSelectedModelIndex(-1);
@@ -256,7 +222,6 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
 
   const handleModelInputChange = (value: string) => {
     setModelSearchQuery(value);
-    updateSelectedProvider({ model: value });
     setShowModelDropdown(availableModels.length > 0);
     setSelectedModelIndex(-1);
   };
@@ -581,30 +546,6 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                       </div>
                     )}
 
-                    {/* Active Provider Quick Switch */}
-                    {settings?.llm.providers && settings.llm.providers.length > 0 && (
-                      <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Active Provider
-                        </label>
-                        <select
-                          value={settings.llm.currentProviderId || ''}
-                          onChange={(e) => setCurrentProvider(e.target.value)}
-                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        >
-                          <option value="">Select active provider...</option>
-                          {settings.llm.providers.filter(p => p.enabled).map((provider) => (
-                            <option key={provider.id} value={provider.id}>
-                              {provider.name} ({provider.type}) - {provider.model}
-                            </option>
-                          ))}
-                        </select>
-                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                          The provider that will be used for AI conversations
-                        </p>
-                      </div>
-                    )}
-
                     {/* Provider List */}
                     {settings?.llm.providers && settings.llm.providers.length > 0 && (
                       <div className="space-y-3">
@@ -623,11 +564,9 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center space-x-3">
                                   <div className={`w-3 h-3 rounded-full ${
-                                    settings.llm.currentProviderId === provider.id
-                                      ? 'bg-green-500'
-                                      : provider.enabled
-                                        ? 'bg-blue-500'
-                                        : 'bg-gray-400'
+                                    provider.enabled
+                                      ? 'bg-blue-500'
+                                      : 'bg-gray-400'
                                   }`} />
                                   <div>
                                     <div className="font-medium text-gray-900 dark:text-white">
@@ -635,16 +574,10 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                     </div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400">
                                       {provider.type} • {provider.model || 'No model selected'}
-                                      {settings.llm.currentProviderId === provider.id && ' • Active'}
                                     </div>
                                   </div>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                  {settings.llm.currentProviderId === provider.id && (
-                                    <span className="text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
-                                      Active
-                                    </span>
-                                  )}
                                   {provider.enabled ? (
                                     <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
                                       Enabled
@@ -685,7 +618,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                             </label>
                             <select
                               value={selectedProvider.type}
-                              onChange={(e) => updateSelectedProvider({ type: e.target.value as 'ollama' | 'openrouter' })}
+                              onChange={(e) => updateSettings({
+                                llm: {
+                                  providers: settings.llm.providers.map(p => 
+                                    p.id === selectedProvider.id ? { ...p, type: e.target.value as 'ollama' | 'openrouter' } : p
+                                  ),
+                                }
+                              })}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                               <option value="ollama">Ollama (Local)</option>
@@ -701,7 +640,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                             <input
                               type="text"
                               value={selectedProvider.name}
-                              onChange={(e) => updateSelectedProvider({ name: e.target.value })}
+                              onChange={(e) => updateSettings({
+                                llm: {
+                                  providers: settings.llm.providers.map(p => 
+                                    p.id === selectedProvider.id ? { ...p, name: e.target.value } : p
+                                  ),
+                                }
+                              })}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="Provider display name"
                             />
@@ -716,7 +661,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               <input
                                 type="url"
                                 value={selectedProvider.baseUrl || ''}
-                                onChange={(e) => updateSelectedProvider({ baseUrl: e.target.value })}
+                                onChange={(e) => updateSettings({
+                                  llm: {
+                                    providers: settings.llm.providers.map(p => 
+                                      p.id === selectedProvider.id ? { ...p, baseUrl: e.target.value } : p
+                                    ),
+                                  }
+                                })}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="http://127.0.0.1:11434"
                               />
@@ -735,7 +686,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               <input
                                 type="password"
                                 value={selectedProvider.apiKey || ''}
-                                onChange={(e) => updateSelectedProvider({ apiKey: e.target.value })}
+                                onChange={(e) => updateSettings({
+                                  llm: {
+                                    providers: settings.llm.providers.map(p => 
+                                      p.id === selectedProvider.id ? { ...p, apiKey: e.target.value } : p
+                                    ),
+                                  }
+                                })}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Your OpenRouter API key"
                               />
@@ -836,7 +793,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               max="1"
                               step="0.1"
                               value={selectedProvider.temperature || 0.7}
-                              onChange={(e) => updateSelectedProvider({ temperature: parseFloat(e.target.value) })}
+                              onChange={(e) => updateSettings({
+                                llm: {
+                                  providers: settings.llm.providers.map(p => 
+                                    p.id === selectedProvider.id ? { ...p, temperature: parseFloat(e.target.value) } : p
+                                  ),
+                                }
+                              })}
                               className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider"
                             />
                             <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -858,7 +821,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               min="1"
                               max="32000"
                               value={selectedProvider.maxTokens || 2048}
-                              onChange={(e) => updateSelectedProvider({ maxTokens: parseInt(e.target.value) || 2048 })}
+                              onChange={(e) => updateSettings({
+                                llm: {
+                                  providers: settings.llm.providers.map(p => 
+                                    p.id === selectedProvider.id ? { ...p, maxTokens: parseInt(e.target.value) || 2048 } : p
+                                  ),
+                                }
+                              })}
                               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                               placeholder="2048"
                             />
@@ -906,7 +875,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                             <input
                               type="checkbox"
                               checked={selectedProvider.enabled}
-                              onChange={(e) => updateSelectedProvider({ enabled: e.target.checked })}
+                              onChange={(e) => updateSettings({
+                                llm: {
+                                  providers: settings.llm.providers.map(p => 
+                                    p.id === selectedProvider.id ? { ...p, enabled: e.target.checked } : p
+                                  ),
+                                }
+                              })}
                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
                             <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
