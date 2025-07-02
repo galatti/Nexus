@@ -13,7 +13,7 @@
 
 NEXUS is a modern desktop application that provides a seamless interface for managing Model Context Protocol (MCP) servers and interacting with Large Language Models. Built with Electron, React, and TypeScript, it offers a professional user experience for both local and cloud AI providers.
 
-**Current Status:** Post-MVP development - Core MCP functionality complete, now implementing advanced features including multiple chat sessions/tabs.
+**Current Status:** Post-MVP – Core MCP + multi-LLM complete.  Recent work introduced **persistent multi-chat**, a session sidebar, and other usability polish.  Next iterations will layer optional power-user features on top of this solid foundation.
 
 🎯 **NEXUS has successfully completed its MVP phase** with full MCP integration, multi-LLM support, and a professional chat interface. We're now expanding into advanced productivity features to transform NEXUS into a comprehensive AI interaction platform.
 
@@ -167,17 +167,16 @@ The application launches automatically with hot reload enabled.
 
 ## 📋 **Post-MVP Development**
 
-### Multiple Chat Sessions & Advanced Organization
+### Multiple Chat Sessions (Implemented)
 
-NEXUS is actively implementing a comprehensive chat session management system that incorporates the best patterns from leading AI platforms (ChatGPT, Claude, Gemini). This includes:
+Nexus now lets you create and switch between unlimited chat sessions via a dedicated sidebar:
 
-- **Tabbed interface** with Chrome-like session management
-- **Project workspaces** for organizing related conversations  
-- **Advanced search & filtering** across all sessions
-- **Session branching & threading** for complex workflows
-- **Smart categorization** with AI-powered topic detection
+* **＋ New Chat** instantly starts a fresh conversation.
+* Session titles auto-rename to the first user prompt.
+* Pinned, rename and delete controls are available via a hover menu.
+* All sessions persist to local storage and can be cleared from Settings → General → *Clear Chat History*.
 
-📖 **Full Implementation Details:** See [CHAT_SESSIONS_IMPLEMENTATION.md](CHAT_SESSIONS_IMPLEMENTATION.md) for the complete technical specification, UI/UX patterns, and development timeline.
+Advanced workspace / project features remain on the roadmap; see [CHAT_SESSIONS_IMPLEMENTATION.md](CHAT_SESSIONS_IMPLEMENTATION.md) for the simplified next steps.
 
 ---
 

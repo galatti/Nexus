@@ -2,12 +2,12 @@ param(
     [switch]$Help
 )
 
-# NEXUS MVP Project Setup Script (PowerShell)
+# NEXUS Project Setup Script (PowerShell)
 # This script initializes the project structure and installs dependencies
 
 if ($Help) {
     Write-Host @"
-NEXUS MVP Project Setup Script
+NEXUS Project Setup Script
 
 Usage: .\setup-project.ps1
 
@@ -33,9 +33,9 @@ $ErrorActionPreference = "Stop"
 
 # Project information
 $PROJECT_NAME = "nexus-mvp"
-$PROJECT_DESCRIPTION = "NEXUS MVP - MCP-first desktop application built with Electron"
+$PROJECT_DESCRIPTION = "NEXUS - MCP-first desktop application built with Electron"
 
-Write-Host "🚀 Setting up NEXUS MVP Project" -ForegroundColor Green
+Write-Host "🚀 Setting up NEXUS Project" -ForegroundColor Green
 
 # Check prerequisites
 function Test-Prerequisites {
@@ -111,7 +111,7 @@ function Initialize-PackageJson {
         dependencies = @{}
         build = @{
             appId = "com.nexus.mvp"
-            productName = "NEXUS MVP"
+            productName = "NEXUS"
             directories = @{
                 output = "release"
             }
@@ -385,7 +385,7 @@ function App() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-8">
-          NEXUS MVP
+          NEXUS
         </h1>
         <p className="text-lg text-center text-gray-600 dark:text-gray-300">
           MCP-first desktop application built with Electron
@@ -441,7 +441,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NEXUS MVP</title>
+    <title>NEXUS</title>
   </head>
   <body>
     <div id="root"></div>
@@ -557,7 +557,7 @@ function New-ReadmeFile {
     Write-Host "📚 Creating README..." -ForegroundColor Yellow
     
     $readme = @"
-# NEXUS MVP - Quick Start Guide
+# NEXUS - Quick Start Guide
 
 ## Development Setup
 
@@ -619,7 +619,7 @@ tests/              # Test files
 
 ### Next Steps
 
-Follow the implementation plan in ``IMPLEMENTATION_PLAN.md`` to build out the complete NEXUS MVP application.
+Follow the implementation plan in ``IMPLEMENTATION_PLAN.md`` to build out the complete NEXUS application.
 "@
     
     $readme | Set-Content -Path "SETUP_README.md" -Encoding UTF8
@@ -645,7 +645,7 @@ try {
     $endTime = Get-Date
     $duration = ($endTime - $startTime).TotalSeconds
     
-    Write-Host "`n🎉 NEXUS MVP project setup completed successfully!" -ForegroundColor Green
+    Write-Host "`n🎉 NEXUS project setup completed successfully!" -ForegroundColor Green
     Write-Host "Setup time: $([math]::Round($duration, 2))s" -ForegroundColor Blue
     Write-Host "`nNext steps:" -ForegroundColor Yellow
     Write-Host "1. cd into your project directory" -ForegroundColor Blue

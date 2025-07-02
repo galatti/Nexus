@@ -38,22 +38,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, onSettingsOpen, ac
         </button>
         <div className="ml-4 flex items-center space-x-6">
           <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Nexus MVP
+            Nexus
           </h1>
           
           {/* Navigation Tabs */}
           {onViewChange && (
             <nav className="flex space-x-1">
-              <button
-                onClick={() => onViewChange('dashboard')}
-                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                  activeView === 'dashboard'
-                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                }`}
-              >
-                📊 Dashboard
-              </button>
               <button
                 onClick={() => onViewChange('chat')}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
@@ -63,6 +53,16 @@ export const Header: React.FC<HeaderProps> = ({ onMenuToggle, onSettingsOpen, ac
                 }`}
               >
                 💬 Chat
+              </button>
+              <button
+                onClick={() => onViewChange('dashboard')}
+                className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                  activeView === 'dashboard'
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                }`}
+              >
+                📊 Dashboard
               </button>
             </nav>
           )}

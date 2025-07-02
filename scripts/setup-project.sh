@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# NEXUS MVP Project Setup Script
+# NEXUS Project Setup Script
 # This script initializes the project structure and installs dependencies
 
 # Colors for output
@@ -13,9 +13,9 @@ NC='\033[0m' # No Color
 
 # Project information
 PROJECT_NAME="nexus-mvp"
-PROJECT_DESCRIPTION="NEXUS MVP - MCP-first desktop application built with Electron"
+PROJECT_DESCRIPTION="NEXUS - MCP-first desktop application built with Electron"
 
-echo -e "${GREEN}🚀 Setting up NEXUS MVP Project${NC}"
+echo -e "${GREEN}🚀 Setting up NEXUS Project${NC}"
 
 # Check prerequisites
 check_prerequisites() {
@@ -97,7 +97,7 @@ init_package_json() {
   "dependencies": {},
   "build": {
     "appId": "com.nexus.mvp",
-    "productName": "NEXUS MVP",
+    "productName": "NEXUS",
     "directories": {
       "output": "release"
     },
@@ -381,7 +381,7 @@ function App() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-white mb-8">
-          NEXUS MVP
+          NEXUS
         </h1>
         <p className="text-lg text-center text-gray-600 dark:text-gray-300">
           MCP-first desktop application built with Electron
@@ -431,7 +431,7 @@ EOF
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NEXUS MVP</title>
+    <title>NEXUS</title>
   </head>
   <body>
     <div id="root"></div>
@@ -542,7 +542,7 @@ create_readme() {
     echo -e "${YELLOW}📚 Creating README...${NC}"
     
     cat > SETUP_README.md << 'EOF'
-# NEXUS MVP - Quick Start Guide
+# NEXUS - Quick Start Guide
 
 ## Development Setup
 
@@ -604,7 +604,7 @@ tests/              # Test files
 
 ### Next Steps
 
-Follow the implementation plan in `IMPLEMENTATION_PLAN.md` to build out the complete NEXUS MVP application.
+Follow the implementation plan in `IMPLEMENTATION_PLAN.md` to build out the complete NEXUS application.
 EOF
     
     echo -e "${GREEN}✅ README created${NC}"
@@ -649,7 +649,7 @@ main() {
     local end_time=$(date +%s)
     local duration=$((end_time - start_time))
     
-    echo -e "\n${GREEN}🎉 NEXUS MVP project setup completed successfully!${NC}"
+    echo -e "\n${GREEN}🎉 NEXUS project setup completed successfully!${NC}"
     echo -e "${BLUE}Setup time: ${duration}s${NC}"
     echo -e "\n${YELLOW}Next steps:${NC}"
     echo -e "${BLUE}1. cd into your project directory${NC}"

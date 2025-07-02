@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# NEXUS MVP Production Build Script
+# NEXUS Production Build Script
 # This script builds the NEXUS application for production deployment
 
 # Environment setup
@@ -20,7 +20,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}🏗️  Building NEXUS MVP for production${NC}"
+echo -e "${GREEN}🏗️  Building NEXUS for production${NC}"
 echo -e "${BLUE}Platform: $PLATFORM${NC}"
 echo -e "${BLUE}Build directory: $BUILD_DIR${NC}"
 echo -e "${BLUE}Skip tests: $SKIP_TESTS${NC}"

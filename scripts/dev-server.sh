@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# NEXUS MVP Development Server Script
+# NEXUS Development Server Script
 # This script starts the development environment for the NEXUS application
 
 # Environment setup
@@ -19,7 +19,7 @@ DEV_PORT="${DEV_PORT:-5173}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 "${SCRIPT_DIR}/kill-port.sh" "${DEV_PORT}" >/dev/null 2>&1 || true
 
-echo -e "${GREEN}🚀 Starting NEXUS MVP Development Server${NC}"
+echo -e "${GREEN}🚀 Starting NEXUS Development Server${NC}"
 
 # Check Node.js version
 node_version=$(node --version 2>/dev/null || echo "not found")

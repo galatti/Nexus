@@ -6,12 +6,12 @@ param(
     [switch]$Help
 )
 
-# NEXUS MVP Production Build Script (PowerShell)
+# NEXUS Production Build Script (PowerShell)
 # This script builds the NEXUS application for production deployment
 
 if ($Help) {
     Write-Host @"
-NEXUS MVP Production Build Script
+NEXUS Production Build Script
 
 Usage: .\build-prod.ps1 [OPTIONS]
 
@@ -49,7 +49,7 @@ $BuildDir = if ($env:BUILD_DIR) { $env:BUILD_DIR } else { $BuildDir }
 $Platform = if ($env:PLATFORM) { $env:PLATFORM } else { $Platform }
 $SkipTests = if ($env:SKIP_TESTS -eq "true") { $true } else { $SkipTests }
 
-Write-Host "🏗️  Building NEXUS MVP for production" -ForegroundColor Green
+Write-Host "🏗️  Building NEXUS for production" -ForegroundColor Green
 Write-Host "Platform: $Platform" -ForegroundColor Blue
 Write-Host "Build directory: $BuildDir" -ForegroundColor Blue
 Write-Host "Skip tests: $SkipTests" -ForegroundColor Blue

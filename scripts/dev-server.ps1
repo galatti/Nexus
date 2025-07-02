@@ -3,12 +3,12 @@ param(
     [switch]$Help
 )
 
-# NEXUS MVP Development Server Script (PowerShell)
+# NEXUS Development Server Script (PowerShell)
 # This script starts the development environment for the NEXUS application
 
 if ($Help) {
     Write-Host @"
-NEXUS MVP Development Server Script
+NEXUS Development Server Script
 
 Usage: .\dev-server.ps1 [OPTIONS]
 
@@ -33,7 +33,7 @@ $devPort = if ($Env:DEV_PORT) { [int]$Env:DEV_PORT } else { 5173 }
 $env:NODE_ENV = "development"
 $env:ELECTRON_IS_DEV = "1"
 
-Write-Host "🚀 Starting NEXUS MVP Development Server" -ForegroundColor Green
+Write-Host "🚀 Starting NEXUS Development Server" -ForegroundColor Green
 
 try {
     # Check Node.js version

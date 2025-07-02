@@ -1,5 +1,5 @@
 /*
- * Cross-platform orchestrator for running the NEXUS MVP dev environment with a single command.
+ * Cross-platform orchestrator for running the NEXUS dev environment with a single command.
  *
  * It picks an available port (prefers 5173), starts Vite there, waits for the dev server
  * to accept connections, then launches Electron pointing at the same port.

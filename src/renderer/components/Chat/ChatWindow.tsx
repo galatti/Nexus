@@ -233,6 +233,22 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     // Add user message to current session
     if (currentSessionId) {
       addMessage(currentSessionId, userMessage);
+
+      // Auto-rename session if it still has the default title
+      if (currentSession && currentSession.title === 'New Chat') {
+        const newTitle = trimmedMessage.length > 40 ? trimmedMessage.substring(0, 37) + '…' : trimmedMessage;
+        updateSession(currentSessionId, { title: newTitle });
+      }
+
+      // Insert temporary thinking placeholder
+      const placeholderId = `thinking_${Date.now()}`;
+      const thinkingMessage: ChatMessage = {
+        id: placeholderId,
+        role: 'assistant',
+        content: '__waiting__',
+        timestamp: new Date()
+      };
+      addMessage(currentSessionId, thinkingMessage);
     }
     setInputMessage('');
     setStartTime(new Date());
@@ -258,9 +274,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
         
         // Debug logging removed for cleaner console
         
-        // Add assistant message to current session
+        // Replace placeholder with real assistant message
         if (currentSessionId) {
-          addMessage(currentSessionId, assistantMessage);
+          const existing = getSessionMessages(currentSessionId).filter(m => m.content !== '__waiting__');
+          setSessionMessages(currentSessionId, [...existing, assistantMessage]);
         }
       } else {
         setError(result.error || 'Failed to send message');
@@ -686,6 +703,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
               <div className="flex-1">
                 {isUser ? (
                   <div className="whitespace-pre-wrap">{message.content}</div>
+                ) : message.content === '__waiting__' ? (
+                  <div className="flex items-center space-x-2 text-gray-500 dark:text-gray-400 text-sm italic">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500" />
+                    <span>Awaiting response…</span>
+                  </div>
                 ) : (
                   <div>
                     {parseThinkingBlocks(message.content, message.id).map((part, index) => {

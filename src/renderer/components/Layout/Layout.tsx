@@ -1,6 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header } from './Header';
-import { Sidebar } from './Sidebar';
+import { SessionSidebar } from '../Chat/SessionSidebar';
 import { Dashboard } from '../Dashboard/Dashboard';
 import { PermissionModal } from '../Permissions/PermissionModal';
 
@@ -72,8 +72,8 @@ export const Layout: React.FC = () => {
 
   return (
     <div className="flex h-full bg-gray-50 dark:bg-gray-900">
-      {/* Sidebar */}
-      <Sidebar isOpen={sidebarOpen} />
+      {/* Session Sidebar */}
+      <SessionSidebar isOpen={sidebarOpen} />
       
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0">

@@ -13,12 +13,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Updated README with accurate implementation details
   - Corrected testing documentation to reflect Vitest usage
   - Enhanced contributing guidelines with cross-platform support
+- Persistent multi-chat support with new `SessionSidebar` (create/switch/rename/pin/delete chats).
+- Auto-session renaming, session pruning utilities, clear history button.
+- Neutral waiting indicator while awaiting LLM responses.
 
 ### Changed
 - **Test Framework Migration**
   - Fully migrated from Jest to Vitest for better ES module support
   - Removed legacy jest.config.js file
   - Updated all test documentation and examples
+- Branding updated from "Nexus MVP" to "Nexus".
+- Chat set as default primary tab; Dashboard moved after Chat.
+- Removed obsolete MCP server sidebar component.
 
 ### Fixed
 - **Documentation Accuracy**

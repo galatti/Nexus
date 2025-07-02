@@ -510,6 +510,25 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                           <option value="de">Deutsch</option>
                         </select>
                       </div>
+
+                      {/* Clear Chat History */}
+                      <div className="col-span-2 flex flex-col">
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Danger Zone
+                        </label>
+                        <button
+                          onClick={() => {
+                            if (confirm('This will delete all stored chat sessions. Continue?')) {
+                              const { SessionManager } = require('../utils/SessionManager');
+                              SessionManager.getInstance().clearAllSessions();
+                              window.location.reload();
+                            }
+                          }}
+                          className="w-fit px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                        >
+                          Clear Chat History
+                        </button>
+                      </div>
                     </div>
 
                     {/* Checkboxes */}

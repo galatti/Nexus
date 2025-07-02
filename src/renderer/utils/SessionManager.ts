@@ -92,6 +92,9 @@ export class SessionManager {
     // Persist to localStorage
     this.saveStorageToLocalStorage();
     
+    // Enforce max sessions cap
+    this.pruneOldSessions(this.MAX_STORED_SESSIONS);
+    
     console.log('SessionManager: Created new session:', sessionId);
     return newSession;
   }
@@ -567,5 +570,42 @@ export class SessionManager {
    */
   private sortSessionsByLastActive(sessions: ChatSession[]): ChatSession[] {
     return sessions.sort((a, b) => b.lastActive.getTime() - a.lastActive.getTime());
+  }
+
+  /**
+   * Rename a session (convenience wrapper)
+   */
+  public renameSession(sessionId: string, newTitle: string): boolean {
+    if (!newTitle.trim()) return false;
+    return this.updateSession(sessionId, { title: newTitle.trim() });
+  }
+
+  /**
+   * Remove oldest sessions when count exceeds the provided max.
+   */
+  public pruneOldSessions(max: number = this.MAX_STORED_SESSIONS): void {
+    const sessionIds = Object.keys(this.storage.sessions);
+    if (sessionIds.length <= max) return;
+
+    // Create sortable array with lastActive
+    const sortable: Array<{ id: string; last: number }> = sessionIds.map(id => {
+      const sess = this.storage.sessions[id].session;
+      return { id, last: sess.lastActive.getTime() };
+    });
+
+    // Oldest first
+    sortable.sort((a, b) => a.last - b.last);
+
+    const toDelete = sortable.slice(0, sessionIds.length - max);
+    toDelete.forEach(({ id }) => this.deleteSession(id));
+  }
+
+  /**
+   * Clear all sessions and reset storage to default.
+   */
+  public clearAllSessions(): void {
+    this.storage = this.createDefaultStorage();
+    this.saveStorageToLocalStorage();
+    console.log('SessionManager: Cleared all sessions');
   }
 } 
