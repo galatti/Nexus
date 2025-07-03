@@ -857,7 +857,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           </h1>
         </div>
         <div className="flex items-center space-x-4">
-          {hasValidConfiguration && (
+          {llmStatus?.enabledProviders && llmStatus.enabledProviders.length > 0 && (
             <>
               <ProviderSelector
                 llmStatus={llmStatus}
