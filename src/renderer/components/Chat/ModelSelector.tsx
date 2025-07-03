@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LlmStatusResponse, LlmModel, LlmProviderConfig } from '../../../shared/types';
+import { LlmStatusResponse, LlmModel } from '../../../shared/types';
 
 interface ModelOption {
   providerId: string;
@@ -18,7 +18,6 @@ interface ModelSelectorProps {
 }
 
 export const ModelSelector: React.FC<ModelSelectorProps> = ({
-  llmStatus,
   currentModel,
   selectedProviderModel,
   selectedProvider,
@@ -29,7 +28,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const [availableModels, setAvailableModels] = useState<ModelOption[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filterQuery, setFilterQuery] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const filterInputRef = useRef<HTMLInputElement>(null);
 
   const fetchAvailableModels = async () => {
     if (!selectedProvider) {
@@ -93,6 +94,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
       await fetchAvailableModels();
     }
     setIsOpen(!isOpen);
+    
+    // Clear filter when closing dropdown
+    if (isOpen) {
+      setFilterQuery('');
+    } else {
+      // Focus filter input when opening dropdown
+      setTimeout(() => filterInputRef.current?.focus(), 100);
+    }
   };
 
   useEffect(() => {
@@ -122,7 +131,13 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     };
   }, [isOpen]);
 
-  const groupedModels = availableModels.reduce((groups, option) => {
+  // Filter models based on search query
+  const filteredModels = availableModels.filter(option => 
+    option.model.name.toLowerCase().includes(filterQuery.toLowerCase()) ||
+    option.model.description?.toLowerCase().includes(filterQuery.toLowerCase())
+  );
+
+  const groupedModels = filteredModels.reduce((groups, option) => {
     const key = `${option.providerName} (${option.providerType})`;
     if (!groups[key]) groups[key] = [];
     groups[key].push(option);
@@ -187,18 +202,47 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         </svg>
       </button>
       {isOpen && (
-        <div className="absolute z-10 mt-2 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-72 overflow-y-auto">
-          {isLoading ? (
-            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
-              <span>Loading models...</span>
-            </div>
-          ) : error ? (
-            <div className="px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</div>
-          ) : Object.keys(groupedModels).length === 0 ? (
-            <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">No models available</div>
-          ) : (
-            Object.entries(groupedModels).map(([group, options]) => (
+        <div className="absolute z-10 mt-2 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-72 overflow-hidden">
+          {/* Filter input */}
+          <div className="p-2 border-b border-gray-200 dark:border-gray-700">
+            <input
+              ref={filterInputRef}
+              type="text"
+              value={filterQuery}
+              onChange={(e) => setFilterQuery(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape') {
+                  setIsOpen(false);
+                  setFilterQuery('');
+                } else if (e.key === 'Enter') {
+                  // Select first filtered option if available
+                  const firstOption = Object.values(groupedModels).flat()[0];
+                  if (firstOption) {
+                    handleModelSelect(firstOption);
+                  }
+                }
+              }}
+              placeholder="Filter models..."
+              className="w-full px-2 py-1 text-sm bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          
+          {/* Dropdown content */}
+          <div className="max-h-60 overflow-y-auto">
+            {isLoading ? (
+              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-gray-500"></div>
+                <span>Loading models...</span>
+              </div>
+            ) : error ? (
+              <div className="px-3 py-2 text-sm text-red-600 dark:text-red-400">{error}</div>
+            ) : Object.keys(groupedModels).length === 0 ? (
+              <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                {filterQuery ? `No models match "${filterQuery}"` : 'No models available'}
+              </div>
+            ) : (
+              Object.entries(groupedModels).map(([group, options]) => (
               <div key={group}>
                 <div className="px-3 py-1 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
                   {group}
@@ -234,8 +278,9 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                   );
                 })}
               </div>
-            ))
-          )}
+              ))
+            )}
+          </div>
         </div>
       )}
     </div>
