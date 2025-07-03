@@ -588,6 +588,8 @@ ipcMain.handle('settings:get', () => {
 });
 
 ipcMain.handle('settings:set', async (_event, settings) => {
+  console.log('[IPC] settings:set invoked');
+  console.log('[IPC] settings:set payload:', JSON.stringify(settings, null, 2));
   try {
     configManager.updateSettings(settings);
     
@@ -600,6 +602,7 @@ ipcMain.handle('settings:set', async (_event, settings) => {
       // Remove providers that are no longer in the settings
       for (const providerId of existingProviderIds) {
         if (!newProviderIds.has(providerId)) {
+          console.log(`[IPC][settings:set] Removing provider not in new settings: ${providerId}`);
           await llmManager.removeProvider(providerId);
         }
       }
@@ -607,17 +610,21 @@ ipcMain.handle('settings:set', async (_event, settings) => {
       // Add or update providers from settings
       for (const providerConfig of settings.llm.providers) {
         const providerId = providerConfig.id || `${providerConfig.type}-${providerConfig.name.toLowerCase().replace(/\s+/g, '-')}`;
+        console.log(`[IPC][settings:set] Processing provider ${providerId} enabled=${providerConfig.enabled}`);
         
         if (providerConfig.enabled) {
           const existingProvider = llmManager.getProvider(providerId);
           if (existingProvider) {
+            console.log(`[IPC][settings:set] Updating existing provider ${providerId}`);
             // Update existing provider if configuration changed
             await llmManager.updateProvider(providerId, providerConfig);
           } else {
+            console.log(`[IPC][settings:set] Adding new provider ${providerId}`);
             // Add new provider
             await llmManager.addProvider(providerConfig);
           }
         } else if (existingProviderIds.has(providerId)) {
+          console.log(`[IPC][settings:set] Provider ${providerId} disabled, removing from manager`);
           // Remove disabled provider
           await llmManager.removeProvider(providerId);
         }
@@ -1521,10 +1528,30 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
   }
 });
 
-ipcMain.handle('llm:getStatus', () => {
+ipcMain.handle('llm:getStatus', async () => {
   try {
-    const status = llmManager.getStatus();
-    return { success: true, data: status };
+    // Fetch current LLM status including enabled providers and their models
+    const status = await llmManager.getStatus();
+
+    // Retrieve the default provider+model selection from persisted settings
+    let defaultProviderModel = configManager.getDefaultProviderModel();
+
+    // Fallback: if not set or refers to provider/model that no longer exists, pick first available
+    if (!defaultProviderModel) {
+      const firstProvider = status.enabledProviders.find(p => p.models.length > 0);
+      if (firstProvider) {
+        defaultProviderModel = {
+          providerId: firstProvider.id,
+          modelName: firstProvider.models[0].name
+        };
+        console.log('[IPC] llm:getStatus fallback default selected:', defaultProviderModel);
+      }
+    }
+
+    // Merge and return
+    const data = { ...status, defaultProviderModel };
+    // Merge and return
+    return { success: true, data: { ...status, defaultProviderModel } };
   } catch (error) {
     console.error('Failed to get LLM status:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };

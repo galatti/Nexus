@@ -35,11 +35,14 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     setError(null);
     try {
       const settings = await window.electronAPI.getSettings();
+      console.log('[ModelSelector] Settings providers:', JSON.stringify(settings.llm.providers, null, 2));
       const modelOptions: ModelOption[] = [];
       for (const provider of settings.llm.providers) {
         if (!provider.enabled) continue;
+        console.log(`[ModelSelector] Fetching models for provider ${provider.name} (${provider.type})`);
         try {
           const providerModelsResponse = await window.electronAPI.getModelsForConfig(provider);
+          console.log(`[ModelSelector] Models response for ${provider.id}:`, providerModelsResponse);
           if (providerModelsResponse.success && providerModelsResponse.data) {
             for (const model of providerModelsResponse.data) {
               modelOptions.push({
@@ -50,11 +53,15 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
               });
             }
           }
-        } catch {}
+        } catch (err) {
+          console.error(`[ModelSelector] Error fetching models for ${provider.id}:`, err);
+        }
       }
+      console.log('[ModelSelector] Compiled model options:', modelOptions);
       setAvailableModels(modelOptions);
     } catch (err) {
       setError('Failed to load available models');
+      console.error('[ModelSelector] Failed to load available models:', err);
     } finally {
       setIsLoading(false);
     }

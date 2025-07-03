@@ -102,6 +102,18 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   useEffect(() => {
     loadLlmInfo();
 
+    // Debug: log when llmStatus changes
+    const debugLog = (status: any) => {
+      console.log('[ChatWindow] LLM status updated:', status);
+    };
+
+    let unsubscribe: (() => void) | undefined;
+
+    // Watch llmStatus via event for debugging
+    const handleStatusChange = (data: any) => debugLog(data);
+
+    // Not ideal but we can log inside effect after state set
+
     // Listen for LLM provider changes with more robust handling
     const handleProviderChange = (data?: any) => {
       console.log('ChatWindow: Provider change event detected, updating info...', data);
@@ -174,6 +186,12 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     };
   }, [isLoading, startTime]);
 
+  useEffect(() => {
+    if (currentSession) {
+      console.log('[ChatWindow] Current session selectedProviderModel:', currentSession.selectedProviderModel);
+    }
+  }, [currentSession]);
+
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
 
@@ -220,7 +238,10 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     try {
       // Send the full conversation history including the new user message
       const conversationHistory = [...messages, userMessage];
-      const result = await window.electronAPI.sendMessage(conversationHistory) as any;
+      const result = await window.electronAPI.sendMessage(conversationHistory, {
+        providerId: currentSession?.selectedProviderModel?.providerId,
+        modelName: currentSession?.selectedProviderModel?.modelName
+      }) as any;
       
       if (result.success) {
         // Debug logging removed for cleaner console
@@ -743,6 +764,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
 
   const { provider: currentProvider, model: currentModel } = getCurrentProviderModel(currentSession?.selectedProviderModel, llmStatus?.enabledProviders);
 
+  console.log('[ChatWindow] Computed currentProvider:', currentProvider, 'currentModel:', currentModel);
+
   return (
     <div className={`flex flex-col h-full ${className}`}>
       {/* Header */}
@@ -755,6 +778,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
             <ModelSelector
               llmStatus={llmStatus}
               currentModel={currentModel}
+              selectedProviderModel={currentSession?.selectedProviderModel}
               onModelChange={loadLlmInfo}
               onSelectModel={(providerId, modelName) => {
                 if (currentSession) {

@@ -318,6 +318,14 @@ export class LlmManager extends EventEmitter {
   }
 
   async getStatus(): Promise<LlmManagerStatus> {
+    console.log('[LlmManager] getStatus: Gathering status for providers...');
+
+    // Snapshot of currently registered providers and their enabled state
+    for (const [pid, provider] of this.providers) {
+      const cfg = provider.getConfig();
+      console.log(`  → Provider ${pid}: name="${cfg.name}" type=${cfg.type} enabled=${provider.isEnabled()}`);
+    }
+
     const enabledProviders: Array<{
       id: string;
       name: string;
@@ -328,9 +336,12 @@ export class LlmManager extends EventEmitter {
 
     for (const [providerId, provider] of this.providers) {
       if (provider.isEnabled()) {
+        console.log(`[LlmManager] getStatus: Processing enabled provider ${providerId}`);
         const config = provider.getConfig();
         const health = this.healthStatus.get(providerId);
         const models = await this.getAvailableModels(providerId);
+
+        console.log(`    • ${providerId} health=${health?.isHealthy ?? false} models=${models.length}`);
 
         enabledProviders.push({
           id: providerId,
@@ -341,6 +352,8 @@ export class LlmManager extends EventEmitter {
         });
       }
     }
+
+    console.log(`[LlmManager] getStatus: Returning ${enabledProviders.length} enabled providers`);
 
     return {
       enabledProviders
