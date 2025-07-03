@@ -11,9 +11,21 @@ export default defineConfig({
     teardownTimeout: 10000, // 10 second timeout for teardown
     coverage: {
       provider: 'v8',
-      reporter: ['text', 'json', 'html'],
+      reporter: ['text', 'json', 'html', 'json-summary'],
       include: ['src/**/*.ts', 'src/**/*.tsx'],
-      exclude: ['src/**/*.d.ts', 'src/**/*.stories.ts', 'src/**/*.stories.tsx']
+      exclude: ['src/**/*.d.ts', 'src/**/*.stories.ts', 'src/**/*.stories.tsx'],
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 75,
+        statements: 80
+      }
+    },
+    
+    // Reporter
+    reporter: ['default', 'junit'],
+    outputFile: {
+      junit: './test-results/junit.xml'
     }
   }
 });

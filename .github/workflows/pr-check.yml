@@ -1,0 +1,156 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  test-changes:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v40
+      with:
+        files: |
+          src/**/*.ts
+          src/**/*.tsx
+          tests/**/*.ts
+          tests/**/*.tsx
+
+    - name: Run linter on changed files
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        echo "Changed files: ${{ steps.changed-files.outputs.all_changed_files }}"
+        npx eslint ${{ steps.changed-files.outputs.all_changed_files }}
+
+    - name: Run type checker
+      run: npm run typecheck
+
+    - name: Run tests
+      run: npm run test:coverage
+
+    - name: Check test coverage for changed files
+      if: steps.changed-files.outputs.any_changed == 'true'
+      run: |
+        # This would ideally check coverage only for changed files
+        # For now, we check overall coverage meets threshold
+        echo "Checking coverage for changed files..."
+        npm run test:coverage
+
+    - name: Comment PR with coverage
+      if: github.event_name == 'pull_request'
+      uses: MishaKav/jest-coverage-comment@main
+      with:
+        coverage-summary-path: coverage/coverage-summary.json
+        title: Test Coverage Report
+        summary-title: Coverage Summary
+        badge-title: Coverage
+
+  security-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run security audit
+      run: npm audit --audit-level=high
+
+    - name: Check for vulnerable dependencies
+      run: npx audit-ci --high
+
+  size-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build application
+      run: npm run build
+
+    - name: Check bundle size
+      run: |
+        # Check if build artifacts are within reasonable size limits
+        if [ -d "dist" ]; then
+          DIST_SIZE=$(du -sh dist | cut -f1)
+          echo "Distribution size: $DIST_SIZE"
+          
+          # Check if size is over 500MB (adjust as needed)
+          SIZE_BYTES=$(du -sb dist | cut -f1)
+          MAX_SIZE=$((500 * 1024 * 1024))  # 500MB in bytes
+          
+          if [ $SIZE_BYTES -gt $MAX_SIZE ]; then
+            echo "❌ Distribution size ($DIST_SIZE) exceeds maximum allowed size (500MB)"
+            exit 1
+          else
+            echo "✅ Distribution size ($DIST_SIZE) is within acceptable limits"
+          fi
+        fi
+
+  commit-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Check commit messages
+      run: |
+        # Check if commit messages follow conventional commits format
+        git log --format="%s" origin/main..HEAD | while read line; do
+          if ! echo "$line" | grep -qE "^(feat|fix|docs|style|refactor|test|chore|ci|perf|build)(\(.+\))?: .+"; then
+            echo "❌ Commit message does not follow conventional format: $line"
+            echo "Expected format: type(scope): description"
+            echo "Types: feat, fix, docs, style, refactor, test, chore, ci, perf, build"
+            exit 1
+          else
+            echo "✅ Valid commit message: $line"
+          fi
+        done
+
+    - name: Check for merge commits
+      run: |
+        if git log --merges origin/main..HEAD | grep -q "Merge"; then
+          echo "❌ Please rebase your branch instead of merging"
+          exit 1
+        else
+          echo "✅ No merge commits found"
+        fi
