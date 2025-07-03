@@ -3,6 +3,7 @@ import { AppSettings, LlmProviderConfig } from '../../../shared/types';
 import { McpIntegration } from '../MCP/McpIntegration';
 import { ToolPermissionsOverview } from './ToolPermissionsOverview';
 import { APP_CONSTANTS } from '../../../shared/constants';
+import { SessionManager } from '../../utils/SessionManager';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -485,7 +486,6 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                         <button
                           onClick={() => {
                             if (confirm('This will delete all stored chat sessions. Continue?')) {
-                              const { SessionManager } = require('../utils/SessionManager');
                               SessionManager.getInstance().clearAllSessions();
                               window.location.reload();
                             }
@@ -493,6 +493,35 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                           className="w-fit px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
                         >
                           Clear Chat History
+                        </button>
+
+                        {/* Full Factory Reset */}
+                        <button
+                          onClick={async () => {
+                            if (confirm('Factory Reset will erase ALL application data including settings, provider configurations, chat history, logs and permissions. This action cannot be undone. Continue?')) {
+                              try {
+                                // Clear chat history in renderer
+                                SessionManager.getInstance().clearAllSessions();
+
+                                // Request main process to wipe app data
+                                const result: any = await window.electronAPI.resetSettings();
+
+                                if (!result?.success) {
+                                  alert(result?.error || 'Reset failed');
+                                  return;
+                                }
+
+                                // Reload the window to launch with a clean slate
+                                window.location.reload();
+                              } catch (err) {
+                                console.error('Factory reset failed:', err);
+                                alert('Factory reset failed. Check console for details.');
+                              }
+                            }
+                          }}
+                          className="w-fit mt-2 px-4 py-2 bg-red-700 text-white rounded-md hover:bg-red-800 transition-colors"
+                        >
+                          Factory Reset Application
                         </button>
                       </div>
                     </div>

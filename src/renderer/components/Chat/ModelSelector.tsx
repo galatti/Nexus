@@ -30,7 +30,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchAvailableModels = async () => {
-    if (!isOpen || isLoading) return;
+    if (isLoading) return;
     setIsLoading(true);
     setError(null);
     try {
@@ -169,6 +169,16 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
             {Object.values(groupedModels).flat().find(o => o.model.name === currentModel.name)?.providerName || ''}
           </span>
         </div>
+        <svg
+          className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth={2}
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
       </button>
       {isOpen && (
         <div className="absolute z-10 mt-2 w-full bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg max-h-72 overflow-y-auto">

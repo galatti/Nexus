@@ -3,7 +3,7 @@ import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { spawn } from 'child_process';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, rmSync, mkdirSync } from 'fs';
 import { isDev } from '../shared/utils.js';
 import { APP_CONSTANTS } from '../shared/constants.js';
 
@@ -704,12 +704,45 @@ ipcMain.handle('settings:reset', async (_event) => {
       await serverManager.stopServer(server.id);
     }
     
-    // Reset to default settings
+    // Clear all stored permissions
+    try {
+      permissionManager.clearAllPermissions();
+    } catch (permErr) {
+      console.warn('Failed to clear permissions during reset:', permErr);
+    }
+
+    // Delete generated config and log directories
+    const userDataPath = app.getPath('userData');
+    const configDir = join(userDataPath, APP_CONSTANTS.CONFIG_DIR_NAME);
+    const logsDir = join(app.getPath('logs'), APP_CONSTANTS.APP_NAME);
+
+    [configDir, logsDir].forEach((dir) => {
+      try {
+        if (existsSync(dir)) {
+          rmSync(dir, { recursive: true, force: true });
+          console.log(`[Reset] Deleted directory: ${dir}`);
+        }
+      } catch (fsErr) {
+        console.warn(`[Reset] Failed to delete directory ${dir}:`, fsErr);
+      }
+    });
+
+    // Ensure configuration directory exists for subsequent save operation
+    try {
+      if (!existsSync(configDir)) {
+        mkdirSync(configDir, { recursive: true });
+      }
+    } catch (mkErr) {
+      console.error('Failed to recreate config directory:', mkErr);
+      throw mkErr;
+    }
+
+    // Reset to default settings (this recreates a fresh config file)
     configManager.resetToDefaults();
-    
+
     // Emit settings change event
     mainWindow?.webContents.send('settings:changed', configManager.getSettings());
-    
+
     return { success: true };
   } catch (error) {
     console.error('Failed to reset settings:', error);

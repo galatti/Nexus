@@ -21,7 +21,6 @@ export interface LlmManagerStatus {
 export class LlmManager extends EventEmitter {
   private providers = new Map<string, BaseProvider>();
   private healthStatus = new Map<string, ProviderHealth>();
-  private healthCheckInterval?: NodeJS.Timeout;
 
   constructor() {
     super();
@@ -31,17 +30,7 @@ export class LlmManager extends EventEmitter {
   async initialize(): Promise<void> {
     console.log('Initializing LLM Manager');
     
-    // Start health monitoring
-    this.startHealthMonitoring();
-    
     console.log('LLM Manager initialized successfully');
-  }
-
-  private startHealthMonitoring(): void {
-    // Check health every 30 seconds
-    this.healthCheckInterval = setInterval(async () => {
-      await this.checkAllProvidersHealth();
-    }, 30000);
   }
 
   async addProvider(config: LlmProviderConfig): Promise<void> {
@@ -407,10 +396,6 @@ export class LlmManager extends EventEmitter {
 
   async shutdown(): Promise<void> {
     console.log('Shutting down LLM Manager');
-    
-    if (this.healthCheckInterval) {
-      clearInterval(this.healthCheckInterval);
-    }
     
     this.providers.clear();
     this.healthStatus.clear();
