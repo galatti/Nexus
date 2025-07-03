@@ -18,6 +18,11 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Helper function to capitalize provider type for display
+  const capitalizeProvider = (type: string): string => {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
   const [error, setError] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
   const [isTestingConnection, setIsTestingConnection] = useState(false);
@@ -595,56 +600,27 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                       </div>
                     )}
 
-                    {/* Provider List */}
+                    {/* Provider Selection */}
                     {settings?.llm.providers && settings.llm.providers.length > 0 && (
-                      <div className="space-y-3">
-                        <h4 className="text-md font-medium text-gray-900 dark:text-white">All Providers</h4>
-                        <div className="space-y-2">
-                          {settings.llm.providers.map((provider) => (
-                            <div
-                              key={provider.id}
-                              className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                                selectedProviderId === provider.id
-                                  ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                                  : 'border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800'
-                              }`}
-                              onClick={() => setSelectedProviderId(provider.id)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                  <div className={`w-3 h-3 rounded-full ${
-                                    provider.enabled
-                                      ? 'bg-blue-500'
-                                      : 'bg-gray-400'
-                                  }`} />
-                                  <div>
-                                    <div className="font-medium text-gray-900 dark:text-white">
-                                      {provider.name}
-                                      {settings.llm.defaultProviderModel?.providerId === provider.id && (
-                                        <span className="ml-2 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
-                                          Default
-                                        </span>
-                                      )}
-                                    </div>
-                                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                                      {provider.type} • {provider.model || 'No model selected'}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                  {provider.enabled ? (
-                                    <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">
-                                      Enabled
-                                    </span>
-                                  ) : (
-                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 px-2 py-1 rounded">
-                                      Disabled
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          ))}
+                      <div className="space-y-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Select Provider to Configure
+                          </label>
+                          <select
+                            value={selectedProviderId || ''}
+                            onChange={(e) => setSelectedProviderId(e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Choose a provider...</option>
+                            {settings.llm.providers.map((provider) => (
+                              <option key={provider.id} value={provider.id}>
+                                {capitalizeProvider(provider.type)}
+                                {provider.enabled ? '' : ' (Disabled)'}
+                                {settings.llm.defaultProviderModel?.providerId === provider.id ? ' (Default)' : ''}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                       </div>
                     )}
@@ -654,52 +630,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                       <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-6 space-y-6">
                         <div className="flex items-center justify-between">
                           <h4 className="text-lg font-medium text-gray-900 dark:text-white">
-                            Configure: {selectedProvider.name}
+                            Configure: {capitalizeProvider(selectedProvider.type)}
                           </h4>
                           {/* Remove button disabled per design change */}
                         </div>
 
                         <div className="space-y-4">
-                          {/* Provider Type */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Provider Type
-                            </label>
-                            <select
-                              value={selectedProvider.type}
-                              onChange={(e) => updateSettings({
-                                llm: {
-                                  providers: settings.llm.providers.map(p => 
-                                    p.id === selectedProvider.id ? { ...p, type: e.target.value as 'ollama' | 'openrouter' } : p
-                                  ),
-                                }
-                              })}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            >
-                              <option value="ollama">Ollama (Local)</option>
-                              <option value="openrouter">OpenRouter (Cloud)</option>
-                            </select>
-                          </div>
 
-                          {/* Provider Name */}
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Provider Name
-                            </label>
-                            <input
-                              type="text"
-                              value={selectedProvider.name}
-                              onChange={(e) => updateSettings({
-                                llm: {
-                                  providers: settings.llm.providers.map(p => 
-                                    p.id === selectedProvider.id ? { ...p, name: e.target.value } : p
-                                  ),
-                                }
-                              })}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              placeholder="Provider display name"
-                            />
-                          </div>
 
                           {/* Base URL (for Ollama) */}
                           {selectedProvider.type === 'ollama' && (
@@ -754,7 +691,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                           {/* Model with Search */}
                           <div>
                             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                              Model
+                              Default Model
                             </label>
                             <div className="relative">
                               <input

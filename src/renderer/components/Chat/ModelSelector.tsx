@@ -3,7 +3,6 @@ import { LlmStatusResponse, LlmModel } from '../../../shared/types';
 
 interface ModelOption {
   providerId: string;
-  providerName: string;
   providerType: string;
   model: LlmModel;
 }
@@ -55,7 +54,6 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
             for (const model of providerModelsResponse.data) {
               modelOptions.push({
                 providerId: provider.id,
-                providerName: provider.name,
                 providerType: provider.type,
                 model
               });
@@ -137,8 +135,13 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     option.model.description?.toLowerCase().includes(filterQuery.toLowerCase())
   );
 
+  // Helper function to capitalize provider type for display
+  const capitalizeProvider = (type: string): string => {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
   const groupedModels = filteredModels.reduce((groups, option) => {
-    const key = `${option.providerName} (${option.providerType})`;
+    const key = capitalizeProvider(option.providerType);
     if (!groups[key]) groups[key] = [];
     groups[key].push(option);
     return groups;
@@ -177,7 +180,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
         className="flex items-center space-x-2 px-2 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors cursor-pointer group w-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
-        aria-label={currentModel ? `Current model: ${currentModel.name} from ${Object.values(groupedModels).flat().find(o => o.model.name === currentModel.name)?.providerName || ''}. Click to change model.` : 'No model selected. Click to select a model.'}
+        aria-label={currentModel ? `Current model: ${currentModel.name} from ${Object.values(groupedModels).flat().find(o => o.model.name === currentModel.name)?.providerType || ''}. Click to change model.` : 'No model selected. Click to select a model.'}
       >
         <div className="flex items-center space-x-2 flex-1">
           <div className={`w-3 h-3 rounded-full shadow-sm ${currentModel ? 'bg-green-500' : 'bg-gray-400'}`} />

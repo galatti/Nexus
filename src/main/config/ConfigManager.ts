@@ -316,11 +316,20 @@ export class ConfigManager {
         if (language && typeof language !== 'string') return false;
       }
 
-      // Validate LLM provider settings
-      if (settings.llm?.provider) {
-        const { type, enabled } = settings.llm.provider;
-        if (type && !['ollama', 'openrouter'].includes(type)) return false;
-        if (enabled !== undefined && typeof enabled !== 'boolean') return false;
+      // Validate LLM providers array
+      if (settings.llm?.providers) {
+        if (!Array.isArray(settings.llm.providers)) return false;
+        for (const provider of settings.llm.providers) {
+          if (!provider.id || typeof provider.id !== 'string') return false;
+          if (!provider.type || !['ollama', 'openrouter'].includes(provider.type)) return false;
+          if (!provider.name || typeof provider.name !== 'string') return false;
+          if (provider.enabled !== undefined && typeof provider.enabled !== 'boolean') return false;
+          if (provider.baseUrl && typeof provider.baseUrl !== 'string') return false;
+          if (provider.apiKey && typeof provider.apiKey !== 'string') return false;
+          if (provider.model && typeof provider.model !== 'string') return false;
+          if (provider.temperature !== undefined && typeof provider.temperature !== 'number') return false;
+          if (provider.maxTokens !== undefined && typeof provider.maxTokens !== 'number') return false;
+        }
       }
 
       // Validate MCP servers

@@ -781,6 +781,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     return { provider, model: modelMatch };
   }
 
+  // Helper function to capitalize provider type for display
+  const capitalizeProvider = (type: string): string => {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
   const { provider: currentProvider, model: currentModel } = getCurrentProviderModel();
 
   console.log('[ChatWindow] Computed currentProvider:', currentProvider, 'currentModel:', currentModel);
@@ -850,47 +855,58 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex items-center space-x-4">
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        {/* Provider & Model Selection Line - FIRST */}
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex items-center space-x-2 text-sm text-gray-600 dark:text-gray-400">
+            <span>Provider & Model:</span>
+          </div>
+          <div className="flex items-center space-x-3">
+            {llmStatus?.enabledProviders && llmStatus.enabledProviders.length > 0 && (
+              <>
+                <ProviderSelector
+                  llmStatus={llmStatus}
+                  selectedProvider={selectedProvider}
+                  onProviderChange={(providerId: string) => {
+                    setSelectedProvider(providerId);
+                    // Reset selected model when provider changes
+                    setSelectedModel(null);
+                  }}
+                />
+                <ModelSelector
+                  llmStatus={llmStatus}
+                  currentModel={selectedModel}
+                  selectedProviderModel={selectedProvider && selectedModel ? { 
+                    providerId: selectedProvider, 
+                    modelName: selectedModel.name 
+                  } : undefined}
+                  selectedProvider={selectedProvider}
+                  onModelChange={() => {
+                    // Trigger any necessary updates
+                  }}
+                  onSelectModel={(providerId, modelName) => {
+                    console.log('[ChatWindow] Model selected:', providerId, modelName);
+                    // Find the full model object from llmStatus
+                    const provider = llmStatus?.enabledProviders.find((p: any) => p.id === providerId);
+                    const modelObj = provider?.models.find((m: any) => m.name === modelName);
+                    if (modelObj) {
+                      setSelectedModel(modelObj);
+                    }
+                  }}
+                />
+              </>
+            )}
+          </div>
+        </div>
+        
+        {/* Separator */}
+        <div className="border-t border-gray-100 dark:border-gray-600"></div>
+        
+        {/* Chat Title Line - SECOND */}
+        <div className="flex items-center justify-between px-4 py-3">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
             {currentSession?.title || 'New Chat'}
           </h1>
-        </div>
-        <div className="flex items-center space-x-4">
-          {llmStatus?.enabledProviders && llmStatus.enabledProviders.length > 0 && (
-            <>
-              <ProviderSelector
-                llmStatus={llmStatus}
-                selectedProvider={selectedProvider}
-                onProviderChange={(providerId: string) => {
-                  setSelectedProvider(providerId);
-                  // Reset selected model when provider changes
-                  setSelectedModel(null);
-                }}
-              />
-              <ModelSelector
-                llmStatus={llmStatus}
-                currentModel={selectedModel}
-                selectedProviderModel={selectedProvider && selectedModel ? { 
-                  providerId: selectedProvider, 
-                  modelName: selectedModel.name 
-                } : undefined}
-                selectedProvider={selectedProvider}
-                onModelChange={() => {
-                  // Trigger any necessary updates
-                }}
-                onSelectModel={(providerId, modelName) => {
-                  console.log('[ChatWindow] Model selected:', providerId, modelName);
-                  // Find the full model object from llmStatus
-                  const provider = llmStatus?.enabledProviders.find((p: any) => p.id === providerId);
-                  const modelObj = provider?.models.find((m: any) => m.name === modelName);
-                  if (modelObj) {
-                    setSelectedModel(modelObj);
-                  }
-                }}
-              />
-            </>
-          )}
           <button
             onClick={clearHistory}
             className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
@@ -917,7 +933,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
                 <div className="inline-flex items-center space-x-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/20 rounded-full">
                   <div className="w-2 h-2 rounded-full bg-green-500" />
                   <span className="text-sm text-blue-700 dark:text-blue-300">
-                    {currentProvider.name} ({currentProvider.type})
+                    {capitalizeProvider(currentProvider.type)}
                   </span>
                   <span className="text-blue-400 dark:text-blue-500">•</span>
                   <span className="text-sm text-blue-700 dark:text-blue-300">

@@ -18,6 +18,11 @@ export const ProviderSelector: React.FC<ProviderSelectorProps> = ({
   const enabledProviders = llmStatus?.enabledProviders || [];
   const currentProvider = enabledProviders.find(p => p.id === selectedProvider);
 
+  // Helper function to capitalize provider type for display
+  const capitalizeProvider = (type: string): string => {
+    return type.charAt(0).toUpperCase() + type.slice(1);
+  };
+
   const handleProviderSelect = (providerId: string) => {
     onProviderChange(providerId);
     setIsOpen(false);
@@ -62,10 +67,7 @@ export const ProviderSelector: React.FC<ProviderSelectorProps> = ({
         <div className="flex items-center space-x-2">
           <div className={`w-2 h-2 rounded-full ${currentProvider.isHealthy ? 'bg-green-500' : 'bg-red-500'}`} />
           <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-            {currentProvider.name}
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            ({currentProvider.type})
+            {capitalizeProvider(currentProvider.type)}
           </span>
         </div>
         <svg
@@ -95,10 +97,10 @@ export const ProviderSelector: React.FC<ProviderSelectorProps> = ({
                   <div className={`w-2 h-2 rounded-full ${provider.isHealthy ? 'bg-green-500' : 'bg-red-500'}`} />
                   <div>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">
-                      {provider.name}
+                      {capitalizeProvider(provider.type)}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      {provider.type} • {provider.models.length} models
+                      {provider.models.length} models
                     </div>
                   </div>
                 </div>
