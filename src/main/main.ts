@@ -5,10 +5,14 @@ import { dirname } from 'path';
 import { spawn } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { isDev } from '../shared/utils.js';
+import { APP_CONSTANTS } from '../shared/constants.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Set app name to match package.json
+app.setName(APP_CONSTANTS.APP_NAME);
 
 // Detect if running in WSL
 const isWSL = process.platform === 'linux' && (

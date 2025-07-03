@@ -1,6 +1,7 @@
 import { BaseProvider, LlmResponse, StreamingResponse } from './BaseProvider.js';
 import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types.js';
 import { logger } from '../../utils/logger.js';
+import { APP_CONSTANTS } from '../../../shared/constants.js';
 
 // Configuration constants
 const OLLAMA_CHAT_TIMEOUT_MS = 120000; // 2 minutes timeout for chat requests
@@ -65,7 +66,7 @@ export class OllamaProvider extends BaseProvider {
     
     // Ensure baseUrl has the correct default - use IPv4 to avoid IPv6 resolution issues
     if (!this.config.baseUrl) {
-      this.config.baseUrl = 'http://127.0.0.1:11434';
+      this.config.baseUrl = APP_CONSTANTS.DEFAULT_OLLAMA_URL;
     }
   }
 

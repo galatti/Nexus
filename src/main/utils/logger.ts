@@ -1,14 +1,15 @@
 import winston from 'winston';
 import { join } from 'path';
 import { app } from 'electron';
+import { APP_CONSTANTS } from '../../shared/constants.js';
 
 // Create logs directory path
 const getLogsPath = () => {
   try {
-    return join(app.getPath('logs'), 'nexus-mvp');
+    return join(app.getPath('logs'), APP_CONSTANTS.APP_NAME);
   } catch {
     // Fallback if app is not ready
-    return join(process.cwd(), 'logs');
+    return join(process.cwd(), APP_CONSTANTS.LOGS_DIR_NAME);
   }
 };
 
@@ -34,14 +35,14 @@ const createLogger = () => {
       
       // File transport for all logs
       new winston.transports.File({
-        filename: join(logsPath, 'nexus-mvp.log'),
+        filename: join(logsPath, APP_CONSTANTS.LOG_FILE_NAME),
         maxsize: 5242880, // 5MB
         maxFiles: 5
       }),
       
       // Error-only file transport
       new winston.transports.File({
-        filename: join(logsPath, 'error.log'),
+        filename: join(logsPath, APP_CONSTANTS.ERROR_LOG_FILE_NAME),
         level: 'error',
         maxsize: 5242880, // 5MB
         maxFiles: 5

@@ -1,6 +1,7 @@
 import { BaseProvider, LlmResponse, StreamingResponse } from './BaseProvider.js';
 import { LlmProviderConfig, LlmModel, ChatMessage } from '../../../shared/types.js';
 import { logger } from '../../utils/logger.js';
+import { APP_CONSTANTS } from '../../../shared/constants.js';
 
 export interface ToolCall {
   id: string;
@@ -79,8 +80,8 @@ export class OpenRouterProvider extends BaseProvider {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
-          'HTTP-Referer': 'https://nexus-mvp.com',
-          'X-Title': 'Nexus MVP'
+          'HTTP-Referer': APP_CONSTANTS.OPENROUTER_REFERER,
+          'X-Title': APP_CONSTANTS.OPENROUTER_TITLE
         }
       }, 5000);
 
@@ -101,8 +102,8 @@ export class OpenRouterProvider extends BaseProvider {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
-          'HTTP-Referer': 'https://nexus-mvp.com',
-          'X-Title': 'Nexus MVP'
+          'HTTP-Referer': APP_CONSTANTS.OPENROUTER_REFERER,
+          'X-Title': APP_CONSTANTS.OPENROUTER_TITLE
         }
       });
 
@@ -177,8 +178,8 @@ export class OpenRouterProvider extends BaseProvider {
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://nexus-mvp.com',
-          'X-Title': 'Nexus MVP'
+          'HTTP-Referer': APP_CONSTANTS.OPENROUTER_REFERER,
+          'X-Title': APP_CONSTANTS.OPENROUTER_TITLE
         },
         body: JSON.stringify(requestBody)
       }, timeout);
@@ -251,8 +252,8 @@ export class OpenRouterProvider extends BaseProvider {
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://nexus-mvp.com',
-          'X-Title': 'Nexus MVP'
+          'HTTP-Referer': APP_CONSTANTS.OPENROUTER_REFERER,
+          'X-Title': APP_CONSTANTS.OPENROUTER_TITLE
         },
         body: JSON.stringify(requestBody)
       }, timeout);
@@ -342,8 +343,8 @@ export class OpenRouterProvider extends BaseProvider {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
-          'HTTP-Referer': 'https://nexus-mvp.com',
-          'X-Title': 'Nexus MVP'
+          'HTTP-Referer': APP_CONSTANTS.OPENROUTER_REFERER,
+          'X-Title': APP_CONSTANTS.OPENROUTER_TITLE
         }
       });
 
@@ -373,8 +374,8 @@ export class OpenRouterProvider extends BaseProvider {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${this.config.apiKey}`,
-          'HTTP-Referer': 'https://nexus-mvp.com',
-          'X-Title': 'Nexus MVP'
+          'HTTP-Referer': APP_CONSTANTS.OPENROUTER_REFERER,
+          'X-Title': APP_CONSTANTS.OPENROUTER_TITLE
         }
       });
 
