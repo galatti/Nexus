@@ -131,6 +131,33 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   const saveSettings = async () => {
     if (!settings || !hasChanges) return;
 
+    // Validate default provider configuration
+    const enabledProviders = settings.llm.providers.filter(p => p.enabled);
+    const defaultProvider = settings.llm.defaultProviderModel;
+    
+    if (enabledProviders.length > 0) {
+      if (!defaultProvider) {
+        setError('Please select a default provider');
+        return;
+      }
+      
+      const defaultProviderConfig = settings.llm.providers.find(p => p.id === defaultProvider.providerId);
+      if (!defaultProviderConfig || !defaultProviderConfig.enabled) {
+        setError('Default provider must be enabled');
+        return;
+      }
+      
+      if (!defaultProviderConfig.model) {
+        setError('Default provider must have a model selected');
+        return;
+      }
+      
+      if (defaultProviderConfig.type === 'openrouter' && !defaultProviderConfig.apiKey) {
+        setError('OpenRouter provider requires an API key');
+        return;
+      }
+    }
+
     setIsSaving(true);
     setError(null);
 
@@ -558,15 +585,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                 {/* LLM Provider Settings */}
                 {activeTab === 'llm' && (
                   <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-medium text-gray-900 dark:text-white">LLM Providers</h3>
-                      <button
-                        onClick={handleAddProvider}
-                        className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                      >
-                        + Add Provider
-                      </button>
-                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">LLM Providers</h3>
 
                     {/* Show message if no providers */}
                     {(!settings?.llm.providers || settings.llm.providers.length === 0) && (
@@ -601,6 +620,11 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                   <div>
                                     <div className="font-medium text-gray-900 dark:text-white">
                                       {provider.name}
+                                      {settings.llm.defaultProviderModel?.providerId === provider.id && (
+                                        <span className="ml-2 text-xs bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded">
+                                          Default
+                                        </span>
+                                      )}
                                     </div>
                                     <div className="text-sm text-gray-500 dark:text-gray-400">
                                       {provider.type} • {provider.model || 'No model selected'}
@@ -632,12 +656,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                           <h4 className="text-lg font-medium text-gray-900 dark:text-white">
                             Configure: {selectedProvider.name}
                           </h4>
-                          <button
-                            onClick={() => removeProvider(selectedProvider.id)}
-                            className="text-red-600 hover:text-red-700 text-sm"
-                          >
-                            🗑️ Remove
-                          </button>
+                          {/* Remove button disabled per design change */}
                         </div>
 
                         <div className="space-y-4">
@@ -910,12 +929,42 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                   providers: settings.llm.providers.map(p => 
                                     p.id === selectedProvider.id ? { ...p, enabled: e.target.checked } : p
                                   ),
+                                  defaultProviderModel: !settings.llm.defaultProviderModel && e.target.checked && selectedProvider.model
+                                    ? { providerId: selectedProvider.id, modelName: selectedProvider.model }
+                                    : settings.llm.defaultProviderModel
                                 }
                               })}
                               className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                             />
                             <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
                               Enable this provider
+                            </span>
+                          </label>
+
+                          {/* Default Provider */}
+                          <label className="flex items-center">
+                            <input
+                              type="radio"
+                              name="defaultProvider"
+                              checked={settings.llm.defaultProviderModel?.providerId === selectedProvider.id}
+                              disabled={!selectedProvider.enabled}
+                              onChange={(e) => {
+                                if (e.target.checked && selectedProvider.model) {
+                                  updateSettings({
+                                    llm: {
+                                      providers: settings.llm.providers,
+                                      defaultProviderModel: {
+                                        providerId: selectedProvider.id,
+                                        modelName: selectedProvider.model
+                                      }
+                                    }
+                                  });
+                                }
+                              }}
+                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                            />
+                            <span className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                              Set as default provider
                             </span>
                           </label>
                         </div>

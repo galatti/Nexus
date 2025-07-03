@@ -53,8 +53,6 @@ export class SessionManager {
       lastActive: now,
       messageCount: 0,
       tokenCount: 0,
-      model: options.model,
-      provider: options.provider,
       category: options.category || 'general',
       tags: options.tags || [],
       isPinned: options.isPinned || false,
@@ -423,7 +421,23 @@ export class SessionManager {
    */
   private saveStorageToLocalStorage(): void {
     try {
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.storage));
+      // Create a clean copy of storage without waiting placeholders
+      const cleanStorage = { ...this.storage };
+      cleanStorage.sessions = {};
+      
+      for (const [sessionId, sessionStorage] of Object.entries(this.storage.sessions)) {
+        const cleanMessages = sessionStorage.messages.filter(msg => msg.content !== '__waiting__');
+        cleanStorage.sessions[sessionId] = {
+          ...sessionStorage,
+          messages: cleanMessages,
+          session: {
+            ...sessionStorage.session,
+            messageCount: cleanMessages.length
+          }
+        };
+      }
+      
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(cleanStorage));
     } catch (error) {
       console.error('SessionManager: Failed to save storage:', error);
     }
@@ -542,12 +556,6 @@ export class SessionManager {
     if (filters.categories && filters.categories.length > 0) {
       filtered = filtered.filter(session => 
         session.category && filters.categories!.includes(session.category)
-      );
-    }
-
-    if (filters.models && filters.models.length > 0) {
-      filtered = filtered.filter(session => 
-        session.model && filters.models!.includes(session.model)
       );
     }
 

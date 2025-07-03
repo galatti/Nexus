@@ -4,6 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { OptimizedSyntaxHighlighter } from './SyntaxHighlighter';
 import { ChatMessage, LlmStatusResponse, LlmModel, ToolCall } from '../../../shared/types';
 import { ModelSelector } from './ModelSelector';
+import { ProviderSelector } from './ProviderSelector';
 import { useSession } from '../../context/SessionContext';
 
 interface ChatWindowProps {
@@ -31,6 +32,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const [_streamingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [llmStatus, setLlmStatus] = useState<LlmStatusResponse | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<LlmModel | null>(null);
   const [showThinking, setShowThinking] = useState(true);
   const [expandedThinkBlocks, setExpandedThinkBlocks] = useState<Set<string>>(new Set());
   const [expandedToolCalls, setExpandedToolCalls] = useState<Set<string>>(new Set());
@@ -43,8 +46,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   // Sequence counter to ensure only the latest loadLlmInfo call can update state
   const loadSeq = useRef(0);
 
-  // Get current session messages
-  const messages = currentSessionId ? getSessionMessages(currentSessionId) : [];
+  // Get current session messages and filter out any stale waiting placeholders
+  const rawMessages = currentSessionId ? getSessionMessages(currentSessionId) : [];
+  const messages = rawMessages.filter(message => message.content !== '__waiting__');
 
   // Auto-scroll to bottom when new messages arrive
   const scrollToBottom = useCallback(() => {
@@ -64,10 +68,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     }
   }, [isActive, scrollToBottom, messages.length]);
 
-  // Focus input on mount
+  // Focus input on mount and clean up any stale waiting placeholders
   useEffect(() => {
     inputRef.current?.focus();
-  }, []);
+    
+    // Clean up any stale waiting placeholders from previous sessions
+    if (currentSessionId) {
+      const currentMessages = getSessionMessages(currentSessionId);
+      const cleanMessages = currentMessages.filter(m => m.content !== '__waiting__');
+      if (cleanMessages.length !== currentMessages.length) {
+        console.log('Cleaning up stale waiting placeholders');
+        setSessionMessages(currentSessionId, cleanMessages);
+      }
+    }
+  }, [currentSessionId, getSessionMessages, setSessionMessages]);
 
   // Load LLM status and model information function
   const loadLlmInfo = useCallback(async () => {
@@ -149,21 +163,24 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
 
   // Wait for llmStatus before creating a new session
   useEffect(() => {
-    if (sessionLoading || currentSession || currentSessionId || !llmStatus || !llmStatus.defaultProviderModel) return;
+    if (sessionLoading || currentSession || currentSessionId || !llmStatus) return;
     createSession({
-      title: 'New Chat',
-      selectedProviderModel: llmStatus.defaultProviderModel
+      title: 'New Chat'
     });
   }, [sessionLoading, currentSession, currentSessionId, createSession, llmStatus]);
 
-  // On session load, if no selectedProviderModel, set it to defaultProviderModel
+  // Initialize local provider/model selection from defaults
   useEffect(() => {
-    if (currentSession && !currentSession.selectedProviderModel && llmStatus?.defaultProviderModel) {
-      updateSession(currentSession.id, {
-        selectedProviderModel: llmStatus.defaultProviderModel
-      });
+    if (llmStatus?.defaultProviderModel && (!selectedProvider || !selectedModel)) {
+      setSelectedProvider(llmStatus.defaultProviderModel.providerId);
+      // Find the actual model object
+      const provider = llmStatus.enabledProviders.find(p => p.id === llmStatus.defaultProviderModel?.providerId);
+      const model = provider?.models.find(m => m.name === llmStatus.defaultProviderModel?.modelName);
+      if (model) {
+        setSelectedModel(model);
+      }
     }
-  }, [currentSession, llmStatus, updateSession]);
+  }, [llmStatus, selectedProvider, selectedModel]);
 
   // Chronometer for tracking request time
   useEffect(() => {
@@ -188,9 +205,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
 
   useEffect(() => {
     if (currentSession) {
-      console.log('[ChatWindow] Current session selectedProviderModel:', currentSession.selectedProviderModel);
+      console.log('[ChatWindow] Current local selection:', { selectedProvider, selectedModel });
     }
-  }, [currentSession]);
+  }, [currentSession, selectedProvider, selectedModel]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -239,8 +256,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       // Send the full conversation history including the new user message
       const conversationHistory = [...messages, userMessage];
       const result = await window.electronAPI.sendMessage(conversationHistory, {
-        providerId: currentSession?.selectedProviderModel?.providerId,
-        modelName: currentSession?.selectedProviderModel?.modelName
+        providerId: selectedProvider,
+        modelName: selectedModel?.name
       }) as any;
       
       if (result.success) {
@@ -263,6 +280,11 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           setSessionMessages(currentSessionId, [...existing, assistantMessage]);
         }
       } else {
+        // Remove waiting placeholder when there's an error
+        if (currentSessionId) {
+          const existing = getSessionMessages(currentSessionId).filter(m => m.content !== '__waiting__');
+          setSessionMessages(currentSessionId, existing);
+        }
         setError(result.error || 'Failed to send message');
       }
     } catch (error) {
@@ -752,54 +774,132 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   };
 
   // Helper to get current provider/model info
-  function getCurrentProviderModel(
-    selectedProviderModel: { providerId: string; modelName: string } | undefined,
-    enabledProviders: Array<{ id: string; name: string; type: string; models: any[] }> | undefined
-  ): { provider: any | null; model: any | null } {
-    if (!selectedProviderModel || !enabledProviders) return { provider: null, model: null };
-    const provider = enabledProviders.find((p: any) => p.id === selectedProviderModel.providerId);
-    const model = provider?.models?.find((m: any) => m.name === selectedProviderModel.modelName) || null;
-    return { provider, model };
+  function getCurrentProviderModel(): { provider: any | null; model: any | null } {
+    if (!selectedProvider || !selectedModel || !llmStatus?.enabledProviders) return { provider: null, model: null };
+    const provider = llmStatus.enabledProviders.find((p: any) => p.id === selectedProvider);
+    const modelMatch = provider?.models?.find((m: any) => m.name === selectedModel.name) || null;
+    return { provider, model: modelMatch };
   }
 
-  const { provider: currentProvider, model: currentModel } = getCurrentProviderModel(currentSession?.selectedProviderModel, llmStatus?.enabledProviders);
+  const { provider: currentProvider, model: currentModel } = getCurrentProviderModel();
 
   console.log('[ChatWindow] Computed currentProvider:', currentProvider, 'currentModel:', currentModel);
 
-  return (
-    <div className={`flex flex-col h-full ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Chat Assistant
-          </h2>
-          <div className="mt-1">
-            <ModelSelector
-              llmStatus={llmStatus}
-              currentModel={currentModel}
-              selectedProviderModel={currentSession?.selectedProviderModel}
-              onModelChange={loadLlmInfo}
-              onSelectModel={(providerId, modelName) => {
-                if (currentSession) {
-                  updateSession(currentSession.id, {
-                    selectedProviderModel: { providerId, modelName }
-                  });
-                }
-              }}
-            />
-          </div>
+  // Check if we have a valid provider/model configuration
+  const hasValidConfiguration = selectedProvider && selectedModel && currentProvider && currentModel && currentProvider.isHealthy;
+  const hasUnhealthyProvider = selectedProvider && selectedModel && currentProvider && !currentProvider.isHealthy;
 
-          {messages.length > 0 && (
-            <div className="flex justify-end mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+  return (
+    <div className={`flex flex-col h-full bg-white dark:bg-gray-900 ${className}`}>
+      {/* Configuration warning banner */}
+      {!hasValidConfiguration && !hasUnhealthyProvider && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border-b border-yellow-200 dark:border-yellow-800 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                No LLM provider configured
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                const event = new CustomEvent('openSettings', { detail: { tab: 'llm' } });
+                window.dispatchEvent(event);
+              }}
+              className="text-sm text-yellow-800 dark:text-yellow-200 hover:text-yellow-900 dark:hover:text-yellow-100 underline"
+            >
+              Configure LLM Settings
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Unhealthy provider warning */}
+      {hasUnhealthyProvider && (
+        <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium text-red-800 dark:text-red-200">
+                Provider "{currentProvider?.name}" is currently unavailable
+              </span>
+            </div>
+            <div className="flex items-center space-x-2">
               <button
-                onClick={clearHistory}
-                className="px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                onClick={() => loadLlmInfo()}
+                className="text-sm text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100 underline"
               >
-                Clear History
+                Retry
+              </button>
+              <button
+                onClick={() => {
+                  const event = new CustomEvent('openSettings', { detail: { tab: 'llm' } });
+                  window.dispatchEvent(event);
+                }}
+                className="text-sm text-red-800 dark:text-red-200 hover:text-red-900 dark:hover:text-red-100 underline"
+              >
+                Settings
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex items-center space-x-4">
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {currentSession?.title || 'New Chat'}
+          </h1>
+        </div>
+        <div className="flex items-center space-x-4">
+          {hasValidConfiguration && (
+            <>
+              <ProviderSelector
+                llmStatus={llmStatus}
+                selectedProvider={selectedProvider}
+                onProviderChange={(providerId: string) => {
+                  setSelectedProvider(providerId);
+                  // Reset selected model when provider changes
+                  setSelectedModel(null);
+                }}
+              />
+              <ModelSelector
+                llmStatus={llmStatus}
+                currentModel={selectedModel}
+                selectedProviderModel={selectedProvider && selectedModel ? { 
+                  providerId: selectedProvider, 
+                  modelName: selectedModel.name 
+                } : undefined}
+                selectedProvider={selectedProvider}
+                onModelChange={() => {
+                  // Trigger any necessary updates
+                }}
+                onSelectModel={(providerId, modelName) => {
+                  console.log('[ChatWindow] Model selected:', providerId, modelName);
+                  // Find the full model object from llmStatus
+                  const provider = llmStatus?.enabledProviders.find((p: any) => p.id === providerId);
+                  const modelObj = provider?.models.find((m: any) => m.name === modelName);
+                  if (modelObj) {
+                    setSelectedModel(modelObj);
+                  }
+                }}
+              />
+            </>
           )}
+          <button
+            onClick={clearHistory}
+            className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            title="Clear chat history"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -896,8 +996,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           </div>
         )}
 
-        {/* Loading indicator with chronometer */}
-        {isLoading && !_isStreaming && (
+        {/* Loading indicator with chronometer - only show if there's no waiting placeholder in messages */}
+        {isLoading && !_isStreaming && !messages.some(m => m.content === '__waiting__') && (
           <div className="flex justify-start mb-4">
             <div className="max-w-3xl px-4 py-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100">
               <div className="flex items-center space-x-2">
@@ -957,7 +1057,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
               placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               rows={3}
-              disabled={isLoading || _isStreaming}
+              disabled={isLoading || _isStreaming || !hasValidConfiguration}
             />
             <div className="absolute bottom-2 right-2 text-xs text-gray-400">
               {inputMessage.length}/4000
@@ -965,7 +1065,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
           </div>
           <button
             onClick={handleSendMessage}
-            disabled={!inputMessage.trim() || isLoading || _isStreaming}
+            disabled={!inputMessage.trim() || isLoading || _isStreaming || !hasValidConfiguration}
             className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isLoading || _isStreaming ? (

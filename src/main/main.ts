@@ -529,13 +529,8 @@ async function initializeServices(): Promise<void> {
       }
     }
     
-    // Set default provider+model if not set and we have enabled providers
-    if (!settings.llm.defaultProviderModel) {
-      const defaultProviderModel = configManager.findBestDefaultProviderModel();
-      if (defaultProviderModel) {
-        configManager.setDefaultProviderModel(defaultProviderModel.providerId, defaultProviderModel.modelName);
-      }
-    }
+    // Auto-configure defaults on first run or after reset
+    await autoConfigureLlmDefaults();
     
 
     
@@ -555,6 +550,79 @@ async function initializeServices(): Promise<void> {
   } catch (error) {
     console.error('Failed to initialize services:', error);
     throw error;
+  }
+}
+
+/**
+ * Auto-configure LLM defaults on first run or after factory reset.
+ * Tries to detect Ollama with models and sets it as default if available.
+ */
+async function autoConfigureLlmDefaults(): Promise<void> {
+  const settings = configManager.getSettings();
+  
+  // Skip if default is already set
+  if (settings.llm.defaultProviderModel) {
+    console.log('LLM default already configured:', settings.llm.defaultProviderModel);
+    return;
+  }
+  
+  console.log('Auto-configuring LLM defaults...');
+  
+  // Find Ollama provider
+  const ollamaProvider = settings.llm.providers.find(p => p.type === 'ollama');
+  if (!ollamaProvider) {
+    console.log('No Ollama provider found in configuration');
+    return;
+  }
+  
+  try {
+    // Test Ollama connection and get models
+    const { OllamaProvider } = await import('./llm/providers/OllamaProvider.js');
+    const testProvider = new OllamaProvider(ollamaProvider);
+    
+    const isHealthy = await testProvider.checkHealth();
+    if (!isHealthy) {
+      console.log('Ollama is not reachable, skipping auto-configuration');
+      return;
+    }
+    
+    const models = await testProvider.getAvailableModels();
+    if (models.length === 0) {
+      console.log('Ollama is reachable but has no models installed');
+      return;
+    }
+    
+    // Configure Ollama as default with first available model
+    const firstModel = models[0].name;
+    console.log(`Auto-configuring Ollama as default with model: ${firstModel}`);
+    
+    // Update provider configuration
+    const updatedProviders = settings.llm.providers.map(p => 
+      p.type === 'ollama' 
+        ? { ...p, enabled: true, model: firstModel }
+        : p
+    );
+    
+    // Update settings with enabled Ollama and set as default
+    configManager.updateSettings({
+      llm: {
+        providers: updatedProviders,
+        defaultProviderModel: {
+          providerId: ollamaProvider.id,
+          modelName: firstModel
+        }
+      }
+    });
+    
+    // Add provider to LLM manager
+    const updatedOllamaConfig = updatedProviders.find(p => p.type === 'ollama')!;
+    await llmManager.addProvider(updatedOllamaConfig);
+    
+    console.log('Successfully auto-configured Ollama as default LLM provider');
+    
+  } catch (error) {
+    console.log('Failed to auto-configure Ollama:', error);
+    // Don't throw - this is optional auto-configuration
   }
 }
 

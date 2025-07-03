@@ -12,6 +12,7 @@ interface ModelSelectorProps {
   llmStatus: LlmStatusResponse | null;
   currentModel: LlmModel | null;
   selectedProviderModel?: { providerId: string; modelName: string };
+  selectedProvider?: string | null;
   onModelChange: () => void;
   onSelectModel?: (providerId: string, modelName: string) => void;
 }
@@ -20,6 +21,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   llmStatus,
   currentModel,
   selectedProviderModel,
+  selectedProvider,
   onModelChange,
   onSelectModel
 }) => {
@@ -30,16 +32,21 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchAvailableModels = async () => {
+    if (!selectedProvider) {
+      setAvailableModels([]);
+      return;
+    }
+
     if (isLoading) return;
     setIsLoading(true);
     setError(null);
     try {
       const settings = await window.electronAPI.getSettings();
-      console.log('[ModelSelector] Settings providers:', JSON.stringify(settings.llm.providers, null, 2));
+      console.log('[ModelSelector] Fetching models for provider:', selectedProvider);
       const modelOptions: ModelOption[] = [];
-      for (const provider of settings.llm.providers) {
-        if (!provider.enabled) continue;
-        console.log(`[ModelSelector] Fetching models for provider ${provider.name} (${provider.type})`);
+      
+      const provider = settings.llm.providers.find(p => p.id === selectedProvider);
+      if (provider && provider.enabled) {
         try {
           const providerModelsResponse = await window.electronAPI.getModelsForConfig(provider);
           console.log(`[ModelSelector] Models response for ${provider.id}:`, providerModelsResponse);
@@ -57,6 +64,7 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           console.error(`[ModelSelector] Error fetching models for ${provider.id}:`, err);
         }
       }
+
       console.log('[ModelSelector] Compiled model options:', modelOptions);
       setAvailableModels(modelOptions);
     } catch (err) {
@@ -67,34 +75,27 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
     }
   };
 
-  const handleModelSelect = async (option: ModelOption) => {
-    if (
-      selectedProviderModel &&
-      selectedProviderModel.providerId === option.providerId &&
-      selectedProviderModel.modelName === option.model.name
-    ) {
+  const handleModelSelect = (option: ModelOption) => {
+    if (selectedProviderModel?.modelName === option.model.name) {
       setIsOpen(false);
       return;
     }
-    setIsLoading(true);
-    setError(null);
-    try {
-      if (onSelectModel) {
-        onSelectModel(option.providerId, option.model.name);
-      }
-      onModelChange();
-      setIsOpen(false);
-    } catch {
-      setError('Failed to switch model');
-    } finally {
-      setIsLoading(false);
+    
+    if (onSelectModel) {
+      onSelectModel(option.providerId, option.model.name);
     }
+    onModelChange();
+    setIsOpen(false);
   };
 
-  const handleToggleDropdown = () => {
-    if (!isOpen) fetchAvailableModels();
+  const handleToggleDropdown = async () => {
+    if (!isOpen) await fetchAvailableModels();
     setIsOpen(!isOpen);
   };
+
+  useEffect(() => {
+    fetchAvailableModels();
+  }, [selectedProvider, isLoading]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -165,9 +166,11 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
           <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
             {currentModel.name}
           </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {Object.values(groupedModels).flat().find(o => o.model.name === currentModel.name)?.providerName || ''}
-          </span>
+          {currentModel.size && (
+            <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-1.5 py-0.5 rounded">
+              {currentModel.size}
+            </span>
+          )}
         </div>
         <svg
           className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform ${isOpen ? 'rotate-180' : 'rotate-0'}`}
@@ -195,22 +198,22 @@ export const ModelSelector: React.FC<ModelSelectorProps> = ({
                   <button
                     key={`${option.providerId}-${option.model.name}`}
                     onClick={() => handleModelSelect(option)}
-                    className={`flex items-center space-x-2 px-2 py-1 w-full hover:bg-blue-50 dark:hover:bg-blue-800 rounded ${selected ? 'bg-blue-100 dark:bg-blue-900/40' : ''}`}
+                    title={option.model.description || option.model.name}
+                    className={`
+                      flex items-center justify-between gap-2 px-3 py-2 w-full text-left rounded-md cursor-pointer transition-colors
+                      hover:bg-gray-50 dark:hover:bg-gray-700 ${selected ? 'bg-blue-50 dark:bg-blue-900/20' : ''}
+                    `}
                   >
-                    <span className="text-sm font-medium text-blue-700 dark:text-blue-300">{option.model.name}</span>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">{option.providerName}</span>
-                    {option.model.size && (
-                      <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-1.5 py-0.5 rounded">
-                        {option.model.size}
-                      </span>
-                    )}
-                    {option.model.description && (
-                      <span className="text-xs text-gray-400 dark:text-gray-500" title={option.model.description}>
-                        {option.model.description}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">{option.model.name}</span>
+                      {option.model.size && (
+                        <span className="text-xs text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-800/30 px-1.5 py-0.5 rounded">
+                          {option.model.size}
+                        </span>
+                      )}
+                    </div>
                     {selected && (
-                      <svg className="w-4 h-4 text-blue-600 dark:text-blue-400 ml-auto" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
                     )}

@@ -232,10 +232,6 @@ export interface ChatSession {
   lastActive: Date;
   messageCount: number;
   tokenCount: number;
-  selectedProviderModel?: {
-    providerId: string;
-    modelName: string;
-  };
   category?: string;
   tags: string[];
   isPinned: boolean;
@@ -268,7 +264,6 @@ export interface ChatProject {
 
 export interface SessionFilters {
   dateRange?: [Date, Date];
-  models?: string[];
   categories?: string[];
   projects?: string[];
   hasAttachments?: boolean;

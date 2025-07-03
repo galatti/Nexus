@@ -54,6 +54,17 @@ export class ConfigManager {
             enabled: false,
             temperature: 0.7,
             maxTokens: 2048
+          },
+          {
+            id: 'openrouter',
+            type: 'openrouter',
+            name: 'OpenRouter',
+            baseUrl: 'https://openrouter.ai/api/v1',
+            apiKey: '',
+            model: '',
+            enabled: false,
+            temperature: 0.7,
+            maxTokens: 2048
           }
         ],
         defaultProviderModel: undefined
@@ -101,7 +112,7 @@ export class ConfigManager {
   }
 
   private mergeWithDefaults(userSettings: any, defaultSettings: AppSettings): AppSettings {
-    return {
+    const merged: AppSettings = {
       general: {
         theme: userSettings.general?.theme || defaultSettings.general.theme,
         autoStart: userSettings.general?.autoStart ?? defaultSettings.general.autoStart,
@@ -113,6 +124,42 @@ export class ConfigManager {
         servers: Array.isArray(userSettings.mcp?.servers) ? userSettings.mcp.servers : defaultSettings.mcp.servers
       }
     };
+
+    // Ensure provider list has no duplicates (by type)
+    merged.llm.providers = this.deduplicateProviders(merged.llm.providers);
+
+    return merged;
+  }
+
+  /**
+   * Deduplicate providers so we only keep one entry per provider type (ollama / openrouter).
+   * Keeps the first occurrence.
+   */
+  private deduplicateProviders(providers: LlmProviderConfig[]): LlmProviderConfig[] {
+    const seen = new Set<string>();
+    const result: LlmProviderConfig[] = [];
+
+    for (const provider of providers as LlmProviderConfig[]) {
+      const key = provider.type;
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(provider);
+      }
+    }
+
+    // Ensure required default providers exist
+    const defaults = this.getDefaultSettings();
+    const requiredProviders = ['ollama', 'openrouter'];
+    for (const reqType of requiredProviders) {
+      if (!result.find(p => p.type === reqType)) {
+        const defProv = defaults.llm.providers.find(p => p.type === reqType);
+        if (defProv) {
+          result.push(defProv);
+        }
+      }
+    }
+
+    return result;
   }
 
   private saveSettings(): void {
