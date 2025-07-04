@@ -1,5 +1,5 @@
 // Jest setup file for testing
-import { expect, vi } from 'vitest';
+import { vi } from 'vitest';
 import '@testing-library/jest-dom/vitest';
 
 // Mock Electron APIs for testing

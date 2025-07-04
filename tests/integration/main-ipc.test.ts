@@ -3,24 +3,28 @@ import { configManager } from '../../src/main/config/ConfigManager.js';
 import { llmManager } from '../../src/main/llm/LlmManager.js';
 import { permissionManager } from '../../src/main/permissions/PermissionManager.js';
 import { LlmProviderConfig, McpServerConfig } from '../../src/shared/types.js';
+import { ipcMain } from 'electron';
 
 // Mock electron
-const mockIpcMain = {
-  handle: vi.fn(),
-  removeHandler: vi.fn()
-};
-
-const mockBrowserWindow = {
-  webContents: {
-    send: vi.fn()
-  }
-};
-
 vi.mock('electron', () => ({
-  ipcMain: mockIpcMain,
+  ipcMain: {
+    handle: vi.fn(),
+    removeHandler: vi.fn()
+  },
   BrowserWindow: {
-    getFocusedWindow: () => mockBrowserWindow,
-    getAllWindows: () => [mockBrowserWindow]
+    getFocusedWindow: () => ({
+      webContents: {
+        send: vi.fn()
+      }
+    }),
+    getAllWindows: () => [{
+      webContents: {
+        send: vi.fn()
+      }
+    }]
+  },
+  app: {
+    getPath: vi.fn().mockReturnValue('/test/path')
   }
 }));
 
@@ -36,6 +40,12 @@ vi.mock('../../src/main/utils/logger.js', () => ({
 
 // Mock file system operations
 vi.mock('fs', () => ({
+  default: {
+    existsSync: vi.fn().mockReturnValue(false),
+    readFileSync: vi.fn(),
+    writeFileSync: vi.fn(),
+    mkdirSync: vi.fn()
+  },
   existsSync: vi.fn().mockReturnValue(false),
   readFileSync: vi.fn(),
   writeFileSync: vi.fn(),
@@ -44,6 +54,9 @@ vi.mock('fs', () => ({
 
 // Mock path operations
 vi.mock('path', () => ({
+  default: {
+    join: vi.fn((...args) => args.join('/'))
+  },
   join: vi.fn((...args) => args.join('/'))
 }));
 
@@ -55,7 +68,7 @@ describe('Main Process IPC Integration Tests', () => {
     ipcHandlers = new Map();
     
     // Capture IPC handlers
-    mockIpcMain.handle.mockImplementation((channel: string, handler: Function) => {
+    (ipcMain.handle as any).mockImplementation((channel: string, handler: Function) => {
       ipcHandlers.set(channel, handler);
     });
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AppSettings, LlmProviderConfig } from '../../../shared/types';
+import { AppSettings } from '../../../shared/types';
 import { McpIntegration } from '../MCP/McpIntegration';
 import { ToolPermissionsOverview } from './ToolPermissionsOverview';
 import { APP_CONSTANTS } from '../../../shared/constants';
@@ -213,45 +213,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
     });
   };
 
-  const addNewProvider = (provider: LlmProviderConfig) => {
-    if (!settings) return;
-    const updatedProviders = [...settings.llm.providers, provider];
-    updateSettings({
-      llm: {
-        providers: updatedProviders,
-      }
-    });
-    setSelectedProviderId(provider.id);
-  };
 
-  const removeProvider = (providerId: string) => {
-    if (!settings) return;
-    const updatedProviders = settings.llm.providers.filter(p => p.id !== providerId);
-    
-    updateSettings({
-      llm: {
-        providers: updatedProviders,
-      }
-    });
-    
-    // Select first provider if we removed the selected one
-    if (selectedProviderId === providerId && updatedProviders.length > 0) {
-      setSelectedProviderId(updatedProviders[0].id);
-    }
-  };
-
-  const handleAddProvider = () => {
-    const newProvider: LlmProviderConfig = {
-      id: `provider-${Date.now()}`,
-      type: 'ollama',
-      name: 'New Provider',
-      model: '',
-      enabled: false,
-      temperature: 0.7,
-      maxTokens: 2048
-    };
-    addNewProvider(newProvider);
-  };
 
   // Filter models based on search query
   const filteredModels = availableModels.filter(model => {

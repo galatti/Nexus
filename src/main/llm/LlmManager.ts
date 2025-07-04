@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { BaseProvider, LlmResponse, StreamingResponse } from './providers/BaseProvider.js';
+import { BaseProvider, LlmResponse } from './providers/BaseProvider.js';
 import { OllamaProvider } from './providers/OllamaProvider.js';
 import { OpenRouterProvider } from './providers/OpenRouterProvider.js';
 import { LlmProviderConfig, LlmModel, ChatMessage, ProviderHealth, ProviderWarning } from '../../shared/types.js';
@@ -408,14 +408,6 @@ export class LlmManager extends EventEmitter {
     return config.id || `${config.type}-${config.name.toLowerCase().replace(/\s+/g, '-')}`;
   }
 
-  private getProviderIdByInstance(provider: BaseProvider): string | null {
-    for (const [id, p] of this.providers) {
-      if (p === provider) {
-        return id;
-      }
-    }
-    return null;
-  }
 }
 
 // Singleton instance

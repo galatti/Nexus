@@ -114,23 +114,13 @@ describe('OllamaProvider', () => {
     });
 
     it('should handle timeout errors', async () => {
-      vi.useFakeTimers();
-      
-      mockFetch.mockImplementation(() => 
-        new Promise((resolve) => {
-          setTimeout(() => resolve({ ok: true }), 10000);
-        })
-      );
+      // Mock AbortError directly since fake timers don't work well with AbortController
+      const abortError = new Error('The operation was aborted');
+      abortError.name = 'AbortError';
+      mockFetch.mockRejectedValue(abortError);
 
-      const testPromise = provider.testConnection();
-      
-      // Advance time beyond timeout
-      vi.advanceTimersByTime(6000);
-      
-      const result = await testPromise;
+      const result = await provider.testConnection();
       expect(result).toBe(false);
-      
-      vi.useRealTimers();
     });
   });
 

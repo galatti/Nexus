@@ -3,11 +3,7 @@ import {
   ChatMessage, 
   SessionStorage, 
   AppStorage, 
-  UserPreferences, 
-  SessionIndex,
-  SessionFilters,
-  SessionMetadata,
-  SessionContext
+  SessionFilters
 } from '../../shared/types';
 
 /**

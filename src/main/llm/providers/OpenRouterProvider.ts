@@ -148,7 +148,6 @@ export class OpenRouterProvider extends BaseProvider {
       }
 
       logger.debug('OpenRouter: Starting message send with model:', options.model);
-      const startTime = Date.now();
 
       const modelName = this.getModelName(options.model);
       const formattedMessages = this.formatMessages(messages);

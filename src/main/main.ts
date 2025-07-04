@@ -230,6 +230,7 @@ function cleanupText(text: string): string {
   return cleaned;
 }
 
+/*
 function formatToolResult(toolName: string, resultText: string): string {
   // Detect data types and format accordingly
   if (resultText.startsWith('Error:')) {
@@ -296,9 +297,6 @@ function formatToolResult(toolName: string, resultText: string): string {
             const trimmed = line.trim();
             if (trimmed.startsWith('Title:')) {
               formatted += `📄 **${trimmed}**\n`;
-            } else if (trimmed.startsWith('URL:')) {
-              const url = trimmed.replace('URL:', '').trim();
-              formatted += `🔗 **URL:** [${url}](${url})\n`;
             } else if (trimmed.startsWith('Description:')) {
               formatted += `📝 **${trimmed}**\n`;
             } else if (trimmed) {
@@ -317,6 +315,7 @@ function formatToolResult(toolName: string, resultText: string): string {
   const icon = getToolIcon(toolName);
   return `${icon} **Result:**\n${resultText}`;
 }
+*/
 
 function formatAIResponse(content: string): string {
   // First, clean up corrupted Unicode and HTML entities
@@ -433,6 +432,7 @@ function formatAIResponse(content: string): string {
   return formatted;
 }
 
+/*
 function getToolIcon(toolName: string): string {
   if (toolName.includes('read')) return '📖';
   if (toolName.includes('write') || toolName.includes('create')) return '✏️';
@@ -446,7 +446,9 @@ function getToolIcon(toolName: string): string {
   if (toolName.includes('web') || toolName.includes('search')) return '🌐';
   return '🔧'; // Default tool icon
 }
+*/
 
+/*
 function generateToolSummary(toolName: string, result: unknown): string {
   try {
     if (!result) return 'No result';
@@ -510,6 +512,7 @@ function generateToolSummary(toolName: string, result: unknown): string {
     return 'Result processed';
   }
 }
+*/
 
 // Initialize services
 async function initializeServices(): Promise<void> {
@@ -1649,8 +1652,6 @@ ipcMain.handle('llm:getStatus', async () => {
       }
     }
 
-    // Merge and return
-    const data = { ...status, defaultProviderModel };
     // Merge and return
     return { success: true, data: { ...status, defaultProviderModel } };
   } catch (error) {

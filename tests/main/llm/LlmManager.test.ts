@@ -135,6 +135,7 @@ describe('LlmManager', () => {
     });
 
     it('should check health when provider is enabled', async () => {
+      await llmManager.addProvider(mockConfig);
       await llmManager.updateProvider('test-provider', { enabled: true });
       
       // Should be called during update
