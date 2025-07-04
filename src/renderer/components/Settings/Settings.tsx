@@ -136,30 +136,42 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   const saveSettings = async () => {
     if (!settings || !hasChanges) return;
 
-    // Validate default provider configuration
+    // Validate default provider configuration only when there are enabled providers
     const enabledProviders = settings.llm.providers.filter(p => p.enabled);
     const defaultProvider = settings.llm.defaultProviderModel;
     
     if (enabledProviders.length > 0) {
+      // Only validate default provider if we have enabled providers and no default is set
       if (!defaultProvider) {
-        setError('Please select a default provider');
-        return;
-      }
-      
-      const defaultProviderConfig = settings.llm.providers.find(p => p.id === defaultProvider.providerId);
-      if (!defaultProviderConfig || !defaultProviderConfig.enabled) {
-        setError('Default provider must be enabled');
-        return;
-      }
-      
-      if (!defaultProviderConfig.model) {
-        setError('Default provider must have a model selected');
-        return;
-      }
-      
-      if (defaultProviderConfig.type === 'openrouter' && !defaultProviderConfig.apiKey) {
-        setError('OpenRouter provider requires an API key');
-        return;
+        // Try to auto-select a default from enabled providers
+        const firstEnabledProvider = enabledProviders.find(p => p.model);
+        if (firstEnabledProvider) {
+          // Auto-set default provider to first enabled provider with a model
+          settings.llm.defaultProviderModel = {
+            providerId: firstEnabledProvider.id,
+            modelName: firstEnabledProvider.model
+          };
+        } else {
+          setError('Please select a default provider');
+          return;
+        }
+      } else {
+        // Validate the selected default provider
+        const defaultProviderConfig = settings.llm.providers.find(p => p.id === defaultProvider.providerId);
+        if (!defaultProviderConfig || !defaultProviderConfig.enabled) {
+          setError('Default provider must be enabled');
+          return;
+        }
+        
+        if (!defaultProviderConfig.model) {
+          setError('Default provider must have a model selected');
+          return;
+        }
+        
+        if (defaultProviderConfig.type === 'openrouter' && !defaultProviderConfig.apiKey) {
+          setError('OpenRouter provider requires an API key');
+          return;
+        }
       }
     }
 
