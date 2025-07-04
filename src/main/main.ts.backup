@@ -7,10 +7,6 @@ import { existsSync, readFileSync, rmSync, mkdirSync } from 'fs';
 import { isDev } from '../shared/utils.js';
 import { APP_CONSTANTS } from '../shared/constants.js';
 import { logger } from './utils/logger.js';
-import { IPCLogger } from './security/IPCLogger.js';
-import { IPCValidator } from './security/IPCValidator.js';
-import { IPCSchemas } from './security/IPCSchemas.js';
-import { SecurityMonitor } from './security/SecurityMonitor.js';
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -130,10 +126,6 @@ app.whenReady().then(async () => {
   try {
     createWindow();
     await initializeServices();
-    
-    // Initialize security monitoring
-    SecurityMonitor.getInstance().startMonitoring();
-    logger.info('Security monitoring initialized');
   } catch (error) {
     console.error('Failed to initialize application:', error);
     app.quit();
@@ -643,116 +635,86 @@ async function autoConfigureLlmDefaults(): Promise<void> {
 // IPC Handlers
 
 // App info handlers
-ipcMain.handle('app:getVersion', IPCValidator.wrapHandler('app:getVersion',
-  (event, ...args) => {
-    IPCLogger.logCall('app:getVersion', args, event);
-    return app.getVersion();
-  },
-  IPCSchemas['app:getVersion']
-));
+ipcMain.handle('app:getVersion', () => {
+  return app.getVersion();
+});
 
 // Window control handlers
-ipcMain.handle('window:minimize', IPCValidator.wrapHandler('window:minimize',
-  () => {
-    mainWindow?.minimize();
-  },
-  IPCSchemas['window:minimize']
-));
+ipcMain.handle('window:minimize', () => {
+  mainWindow?.minimize();
+});
 
-ipcMain.handle('window:maximize', IPCValidator.wrapHandler('window:maximize',
-  () => {
-    if (mainWindow?.isMaximized()) {
-      mainWindow.unmaximize();
-    } else {
-      mainWindow?.maximize();
-    }
-  },
-  IPCSchemas['window:maximize']
-));
+ipcMain.handle('window:maximize', () => {
+  if (mainWindow?.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow?.maximize();
+  }
+});
 
-ipcMain.handle('window:close', IPCValidator.wrapHandler('window:close',
-  () => {
-    mainWindow?.close();
-  },
-  IPCSchemas['window:close']
-));
+ipcMain.handle('window:close', () => {
+  mainWindow?.close();
+});
 
 // Settings handlers
-ipcMain.handle('settings:get', IPCValidator.wrapHandler('settings:get', 
-  () => {
-    return configManager.getSettings();
-  }
-));
+ipcMain.handle('settings:get', () => {
+  return configManager.getSettings();
+});
 
 // Secure storage handlers
-ipcMain.handle('secure-storage:getProviderApiKey', IPCValidator.wrapHandler('secure-storage:getProviderApiKey',
-  (_event, providerId: string) => {
-    try {
-      return configManager.getProviderApiKey(providerId);
-    } catch (error) {
-      logger.error('Failed to get provider API key:', error);
-      return '';
-    }
-  },
-  IPCSchemas['secure-storage:getProviderApiKey']
-));
-
-ipcMain.handle('secure-storage:setProviderApiKey', IPCValidator.wrapHandler('secure-storage:setProviderApiKey',
-  (_event, providerId: string, apiKey: string) => {
-    try {
-      configManager.setProviderApiKey(providerId, apiKey);
-      return { success: true };
-    } catch (error) {
-      logger.error('Failed to set provider API key:', error);
-      return { success: false, error: error instanceof Error ? error.message : String(error) };
-    }
-  },
-  IPCSchemas['secure-storage:setProviderApiKey']
-));
-
-ipcMain.handle('secure-storage:getSecurityStatus', IPCValidator.wrapHandler('secure-storage:getSecurityStatus',
-  () => {
-    try {
-      return configManager.getSecurityStatus();
-    } catch (error) {
-      logger.error('Failed to get security status:', error);
-      return {
-        secureStorageAvailable: false,
-        encryptedApiKeys: 0,
-        plainTextApiKeys: 0,
-        totalApiKeys: 0
-      };
-    }
-  },
-  IPCSchemas['secure-storage:getSecurityStatus']
-));
-
-ipcMain.handle('secure-storage:isAvailable', IPCValidator.wrapHandler('secure-storage:isAvailable',
-  () => {
-    try {
-      return configManager.isSecureStorageAvailable();
-    } catch (error) {
-      logger.error('Failed to check secure storage availability:', error);
-      return false;
-    }
-  },
-  IPCSchemas['secure-storage:isAvailable']
-));
-
-ipcMain.handle('secure-storage:forceMigrate', IPCValidator.wrapHandler('secure-storage:forceMigrate',
-  () => {
-    try {
-      return configManager.forceMigrateApiKeys();
-    } catch (error) {
-      logger.error('Failed to force migrate API keys:', error);
-      return false;
-    }
+ipcMain.handle('secure-storage:getProviderApiKey', (_event, providerId: string) => {
+  try {
+    return configManager.getProviderApiKey(providerId);
+  } catch (error) {
+    logger.error('Failed to get provider API key:', error);
+    return '';
   }
-));
+});
 
-ipcMain.handle('settings:set', IPCValidator.wrapHandler('settings:set',
-  async (_event, settings) => {
-    console.log('[IPC] settings:set invoked');
+ipcMain.handle('secure-storage:setProviderApiKey', (_event, providerId: string, apiKey: string) => {
+  try {
+    configManager.setProviderApiKey(providerId, apiKey);
+    return { success: true };
+  } catch (error) {
+    logger.error('Failed to set provider API key:', error);
+    return { success: false, error: error instanceof Error ? error.message : String(error) };
+  }
+});
+
+ipcMain.handle('secure-storage:getSecurityStatus', () => {
+  try {
+    return configManager.getSecurityStatus();
+  } catch (error) {
+    logger.error('Failed to get security status:', error);
+    return {
+      secureStorageAvailable: false,
+      encryptedApiKeys: 0,
+      plainTextApiKeys: 0,
+      totalApiKeys: 0
+    };
+  }
+});
+
+ipcMain.handle('secure-storage:isAvailable', () => {
+  try {
+    return configManager.isSecureStorageAvailable();
+  } catch (error) {
+    logger.error('Failed to check secure storage availability:', error);
+    return false;
+  }
+});
+
+ipcMain.handle('secure-storage:forceMigrate', () => {
+  try {
+    return configManager.forceMigrateApiKeys();
+  } catch (error) {
+    logger.error('Failed to force migrate API keys:', error);
+    return false;
+  }
+});
+
+ipcMain.handle('settings:set', async (_event, settings) => {
+  console.log('[IPC] settings:set invoked');
   console.log('[IPC] settings:set payload:', JSON.stringify(settings, null, 2));
   try {
     configManager.updateSettings(settings);
@@ -818,13 +780,10 @@ ipcMain.handle('settings:set', IPCValidator.wrapHandler('settings:set',
     console.error('Failed to update settings:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['settings:save']
-));
+});
 
-ipcMain.handle('llm:test-connection', IPCValidator.wrapHandler('llm:test-connection',
-  async (_event, providerConfig) => {
-    try {
+ipcMain.handle('llm:test-connection', async (_event, providerConfig) => {
+  try {
     // Create a temporary provider instance to test the connection
     const { OllamaProvider } = await import('./llm/providers/OllamaProvider.js');
     const { OpenRouterProvider } = await import('./llm/providers/OpenRouterProvider.js');
@@ -861,12 +820,10 @@ ipcMain.handle('llm:test-connection', IPCValidator.wrapHandler('llm:test-connect
       error: error instanceof Error ? error.message : String(error) 
     };
   }
-  }
-));
+});
 
-ipcMain.handle('settings:reset', IPCValidator.wrapHandler('settings:reset',
-  async (_event) => {
-    try {
+ipcMain.handle('settings:reset', async (_event) => {
+  try {
     // Stop all running MCP servers
     const servers = configManager.getMcpServers();
     for (const server of servers) {
@@ -917,13 +874,11 @@ ipcMain.handle('settings:reset', IPCValidator.wrapHandler('settings:reset',
     console.error('Failed to reset settings:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // MCP handlers
-ipcMain.handle('mcp:start', IPCValidator.wrapHandler('mcp:start',
-  async (_event, config) => {
-    try {
+ipcMain.handle('mcp:start', async (_event, config) => {
+  try {
     await serverManager.startServer(config);
     
     // Save server configuration
@@ -934,102 +889,84 @@ ipcMain.handle('mcp:start', IPCValidator.wrapHandler('mcp:start',
     console.error('MCP server start failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['mcp:startServer']
-));
+});
 
-ipcMain.handle('mcp:stop', IPCValidator.wrapHandler('mcp:stop',
-  async (_event, serverId) => {
-    try {
+ipcMain.handle('mcp:stop', async (_event, serverId) => {
+  try {
     await serverManager.stopServer(serverId);
     return { success: true };
   } catch (error) {
     console.error('MCP server stop failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['mcp:stopServer']
-));
+});
 
-ipcMain.handle('mcp:executeTool', IPCValidator.wrapHandler('mcp:executeTool',
-  async (_event, serverId, toolName, args) => {
-    try {
+ipcMain.handle('mcp:executeTool', async (_event, serverId, toolName, args) => {
+  try {
     const result = await serverManager.executeTool(serverId, toolName, args);
     return { success: true, result };
   } catch (error) {
     console.error('MCP tool execution failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // Resource operations
-ipcMain.handle('mcp:readResource', IPCValidator.wrapHandler('mcp:readResource',
-  async (_event, serverId, uri) => {
-    try {
+ipcMain.handle('mcp:readResource', async (_event, serverId, uri) => {
+  try {
     const result = await serverManager.readResource(serverId, uri);
     return { success: true, result };
   } catch (error) {
     console.error('MCP resource read failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('mcp:subscribeResource', IPCValidator.wrapHandler('mcp:subscribeResource',
-  async (_event, serverId, uri) => {
-    try {
+ipcMain.handle('mcp:subscribeResource', async (_event, serverId, uri) => {
+  try {
     await serverManager.subscribeToResource(serverId, uri);
     return { success: true };
   } catch (error) {
     console.error('MCP resource subscription failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('mcp:unsubscribeResource', IPCValidator.wrapHandler('mcp:unsubscribeResource',
-  async (_event, serverId, uri) => {
-    try {
+ipcMain.handle('mcp:unsubscribeResource', async (_event, serverId, uri) => {
+  try {
     await serverManager.unsubscribeFromResource(serverId, uri);
     return { success: true };
   } catch (error) {
     console.error('MCP resource unsubscription failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // Prompt operations
-ipcMain.handle('mcp:executePrompt', IPCValidator.wrapHandler('mcp:executePrompt',
-  async (_event, serverId, promptName, args) => {
-    try {
+ipcMain.handle('mcp:executePrompt', async (_event, serverId, promptName, args) => {
+  try {
     const result = await serverManager.executePrompt(serverId, promptName, args);
     return { success: true, result };
   } catch (error) {
     console.error('MCP prompt execution failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // LLM sampling via MCP
-ipcMain.handle('mcp:sampleLLM', IPCValidator.wrapHandler('mcp:sampleLLM',
-  async (_event, serverId, messages, options) => {
-    try {
+ipcMain.handle('mcp:sampleLLM', async (_event, serverId, messages, options) => {
+  try {
     const result = await serverManager.sampleLLM(serverId, messages, options);
     return { success: true, result };
   } catch (error) {
     console.error('MCP LLM sampling failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // MCP Server management handlers
-ipcMain.handle('mcp:addServer', IPCValidator.wrapHandler('mcp:addServer',
-  async (_event, serverConfig) => {
-    try {
+ipcMain.handle('mcp:addServer', async (_event, serverConfig) => {
+  try {
     // Generate unique ID if not provided
     if (!serverConfig.id) {
       serverConfig.id = `server-${Date.now()}`;
@@ -1048,13 +985,10 @@ ipcMain.handle('mcp:addServer', IPCValidator.wrapHandler('mcp:addServer',
     console.error('Failed to add MCP server:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['mcp:addServer']
-));
+});
 
-ipcMain.handle('mcp:updateServer', IPCValidator.wrapHandler('mcp:updateServer',
-  async (_event, serverId, updates) => {
-    try {
+ipcMain.handle('mcp:updateServer', async (_event, serverId, updates) => {
+  try {
     configManager.updateMcpServer(serverId, updates);
     
     // If the server is running and critical settings changed, restart it
@@ -1076,13 +1010,10 @@ ipcMain.handle('mcp:updateServer', IPCValidator.wrapHandler('mcp:updateServer',
     console.error('Failed to update MCP server:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['mcp:updateServer']
-));
+});
 
-ipcMain.handle('mcp:removeServer', IPCValidator.wrapHandler('mcp:removeServer',
-  async (_event, serverId) => {
-    try {
+ipcMain.handle('mcp:removeServer', async (_event, serverId) => {
+  try {
     // Stop the server if it's running
     await serverManager.stopServer(serverId);
     
@@ -1094,13 +1025,10 @@ ipcMain.handle('mcp:removeServer', IPCValidator.wrapHandler('mcp:removeServer',
     console.error('Failed to remove MCP server:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['mcp:removeServer']
-));
+});
 
-ipcMain.handle('mcp:removeAllServers', IPCValidator.wrapHandler('mcp:removeAllServers',
-  async (_event) => {
-    try {
+ipcMain.handle('mcp:removeAllServers', async (_event) => {
+  try {
     // Stop all running servers
     await serverManager.stopAllServers();
     
@@ -1115,12 +1043,10 @@ ipcMain.handle('mcp:removeAllServers', IPCValidator.wrapHandler('mcp:removeAllSe
     console.error('Failed to remove all MCP servers:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('mcp:getServers', IPCValidator.wrapHandler('mcp:getServers',
-  async (_event) => {
-    try {
+ipcMain.handle('mcp:getServers', async (_event) => {
+  try {
     const servers = configManager.getMcpServers();
     // Add current server state to each server
     const serversWithState = servers.map(server => ({
@@ -1132,13 +1058,10 @@ ipcMain.handle('mcp:getServers', IPCValidator.wrapHandler('mcp:getServers',
     console.error('Failed to get MCP servers:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['mcp:listServers']
-));
+});
 
-ipcMain.handle('mcp:testConnection', IPCValidator.wrapHandler('mcp:testConnection',
-  async (_event, serverConfigOrId) => {
-    try {
+ipcMain.handle('mcp:testConnection', async (_event, serverConfigOrId) => {
+  try {
     let server;
     
     // Handle both server config (for wizard) and serverId (for existing servers)
@@ -1255,12 +1178,10 @@ ipcMain.handle('mcp:testConnection', IPCValidator.wrapHandler('mcp:testConnectio
     console.error('Failed to test connection:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('mcp:getServerCapabilities', IPCValidator.wrapHandler('mcp:getServerCapabilities',
-  async (_event, serverId) => {
-    try {
+ipcMain.handle('mcp:getServerCapabilities', async (_event, serverId) => {
+  try {
     const serverState = serverManager.getServerState(serverId);
     if (!serverState || serverState.state !== 'ready') {
       return { success: false, error: 'Server not ready' };
@@ -1285,13 +1206,10 @@ ipcMain.handle('mcp:getServerCapabilities', IPCValidator.wrapHandler('mcp:getSer
     console.error('Failed to get server capabilities:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['mcp:getServerStatus']
-));
+});
 
-ipcMain.handle('mcp:getAllCapabilities', IPCValidator.wrapHandler('mcp:getAllCapabilities',
-  async (_event) => {
-    try {
+ipcMain.handle('mcp:getAllCapabilities', async (_event) => {
+  try {
     const allTools = serverManager.getAllAvailableTools();
     
     // Group tools by server
@@ -1337,12 +1255,10 @@ ipcMain.handle('mcp:getAllCapabilities', IPCValidator.wrapHandler('mcp:getAllCap
     console.error('Failed to get all capabilities:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('mcp:updateServerEnabled', IPCValidator.wrapHandler('mcp:updateServerEnabled',
-  async (_event, serverId, enabled) => {
-    try {
+ipcMain.handle('mcp:updateServerEnabled', async (_event, serverId, enabled) => {
+  try {
     const servers = configManager.getMcpServers();
     const serverIndex = servers.findIndex(s => s.id === serverId);
     
@@ -1378,13 +1294,11 @@ ipcMain.handle('mcp:updateServerEnabled', IPCValidator.wrapHandler('mcp:updateSe
     console.error('Failed to update server enabled status:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // Permission handlers
-ipcMain.handle('permissions:getPending', IPCValidator.wrapHandler('permissions:getPending',
-  () => {
-    try {
+ipcMain.handle('permissions:getPending', () => {
+  try {
     const pending = permissionManager.getPendingApprovals();
     // Create serializable versions (remove functions and timeout objects)
     const serializablePending = pending.map(approval => ({
@@ -1403,25 +1317,21 @@ ipcMain.handle('permissions:getPending', IPCValidator.wrapHandler('permissions:g
     console.error('Failed to get pending approvals:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('permissions:respond', IPCValidator.wrapHandler('permissions:respond',
-  (_event, approvalId, result) => {
-    try {
+ipcMain.handle('permissions:respond', (_event, approvalId, result) => {
+  try {
     const success = permissionManager.respondToApproval(approvalId, result);
     return { success };
   } catch (error) {
     console.error('Failed to respond to approval:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // Additional permission management handlers
-ipcMain.handle('permissions:getAll', IPCValidator.wrapHandler('permissions:getAll',
-  () => {
-    try {
+ipcMain.handle('permissions:getAll', () => {
+  try {
     const permissions = permissionManager.getAllPermissions();
     // Convert dates to strings for serialization
     const serializable = permissions.map(permission => ({
@@ -1435,68 +1345,57 @@ ipcMain.handle('permissions:getAll', IPCValidator.wrapHandler('permissions:getAl
     console.error('Failed to get all permissions:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('permissions:getStats', IPCValidator.wrapHandler('permissions:getStats',
-  () => {
-    try {
+ipcMain.handle('permissions:getStats', () => {
+  try {
     const stats = permissionManager.getPermissionStats();
     return { success: true, data: stats };
   } catch (error) {
     console.error('Failed to get permission stats:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('permissions:revoke', IPCValidator.wrapHandler('permissions:revoke',
-  (_event, serverId, toolName) => {
-    try {
+ipcMain.handle('permissions:revoke', (_event, serverId, toolName) => {
+  try {
     const success = permissionManager.revokePermission(serverId, toolName);
     return { success };
   } catch (error) {
     console.error('Failed to revoke permission:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('permissions:clearSession', IPCValidator.wrapHandler('permissions:clearSession',
-  () => {
-    try {
+ipcMain.handle('permissions:clearSession', () => {
+  try {
     permissionManager.clearSessionPermissions();
     return { success: true };
   } catch (error) {
     console.error('Failed to clear session permissions:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('permissions:clearAll', IPCValidator.wrapHandler('permissions:clearAll',
-  () => {
-    try {
+ipcMain.handle('permissions:clearAll', () => {
+  try {
     permissionManager.clearAllPermissions();
     return { success: true };
   } catch (error) {
     console.error('Failed to clear all permissions:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
-ipcMain.handle('permissions:clearExpired', IPCValidator.wrapHandler('permissions:clearExpired',
-  () => {
-    try {
+ipcMain.handle('permissions:clearExpired', () => {
+  try {
     const clearedCount = permissionManager.clearExpiredPermissions();
     return { success: true, clearedCount };
   } catch (error) {
     console.error('Failed to clear expired permissions:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  }
-));
+});
 
 // Function to detect tool usage from response content
 function detectToolUsageFromContent(content: string, availableTools: Array<{ serverId: string; name: string; description: string }>): Array<{ id: string; name: string; args: Record<string, unknown>; result?: unknown }> {
@@ -1571,9 +1470,8 @@ function detectToolUsageFromContent(content: string, availableTools: Array<{ ser
 }
 
 // LLM handlers
-ipcMain.handle('llm:sendMessage', IPCValidator.wrapHandler('llm:sendMessage',
-  async (_event, conversationHistory, options = {}) => {
-    try {
+ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = {}) => {
+  try {
     let messages = [...conversationHistory];
     let extractedToolCalls: Array<{ id: string; name: string; args: Record<string, unknown>; result?: unknown }> = [];
     
@@ -1805,13 +1703,10 @@ ipcMain.handle('llm:sendMessage', IPCValidator.wrapHandler('llm:sendMessage',
     console.error('LLM message failed:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['llm:chat']
-));
+});
 
-ipcMain.handle('llm:getStatus', IPCValidator.wrapHandler('llm:getStatus',
-  async () => {
-    try {
+ipcMain.handle('llm:getStatus', async () => {
+  try {
     // Fetch current LLM status including enabled providers and their models
     const status = await llmManager.getStatus();
 
@@ -1836,26 +1731,20 @@ ipcMain.handle('llm:getStatus', IPCValidator.wrapHandler('llm:getStatus',
     console.error('Failed to get LLM status:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['llm:getStatus']
-));
+});
 
-ipcMain.handle('llm:getAvailableModels', IPCValidator.wrapHandler('llm:getAvailableModels',
-  async (_event, providerId) => {
-    try {
+ipcMain.handle('llm:getAvailableModels', async (_event, providerId) => {
+  try {
     const models = await llmManager.getAvailableModels(providerId);
     return { success: true, data: models };
   } catch (error) {
     console.error('Failed to get available models:', error);
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
-  },
-  IPCSchemas['providers:getModels']
-));
+});
 
-ipcMain.handle('llm:getModelsForConfig', IPCValidator.wrapHandler('llm:getModelsForConfig',
-  async (_event, providerConfig) => {
-    try {
+ipcMain.handle('llm:getModelsForConfig', async (_event, providerConfig) => {
+  try {
     // Create a temporary provider instance to fetch models
     const { OllamaProvider } = await import('./llm/providers/OllamaProvider.js');
     const { OpenRouterProvider } = await import('./llm/providers/OpenRouterProvider.js');
@@ -1887,8 +1776,7 @@ ipcMain.handle('llm:getModelsForConfig', IPCValidator.wrapHandler('llm:getModels
       error: error instanceof Error ? error.message : String(error) 
     };
   }
-  }
-));
+});
 
 // Event forwarding from services to renderer
 serverManager.on('stateChange', (serverState) => {

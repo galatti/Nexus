@@ -16,6 +16,18 @@ const electronAPI = {
   setSettings: (settings: Record<string, unknown>) => 
     ipcRenderer.invoke('settings:set', settings),
   resetSettings: () => ipcRenderer.invoke('settings:reset'),
+
+  // Secure storage
+  getProviderApiKey: (providerId: string) => 
+    ipcRenderer.invoke('secure-storage:getProviderApiKey', providerId),
+  setProviderApiKey: (providerId: string, apiKey: string) => 
+    ipcRenderer.invoke('secure-storage:setProviderApiKey', providerId, apiKey),
+  getSecurityStatus: () => 
+    ipcRenderer.invoke('secure-storage:getSecurityStatus'),
+  isSecureStorageAvailable: () => 
+    ipcRenderer.invoke('secure-storage:isAvailable'),
+  forceMigrateApiKeys: () => 
+    ipcRenderer.invoke('secure-storage:forceMigrate'),
   
   // MCP operations
   connectToServer: (config: Record<string, unknown>) => 

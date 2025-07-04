@@ -33,6 +33,13 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
   const [showModelDropdown, setShowModelDropdown] = useState(false);
   const [selectedModelIndex, setSelectedModelIndex] = useState(-1);
   const [selectedProviderId, setSelectedProviderId] = useState<string | null>(null);
+  const [providerApiKeys, setProviderApiKeys] = useState<Record<string, string>>({});
+  const [securityStatus, setSecurityStatus] = useState<{
+    secureStorageAvailable: boolean;
+    encryptedApiKeys: number;
+    plainTextApiKeys: number;
+    totalApiKeys: number;
+  } | null>(null);
 
   // Load settings when component opens
   useEffect(() => {
@@ -71,7 +78,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
       
       return () => clearTimeout(timer);
     }
-  }, [selectedProvider?.type, selectedProvider?.apiKey, selectedProvider?.baseUrl, activeTab]);
+  }, [selectedProvider?.type, selectedProvider?.baseUrl, activeTab, providerApiKeys[selectedProvider?.id || '']]);
 
   // Sync model search query with selected provider model
   useEffect(() => {
@@ -125,11 +132,61 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
       } else {
         setSettings(currentSettings);
       }
+
+      // Load API keys securely
+      await loadProviderApiKeys(currentSettings.llm.providers);
+      
+      // Load security status
+      await loadSecurityStatus();
     } catch (error) {
       console.error('Failed to load settings:', error);
       setError('Failed to load settings');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadProviderApiKeys = async (providers: any[]) => {
+    const apiKeys: Record<string, string> = {};
+    
+    for (const provider of providers) {
+      if (provider.type === 'openrouter') {
+        try {
+          const apiKey = await window.electronAPI.getProviderApiKey(provider.id);
+          apiKeys[provider.id] = apiKey || '';
+        } catch (error) {
+          console.error(`Failed to load API key for provider ${provider.id}:`, error);
+          apiKeys[provider.id] = '';
+        }
+      }
+    }
+    
+    setProviderApiKeys(apiKeys);
+  };
+
+  const loadSecurityStatus = async () => {
+    try {
+      const status = await window.electronAPI.getSecurityStatus();
+      setSecurityStatus(status);
+    } catch (error) {
+      console.error('Failed to load security status:', error);
+      setSecurityStatus(null);
+    }
+  };
+
+  const updateProviderApiKey = async (providerId: string, apiKey: string) => {
+    try {
+      await window.electronAPI.setProviderApiKey(providerId, apiKey);
+      setProviderApiKeys(prev => ({ ...prev, [providerId]: apiKey }));
+      
+      // Update security status after API key change
+      await loadSecurityStatus();
+      
+      // Set hasChanges to true to enable save button
+      setHasChanges(true);
+    } catch (error) {
+      console.error('Failed to update API key:', error);
+      setError('Failed to update API key');
     }
   };
 
@@ -168,7 +225,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
           return;
         }
         
-        if (defaultProviderConfig.type === 'openrouter' && !defaultProviderConfig.apiKey) {
+        if (defaultProviderConfig.type === 'openrouter' && !providerApiKeys[defaultProviderConfig.id]) {
           setError('OpenRouter provider requires an API key');
           return;
         }
@@ -284,14 +341,21 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
       // For OpenRouter, we can fetch models from the API
       // For Ollama, we need a connection to fetch models
       if (selectedProvider.type === 'openrouter') {
-        if (!selectedProvider.apiKey) {
+        const apiKey = providerApiKeys[selectedProvider.id];
+        if (!apiKey) {
           setAvailableModels([]);
           return;
         }
       }
 
+      // Create provider config with the secure API key
+      const providerConfigWithApiKey = {
+        ...selectedProvider,
+        apiKey: providerApiKeys[selectedProvider.id] || ''
+      };
+
       // Use the dedicated models endpoint to get all available models
-      const result = await window.electronAPI.getModelsForConfig(selectedProvider) as any;
+      const result = await window.electronAPI.getModelsForConfig(providerConfigWithApiKey) as any;
       
       if (result.success && result.data) {
         setAvailableModels(result.data);
@@ -657,20 +721,37 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               </label>
                               <input
                                 type="password"
-                                value={selectedProvider.apiKey || ''}
-                                onChange={(e) => updateSettings({
-                                  llm: {
-                                    providers: settings.llm.providers.map(p => 
-                                      p.id === selectedProvider.id ? { ...p, apiKey: e.target.value } : p
-                                    ),
-                                  }
-                                })}
+                                value={providerApiKeys[selectedProvider.id] || ''}
+                                onChange={(e) => updateProviderApiKey(selectedProvider.id, e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder="Your OpenRouter API key"
                               />
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 Get your API key from <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai</a>
                               </p>
+                              
+                              {/* Security status for API key */}
+                              {securityStatus && (
+                                <div className="mt-2 p-2 rounded bg-gray-50 dark:bg-gray-800">
+                                  <div className="flex items-center space-x-2">
+                                    {securityStatus.secureStorageAvailable ? (
+                                      <>
+                                        <span className="text-green-600 dark:text-green-400">🔒</span>
+                                        <span className="text-xs text-green-700 dark:text-green-300">
+                                          API key is encrypted using OS-level security
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span className="text-yellow-600 dark:text-yellow-400">⚠️</span>
+                                        <span className="text-xs text-yellow-700 dark:text-yellow-300">
+                                          Secure storage not available - API key stored in plain text
+                                        </span>
+                                      </>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           )}
 

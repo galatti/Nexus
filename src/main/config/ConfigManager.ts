@@ -4,6 +4,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { AppSettings, LlmProviderConfig, McpServerConfig } from '../../shared/types.js';
 import { logger } from '../utils/logger.js';
 import { APP_CONSTANTS } from '../../shared/constants.js';
+import { secureStorage } from '../security/SecureStorage.js';
 
 export class ConfigManager {
   private configPath: string;
@@ -13,6 +14,7 @@ export class ConfigManager {
   constructor() {
     this.configPath = this.getConfigPath();
     this.settings = this.loadSettings();
+    this.migrateApiKeysToSecureStorage();
   }
 
   private getConfigPath(): string {
@@ -375,11 +377,166 @@ export class ConfigManager {
       }
       
       this.settings = this.mergeWithDefaults(imported, this.getDefaultSettings());
+      this.migrateApiKeysToSecureStorage();
       this.saveSettings();
       logger.info('Settings imported successfully');
     } catch (error) {
       logger.error('Error importing settings:', error);
       throw new Error('Failed to import settings');
+    }
+  }
+
+  /**
+   * Migrate existing plain text API keys to encrypted storage
+   */
+  private migrateApiKeysToSecureStorage(): void {
+    if (!secureStorage.isSecureStorageAvailable()) {
+      logger.warn('ConfigManager: Secure storage not available, API keys will remain in plain text');
+      return;
+    }
+
+    let migrationNeeded = false;
+
+    // Check and migrate LLM provider API keys
+    for (const provider of this.settings.llm.providers) {
+      if (provider.apiKey && !secureStorage.isEncrypted(provider.apiKey)) {
+        logger.info(`ConfigManager: Migrating API key for provider ${provider.id} to secure storage`);
+        const encryptedKey = secureStorage.migrateToEncrypted(`llm-${provider.id}`, provider.apiKey);
+        provider.apiKey = encryptedKey;
+        migrationNeeded = true;
+      }
+    }
+
+    if (migrationNeeded) {
+      try {
+        this.saveSettings();
+        logger.info('ConfigManager: API key migration to secure storage completed');
+      } catch (error) {
+        logger.error('ConfigManager: Failed to save migrated API keys:', error);
+      }
+    }
+  }
+
+  /**
+   * Get the plain text API key for a provider, decrypting if necessary
+   * @param providerId The provider ID
+   * @returns Plain text API key or empty string if not found/cannot decrypt
+   */
+  public getProviderApiKey(providerId: string): string {
+    const provider = this.settings.llm.providers.find(p => p.id === providerId);
+    if (!provider || !provider.apiKey) {
+      return '';
+    }
+
+    const plainTextKey = secureStorage.getPlainTextValue(`llm-${providerId}`, provider.apiKey);
+    return plainTextKey || '';
+  }
+
+  /**
+   * Set an API key for a provider, encrypting it if secure storage is available
+   * @param providerId The provider ID
+   * @param apiKey The API key to set
+   */
+  public setProviderApiKey(providerId: string, apiKey: string): void {
+    const provider = this.settings.llm.providers.find(p => p.id === providerId);
+    if (!provider) {
+      logger.error(`ConfigManager: Provider ${providerId} not found`);
+      return;
+    }
+
+    if (!apiKey) {
+      // Clear the API key
+      provider.apiKey = '';
+      this.saveSettings();
+      logger.info(`ConfigManager: API key cleared for provider ${providerId}`);
+      return;
+    }
+
+    if (secureStorage.isSecureStorageAvailable()) {
+      const encryptedKey = secureStorage.migrateToEncrypted(`llm-${providerId}`, apiKey);
+      provider.apiKey = encryptedKey;
+      logger.info(`ConfigManager: API key set and encrypted for provider ${providerId}`);
+    } else {
+      provider.apiKey = apiKey;
+      logger.warn(`ConfigManager: API key set in plain text for provider ${providerId} (secure storage not available)`);
+    }
+
+    this.saveSettings();
+  }
+
+  /**
+   * Check if secure storage is available and working
+   * @returns true if secure storage is available and validated
+   */
+  public isSecureStorageAvailable(): boolean {
+    return secureStorage.isSecureStorageAvailable() && secureStorage.validateEncryption();
+  }
+
+  /**
+   * Get security status information
+   * @returns Object containing security status details
+   */
+  public getSecurityStatus(): {
+    secureStorageAvailable: boolean;
+    encryptedApiKeys: number;
+    plainTextApiKeys: number;
+    totalApiKeys: number;
+  } {
+    const secureStorageAvailable = this.isSecureStorageAvailable();
+    let encryptedApiKeys = 0;
+    let plainTextApiKeys = 0;
+    let totalApiKeys = 0;
+
+    for (const provider of this.settings.llm.providers) {
+      if (provider.apiKey) {
+        totalApiKeys++;
+        if (secureStorage.isEncrypted(provider.apiKey)) {
+          encryptedApiKeys++;
+        } else {
+          plainTextApiKeys++;
+        }
+      }
+    }
+
+    return {
+      secureStorageAvailable,
+      encryptedApiKeys,
+      plainTextApiKeys,
+      totalApiKeys
+    };
+  }
+
+  /**
+   * Force re-migration of all API keys (useful for testing or manual migration)
+   */
+  public forceMigrateApiKeys(): boolean {
+    if (!secureStorage.isSecureStorageAvailable()) {
+      logger.warn('ConfigManager: Cannot force migrate - secure storage not available');
+      return false;
+    }
+
+    logger.info('ConfigManager: Force migrating all API keys to secure storage');
+    
+    for (const provider of this.settings.llm.providers) {
+      if (provider.apiKey) {
+        // Get plain text value first
+        const plainTextKey = secureStorage.getPlainTextValue(`llm-${provider.id}`, provider.apiKey);
+        if (plainTextKey) {
+          // Re-encrypt it
+          const encryptedKey = secureStorage.migrateToEncrypted(`llm-${provider.id}`, plainTextKey);
+          provider.apiKey = encryptedKey;
+          logger.info(`ConfigManager: Force migrated API key for provider ${provider.id}`);
+        }
+      }
+    }
+
+    try {
+      this.saveSettings();
+      logger.info('ConfigManager: Force migration completed successfully');
+      return true;
+    } catch (error) {
+      logger.error('ConfigManager: Force migration failed:', error);
+      return false;
     }
   }
 }
