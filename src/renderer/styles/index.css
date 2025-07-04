@@ -26,16 +26,16 @@
 @layer components {
   /* Emoji support utility class */
   .emoji-support {
-    font-family: 'Inter', system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji', 'Twemoji Mozilla', 'EmojiOne Color', 'Android Emoji';
+    font-family: 'Inter', system-ui, sans-serif, 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Twemoji Mozilla', 'EmojiOne Color', 'Android Emoji';
     font-variant-emoji: emoji;
     /* Force emoji rendering */
     -webkit-font-feature-settings: "liga" off;
     font-feature-settings: "liga" off;
   }
-  
+
   /* Apply emoji support globally */
   * {
-    font-family: inherit, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    font-family: 'Inter', system-ui, sans-serif, 'Noto Color Emoji', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Twemoji Mozilla', 'EmojiOne Color', 'Android Emoji';
   }
   
   .scrollbar-thin {
