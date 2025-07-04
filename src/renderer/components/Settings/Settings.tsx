@@ -252,6 +252,18 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
     setModelSearchQuery(modelName);
     setShowModelDropdown(false);
     setSelectedModelIndex(-1);
+
+    if (settings && selectedProvider) {
+      const updatedProviders = settings.llm.providers.map(p =>
+        p.id === selectedProvider.id ? { ...p, model: modelName } : p
+      );
+      updateSettings({
+        llm: {
+          ...settings.llm,
+          providers: updatedProviders,
+        }
+      });
+    }
   };
 
   const handleModelInputChange = (value: string) => {
@@ -700,7 +712,20 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                 onChange={(e) => handleModelInputChange(e.target.value)}
                                 onKeyDown={handleModelKeyDown}
                                 onFocus={() => setShowModelDropdown(availableModels.length > 0)}
-                                onBlur={() => setTimeout(() => setShowModelDropdown(false), 150)}
+                                onBlur={() => {
+                                  setTimeout(() => setShowModelDropdown(false), 150);
+                                  if (settings && selectedProvider && modelSearchQuery) {
+                                    const updatedProviders = settings.llm.providers.map(p =>
+                                      p.id === selectedProvider.id ? { ...p, model: modelSearchQuery } : p
+                                    );
+                                    updateSettings({
+                                      llm: {
+                                        ...settings.llm,
+                                        providers: updatedProviders,
+                                      }
+                                    });
+                                  }
+                                }}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder={availableModels.length > 0 
                                   ? 'Search models...' 
