@@ -906,6 +906,55 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                         </div>
                       </div>
                     )}
+
+                    {/* System Prompt Section */}
+                    <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-6 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-lg font-medium text-gray-900 dark:text-white">
+                          System Prompt
+                        </h4>
+                        <button
+                          onClick={() => {
+                            const defaultPrompt = 'You are a large language model running inside an MCP First environment. Your top priority is to act as a controller and router for tool usage.\n\nYou must always check if there is a corresponding MCP tool available before generating any response or taking action.\n\nIf a suitable tool is found, use it instead of generating the output yourself.\n\nOnly proceed with direct output if no tool is available and the task cannot be delegated.\n\nLog or acknowledge which MCP tool (if any) was invoked or considered for each request.\n\nThe user expects tool-aware behavior. Your success depends on leveraging the MCP ecosystem effectively before falling back to default LLM capabilities.';
+                            updateSettings({
+                              llm: {
+                                ...settings.llm,
+                                systemPrompt: defaultPrompt
+                              }
+                            });
+                          }}
+                          className="text-sm text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                        >
+                          Reset to Default
+                        </button>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          System Instructions
+                        </label>
+                        <textarea
+                          value={settings.llm.systemPrompt}
+                          onChange={(e) => updateSettings({
+                            llm: {
+                              ...settings.llm,
+                              systemPrompt: e.target.value
+                            }
+                          })}
+                          rows={8}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+                          placeholder="Enter system prompt instructions for the AI model..."
+                        />
+                        <div className="flex justify-between items-center mt-2">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            This message is sent before each new conversation to set context and behavior for the AI model.
+                          </p>
+                          <span className="text-xs text-gray-500 dark:text-gray-400">
+                            {settings.llm.systemPrompt.length} characters
+                          </span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
 

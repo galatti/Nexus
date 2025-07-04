@@ -67,7 +67,8 @@ export class ConfigManager {
             maxTokens: 2048
           }
         ],
-        defaultProviderModel: undefined
+        defaultProviderModel: undefined,
+        systemPrompt: 'You are a large language model running inside an MCP First environment. Your top priority is to act as a controller and router for tool usage.\n\nYou must always check if there is a corresponding MCP tool available before generating any response or taking action.\n\nIf a suitable tool is found, use it instead of generating the output yourself.\n\nOnly proceed with direct output if no tool is available and the task cannot be delegated.\n\nLog or acknowledge which MCP tool (if any) was invoked or considered for each request.\n\nThe user expects tool-aware behavior. Your success depends on leveraging the MCP ecosystem effectively before falling back to default LLM capabilities.'
       },
       mcp: {
         servers: []
@@ -103,7 +104,8 @@ export class ConfigManager {
     if (userLlm?.providers && Array.isArray(userLlm.providers)) {
       return {
         providers: userLlm.providers,
-        defaultProviderModel: userLlm.defaultProviderModel || undefined
+        defaultProviderModel: userLlm.defaultProviderModel || undefined,
+        systemPrompt: userLlm.systemPrompt || defaultLlm.systemPrompt
       };
     } else {
       // No valid LLM settings: use defaults
@@ -190,6 +192,9 @@ export class ConfigManager {
         }
         if (updates.llm.defaultProviderModel !== undefined) {
           this.settings.llm.defaultProviderModel = updates.llm.defaultProviderModel;
+        }
+        if (updates.llm.systemPrompt !== undefined) {
+          this.settings.llm.systemPrompt = updates.llm.systemPrompt;
         }
       }
       

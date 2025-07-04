@@ -1,71 +1,71 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<testsuites name="vitest tests" tests="336" failures="0" errors="0" time="0.850390158">
-    <testsuite name="tests/integration/main-ipc.test.ts" timestamp="2025-07-04T12:57:47.091Z" hostname="DESKTOP-HR2BSFJ" tests="31" failures="0" errors="0" skipped="0" time="0.016167504">
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:get" time="0.001661946">
+<testsuites name="vitest tests" tests="336" failures="0" errors="0" time="0.81597487">
+    <testsuite name="tests/integration/main-ipc.test.ts" timestamp="2025-07-04T13:20:33.791Z" hostname="DESKTOP-HR2BSFJ" tests="31" failures="0" errors="0" skipped="0" time="0.01391663">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:get" time="0.001166866">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:update" time="0.000665894">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:update" time="0.000419354">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:reset" time="0.000425112">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:reset" time="0.000225255">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:export" time="0.000859491">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:export" time="0.000484013">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:import" time="0.000628022">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle settings:import" time="0.00035393">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle invalid JSON in settings:import" time="0.000698987">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Settings IPC Handlers &gt; should handle invalid JSON in settings:import" time="0.000597637">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:test-provider with healthy provider" time="0.000492057">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:test-provider with healthy provider" time="0.000858596">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:test-provider with unhealthy provider" time="0.000322139">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:test-provider with unhealthy provider" time="0.000683442">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:test-provider with missing provider" time="0.00038279">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:test-provider with missing provider" time="0.000298048">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:get-models successfully" time="0.001057024">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:get-models successfully" time="0.000401637">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:get-models with error" time="0.00037082">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:get-models with error" time="0.000202945">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:send-message successfully" time="0.000396822">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:send-message successfully" time="0.000186693">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:send-message with error" time="0.000276114">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:send-message with error" time="0.000117527">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:get-status successfully" time="0.000342421">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; LLM Provider IPC Handlers &gt; should handle llm:get-status successfully" time="0.000131719">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:add-server successfully" time="0.001155036">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:add-server successfully" time="0.000658412">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:add-server with error" time="0.000366795">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:add-server with error" time="0.000182043">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:remove-server successfully" time="0.000304247">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:remove-server successfully" time="0.000205044">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:update-server successfully" time="0.00045479">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:update-server successfully" time="0.000522322">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:get-servers successfully" time="0.000236539">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; MCP Server IPC Handlers &gt; should handle mcp:get-servers successfully" time="0.000534437">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:get-pending" time="0.000248024">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:get-pending" time="0.000303349">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:respond successfully" time="0.000268672">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:respond successfully" time="0.000237442">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:respond with failure" time="0.000197158">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:respond with failure" time="0.000105372">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:get-all" time="0.00021703">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:get-all" time="0.000161608">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:revoke successfully" time="0.000325329">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:revoke successfully" time="0.000217728">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:clear-session" time="0.000205895">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:clear-session" time="0.000231083">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:update-settings" time="0.000209857">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:update-settings" time="0.000375908">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:get-settings" time="0.000171176">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Permission IPC Handlers &gt; should handle permissions:get-settings" time="0.000276983">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Error Handling &gt; should handle unexpected errors in handlers" time="0.000334692">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Error Handling &gt; should handle unexpected errors in handlers" time="0.00046788">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Error Handling &gt; should handle non-Error objects thrown" time="0.000195589">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Error Handling &gt; should handle non-Error objects thrown" time="0.00033452">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Cross-Module Integration &gt; should handle full workflow: add provider, test, and send message" time="0.000382898">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Cross-Module Integration &gt; should handle full workflow: add provider, test, and send message" time="0.00039127">
         </testcase>
-        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Cross-Module Integration &gt; should handle MCP server and permissions workflow" time="0.000612805">
+        <testcase classname="tests/integration/main-ipc.test.ts" name="Main Process IPC Integration Tests &gt; Cross-Module Integration &gt; should handle MCP server and permissions workflow" time="0.000691867">
         </testcase>
     </testsuite>
-    <testsuite name="tests/integration/mcp-integration.test.ts" timestamp="2025-07-04T12:57:47.100Z" hostname="DESKTOP-HR2BSFJ" tests="7" failures="0" errors="0" skipped="0" time="0.041670469">
-        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Complete Server Lifecycle &gt; should handle complete server lifecycle from creation to destruction" time="0.01096525">
+    <testsuite name="tests/integration/mcp-integration.test.ts" timestamp="2025-07-04T13:20:33.799Z" hostname="DESKTOP-HR2BSFJ" tests="7" failures="0" errors="0" skipped="0" time="0.035667661">
+        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Complete Server Lifecycle &gt; should handle complete server lifecycle from creation to destruction" time="0.013576672">
             <system-out>
 Starting MCP server: Integration Test Server (integration-test-server)
 
@@ -107,7 +107,7 @@ Successfully stopped MCP server: Integration Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Complete Server Lifecycle &gt; should handle server failure and recovery" time="0.005142964">
+        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Complete Server Lifecycle &gt; should handle server failure and recovery" time="0.003831831">
             <system-out>
 Starting MCP server: Integration Test Server (integration-test-server)
 
@@ -140,7 +140,7 @@ Successfully stopped MCP server: Integration Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Error Handling and Edge Cases &gt; should handle tool execution errors gracefully" time="0.00411331">
+        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Error Handling and Edge Cases &gt; should handle tool execution errors gracefully" time="0.003944608">
             <system-out>
 Starting MCP server: Integration Test Server (integration-test-server)
 
@@ -170,7 +170,7 @@ Successfully stopped MCP server: Integration Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Error Handling and Edge Cases &gt; should handle resource reading errors" time="0.001890446">
+        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Error Handling and Edge Cases &gt; should handle resource reading errors" time="0.002622058">
             <system-out>
 Starting MCP server: Integration Test Server (integration-test-server)
 
@@ -200,7 +200,7 @@ Successfully stopped MCP server: Integration Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Error Handling and Edge Cases &gt; should handle server process crashes" time="0.006725352">
+        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Error Handling and Edge Cases &gt; should handle server process crashes" time="0.003357004">
             <system-out>
 Starting MCP server: Integration Test Server (integration-test-server)
 
@@ -228,7 +228,7 @@ Successfully stopped MCP server: Integration Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Resource Subscription Management &gt; should handle resource subscription lifecycle" time="0.006625512">
+        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Resource Subscription Management &gt; should handle resource subscription lifecycle" time="0.003550815">
             <system-out>
 Starting MCP server: Integration Test Server (integration-test-server)
 
@@ -260,7 +260,7 @@ Successfully stopped MCP server: Integration Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Performance and Concurrency &gt; should handle concurrent tool executions" time="0.004254688">
+        <testcase classname="tests/integration/mcp-integration.test.ts" name="MCP Integration Tests &gt; Performance and Concurrency &gt; should handle concurrent tool executions" time="0.003256526">
             <system-out>
 Starting MCP server: Integration Test Server (integration-test-server)
 
@@ -301,149 +301,149 @@ Successfully stopped MCP server: Integration Test Server
             </system-out>
         </testcase>
     </testsuite>
-    <testsuite name="tests/utils/SessionManager.test.ts" timestamp="2025-07-04T12:57:47.106Z" hostname="DESKTOP-HR2BSFJ" tests="4" failures="0" errors="0" skipped="0" time="0.004059265">
-        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; creates a new session and sets it as current" time="0.001741613">
+    <testsuite name="tests/utils/SessionManager.test.ts" timestamp="2025-07-04T13:20:33.807Z" hostname="DESKTOP-HR2BSFJ" tests="4" failures="0" errors="0" skipped="0" time="0.006029209">
+        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; creates a new session and sets it as current" time="0.001967681">
             <system-out>
 SessionManager: No app storage found, checking for legacy chat history...
 SessionManager: No legacy data found, creating default storage
 SessionManager: Cleared all sessions
 
-SessionManager: Created new session: session_1751633866550_j59k5lbwv
+SessionManager: Created new session: session_1751635233290_j8qdlfmjs
 
             </system-out>
         </testcase>
-        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; renames an existing session" time="0.000374276">
+        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; renames an existing session" time="0.000462536">
             <system-out>
 SessionManager: Cleared all sessions
 
-SessionManager: Created new session: session_1751633866550_te1rugt48
-SessionManager: Updated session: session_1751633866550_te1rugt48
+SessionManager: Created new session: session_1751635233291_864twteph
+SessionManager: Updated session: session_1751635233291_864twteph
 
             </system-out>
         </testcase>
-        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; prunes old sessions beyond max cap" time="0.000991216">
+        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; prunes old sessions beyond max cap" time="0.002016487">
             <system-out>
 SessionManager: Cleared all sessions
 
-SessionManager: Created new session: session_1751633866551_8cn7jeb45
-SessionManager: Created new session: session_1751633866551_v7ajzptnn
-SessionManager: Created new session: session_1751633866551_0su5j36qg
-SessionManager: Created new session: session_1751633866551_lytt11qby
-SessionManager: Created new session: session_1751633866551_kal6buo7t
-SessionManager: Created new session: session_1751633866551_khmn4wwiu
-SessionManager: Created new session: session_1751633866551_ndmu66y56
-SessionManager: Created new session: session_1751633866551_i5n4sgl1u
-SessionManager: Created new session: session_1751633866551_xnqil3x5e
-SessionManager: Created new session: session_1751633866551_rwff4s2x4
-SessionManager: Deleted session: session_1751633866551_8cn7jeb45
-SessionManager: Deleted session: session_1751633866551_v7ajzptnn
-SessionManager: Deleted session: session_1751633866551_0su5j36qg
-SessionManager: Deleted session: session_1751633866551_lytt11qby
-SessionManager: Deleted session: session_1751633866551_kal6buo7t
+SessionManager: Created new session: session_1751635233292_o0q7teb0a
+SessionManager: Created new session: session_1751635233292_4jykeip4f
+SessionManager: Created new session: session_1751635233292_q1upbrgp7
+SessionManager: Created new session: session_1751635233292_2wndogtcf
+SessionManager: Created new session: session_1751635233292_x8fv4ezva
+SessionManager: Created new session: session_1751635233292_nsf8isna9
+SessionManager: Created new session: session_1751635233292_yadm9nzz8
+SessionManager: Created new session: session_1751635233292_8guwi0lxd
+SessionManager: Created new session: session_1751635233293_mnspk6z76
+SessionManager: Created new session: session_1751635233293_u1zi85yzf
+SessionManager: Deleted session: session_1751635233292_o0q7teb0a
+SessionManager: Deleted session: session_1751635233292_4jykeip4f
+SessionManager: Deleted session: session_1751635233292_q1upbrgp7
+SessionManager: Deleted session: session_1751635233292_2wndogtcf
+SessionManager: Deleted session: session_1751635233292_x8fv4ezva
 
             </system-out>
         </testcase>
-        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; clears all sessions" time="0.000298118">
+        <testcase classname="tests/utils/SessionManager.test.ts" name="SessionManager basics &gt; clears all sessions" time="0.000825997">
             <system-out>
 SessionManager: Cleared all sessions
 
-SessionManager: Created new session: session_1751633866552_wd2yzuwqg
-SessionManager: Created new session: session_1751633866552_6puixeu28
-SessionManager: Created new session: session_1751633866552_6y18ocxm6
+SessionManager: Created new session: session_1751635233294_o8kynbcmx
+SessionManager: Created new session: session_1751635233294_03k9aw2rn
+SessionManager: Created new session: session_1751635233294_2mybce9y0
 SessionManager: Cleared all sessions
 
             </system-out>
         </testcase>
     </testsuite>
-    <testsuite name="tests/main/config/ConfigManager.test.ts" timestamp="2025-07-04T12:57:47.108Z" hostname="DESKTOP-HR2BSFJ" tests="38" failures="0" errors="0" skipped="0" time="0.018030424">
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should initialize with default settings when no config file exists" time="0.002403617">
+    <testsuite name="tests/main/config/ConfigManager.test.ts" timestamp="2025-07-04T13:20:33.809Z" hostname="DESKTOP-HR2BSFJ" tests="38" failures="0" errors="0" skipped="0" time="0.013076022">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should initialize with default settings when no config file exists" time="0.002599768">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should load existing configuration when config file exists" time="0.000622841">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should load existing configuration when config file exists" time="0.000651361">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should handle config file read errors gracefully" time="0.000375328">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should handle config file read errors gracefully" time="0.00052889">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should handle invalid JSON gracefully" time="0.000286921">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should handle invalid JSON gracefully" time="0.000350683">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should use fallback path when userData path fails" time="0.001109137">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Constructor and Initialization &gt; should use fallback path when userData path fails" time="0.000716838">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should update general settings" time="0.000448166">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should update general settings" time="0.000287826">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should update LLM providers" time="0.000335416">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should update LLM providers" time="0.000211754">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should update MCP servers" time="0.000277676">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should update MCP servers" time="0.000158034">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should handle update errors" time="0.000805032">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should handle update errors" time="0.000515754">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should return deep copy of settings" time="0.000852071">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Management &gt; should return deep copy of settings" time="0.000593069">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should add LLM provider" time="0.000330845">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should add LLM provider" time="0.000192707">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should update LLM provider by ID" time="0.000238751">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should update LLM provider by ID" time="0.000101703">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should remove LLM provider" time="0.000321786">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should remove LLM provider" time="0.000163467">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should clear default provider when removing it" time="0.000220838">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should clear default provider when removing it" time="0.000162911">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should find best default provider model" time="0.000154031">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should find best default provider model" time="0.000103507">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should return undefined when no enabled provider with model exists" time="0.000105529">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should return undefined when no enabled provider with model exists" time="0.000062989">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should set and get default provider model" time="0.000145244">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Management &gt; should set and get default provider model" time="0.00009804">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should add MCP server" time="0.000442841">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should add MCP server" time="0.000198611">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should update existing MCP server when adding with same ID" time="0.00028406">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should update existing MCP server when adding with same ID" time="0.000131429">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should remove MCP server" time="0.00034118">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should remove MCP server" time="0.000169928">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should handle removing non-existent MCP server" time="0.000154853">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should handle removing non-existent MCP server" time="0.000075557">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should update MCP server" time="0.000230364">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should update MCP server" time="0.000108324">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should throw error when updating non-existent MCP server" time="0.000216453">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; MCP Server Management &gt; should throw error when updating non-existent MCP server" time="0.000088244">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should validate valid settings" time="0.000288592">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should validate valid settings" time="0.000149567">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject invalid theme" time="0.000128402">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject invalid theme" time="0.000060416">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject invalid provider type" time="0.000262233">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject invalid provider type" time="0.000060955">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject invalid MCP server structure" time="0.000163432">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject invalid MCP server structure" time="0.000047852">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject non-object settings" time="0.00019013">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Settings Validation &gt; should reject non-object settings" time="0.000067188">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should export settings as JSON string" time="0.000571774">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should export settings as JSON string" time="0.000157315">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should import valid settings" time="0.000205182">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should import valid settings" time="0.000108225">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should reject invalid JSON during import" time="0.000296151">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should reject invalid JSON during import" time="0.000097334">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should reject invalid settings during import" time="0.000230563">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Import/Export &gt; should reject invalid settings during import" time="0.000096748">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Deduplication &gt; should deduplicate providers by type" time="0.000365487">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Deduplication &gt; should deduplicate providers by type" time="0.000339454">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Deduplication &gt; should ensure required default providers exist" time="0.000193739">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Provider Deduplication &gt; should ensure required default providers exist" time="0.000304343">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Reset to Defaults &gt; should reset all settings to defaults" time="0.000281669">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Reset to Defaults &gt; should reset all settings to defaults" time="0.0002811">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Migration and Merging &gt; should merge partial user settings with defaults" time="0.000385335">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Migration and Merging &gt; should merge partial user settings with defaults" time="0.000545249">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Migration and Merging &gt; should handle migration of LLM settings" time="0.000618246">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Migration and Merging &gt; should handle migration of LLM settings" time="0.000767457">
         </testcase>
-        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Migration and Merging &gt; should use defaults when LLM providers are invalid" time="0.00099881">
+        <testcase classname="tests/main/config/ConfigManager.test.ts" name="ConfigManager &gt; Migration and Merging &gt; should use defaults when LLM providers are invalid" time="0.000349635">
         </testcase>
     </testsuite>
-    <testsuite name="tests/main/llm/LlmManager.test.ts" timestamp="2025-07-04T12:57:47.114Z" hostname="DESKTOP-HR2BSFJ" tests="49" failures="0" errors="0" skipped="0" time="0.035019371">
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Initialization &gt; should initialize successfully" time="0.002469451">
+    <testsuite name="tests/main/llm/LlmManager.test.ts" timestamp="2025-07-04T13:20:33.816Z" hostname="DESKTOP-HR2BSFJ" tests="49" failures="0" errors="0" skipped="0" time="0.032445638">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Initialization &gt; should initialize successfully" time="0.002004316">
             <system-out>
 Initializing LLM Manager
 LLM Manager initialized successfully
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Initialization &gt; should set max listeners to 50" time="0.000388033">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Initialization &gt; should set max listeners to 50" time="0.000531551">
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should add Ollama provider" time="0.00090583">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should add Ollama provider" time="0.001197646">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -451,7 +451,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should add OpenRouter provider" time="0.000424274">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should add OpenRouter provider" time="0.000772064">
             <system-out>
 LLM provider added: Test Provider (openrouter)
 
@@ -459,9 +459,9 @@ Health check for test-provider: unhealthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should reject unsupported provider type" time="0.000822549">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should reject unsupported provider type" time="0.001323936">
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should remove provider" time="0.000856097">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should remove provider" time="0.001511595">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -471,9 +471,9 @@ LLM provider removed: test-provider
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should handle removing non-existent provider" time="0.000413489">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should handle removing non-existent provider" time="0.000424113">
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should update provider config" time="0.001793985">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should update provider config" time="0.002232698">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -483,9 +483,9 @@ LLM provider updated: test-provider
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should throw error when updating non-existent provider" time="0.00047941">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should throw error when updating non-existent provider" time="0.000623082">
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should check health when provider is enabled" time="0.000551455">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should check health when provider is enabled" time="0.000559537">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -497,7 +497,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should mark as unhealthy when provider is disabled" time="0.001037805">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should mark as unhealthy when provider is disabled" time="0.00052712">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -507,7 +507,7 @@ LLM provider updated: test-provider
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should get all providers" time="0.000346059">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should get all providers" time="0.000262729">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -515,7 +515,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should emit events for provider operations" time="0.001740113">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider Management &gt; should emit events for provider operations" time="0.001425681">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -527,7 +527,7 @@ LLM provider removed: test-provider
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should check provider health" time="0.000574719">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should check provider health" time="0.000464091">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -537,7 +537,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should return false for non-existent provider health check" time="0.000463941">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should return false for non-existent provider health check" time="0.000379521">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -545,7 +545,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should handle health check failures" time="0.000549374">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should handle health check failures" time="0.000451259">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -553,17 +553,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should implement exponential backoff for retries" time="0.000488313">
-            <system-out>
-LLM provider added: Test Provider (ollama)
-
-Health check for test-provider: healthy
-
-Health check for test-provider: unhealthy
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should reset retry count on successful health check" time="0.000524338">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should implement exponential backoff for retries" time="0.000385432">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -571,11 +561,21 @@ Health check for test-provider: healthy
 
 Health check for test-provider: unhealthy
 
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should reset retry count on successful health check" time="0.000361697">
+            <system-out>
+LLM provider added: Test Provider (ollama)
+
+Health check for test-provider: healthy
+
+Health check for test-provider: unhealthy
+
 Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should check all providers health" time="0.000625669">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should check all providers health" time="0.000453269">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -590,7 +590,7 @@ Health check for openrouter-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should skip health check for disabled providers" time="0.000243416">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should skip health check for disabled providers" time="0.000152072">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -598,7 +598,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should skip health check if retry time not reached" time="0.000327311">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should skip health check if retry time not reached" time="0.000232355">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -606,7 +606,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should get all provider health" time="0.00032691">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should get all provider health" time="0.0001605">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -614,49 +614,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should emit health change events" time="0.000708588">
-            <system-out>
-LLM provider added: Test Provider (ollama)
-
-Health check for test-provider: healthy
-
-Health check for test-provider: healthy
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should send message successfully" time="0.002369439">
-            <system-out>
-LLM provider added: Test Provider (ollama)
-
-Health check for test-provider: healthy
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should merge provider config with options" time="0.001396533">
-            <system-out>
-LLM provider added: Test Provider (ollama)
-
-Health check for test-provider: healthy
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should throw error for non-existent provider" time="0.000475111">
-            <system-out>
-LLM provider added: Test Provider (ollama)
-
-Health check for test-provider: healthy
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should throw error for disabled provider" time="0.000440655">
-            <system-out>
-LLM provider added: Test Provider (ollama)
-
-Health check for test-provider: healthy
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should attempt recovery for unhealthy provider" time="0.000255833">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Health Management &gt; should emit health change events" time="0.00049227">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -666,7 +624,49 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should throw error if recovery fails" time="0.000239847">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should send message successfully" time="0.002189415">
+            <system-out>
+LLM provider added: Test Provider (ollama)
+
+Health check for test-provider: healthy
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should merge provider config with options" time="0.001147532">
+            <system-out>
+LLM provider added: Test Provider (ollama)
+
+Health check for test-provider: healthy
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should throw error for non-existent provider" time="0.000446247">
+            <system-out>
+LLM provider added: Test Provider (ollama)
+
+Health check for test-provider: healthy
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should throw error for disabled provider" time="0.000396358">
+            <system-out>
+LLM provider added: Test Provider (ollama)
+
+Health check for test-provider: healthy
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should attempt recovery for unhealthy provider" time="0.000343793">
+            <system-out>
+LLM provider added: Test Provider (ollama)
+
+Health check for test-provider: healthy
+
+Health check for test-provider: healthy
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should throw error if recovery fails" time="0.000379958">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -676,7 +676,7 @@ Health check for test-provider: unhealthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should handle message processing errors" time="0.000406543">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should handle message processing errors" time="0.000437181">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -684,7 +684,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should emit events for message processing" time="0.000564188">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should emit events for message processing" time="0.000806662">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -692,7 +692,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should reset retry count on successful message" time="0.000298961">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Message Processing &gt; should reset retry count on successful message" time="0.000325456">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -700,7 +700,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Model Management &gt; should get available models" time="0.004859022">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Model Management &gt; should get available models" time="0.000529232">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -708,7 +708,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Model Management &gt; should return empty array for non-existent provider" time="0.000473982">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Model Management &gt; should return empty array for non-existent provider" time="0.000337376">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -716,7 +716,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Model Management &gt; should handle model fetching errors" time="0.000452981">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Model Management &gt; should handle model fetching errors" time="0.000538416">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -724,7 +724,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should get status with enabled providers" time="0.000614164">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should get status with enabled providers" time="0.001727888">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -739,7 +739,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should exclude disabled providers from status" time="0.000323745">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should exclude disabled providers from status" time="0.000718784">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -751,7 +751,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - valid case" time="0.000294">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - valid case" time="0.000258687">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -759,7 +759,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - removed provider" time="0.000197311">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - removed provider" time="0.000200776">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -767,7 +767,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - disabled provider" time="0.000195563">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - disabled provider" time="0.000180332">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -775,7 +775,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - unhealthy provider" time="0.000226425">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Status and Validation &gt; should validate provider model - unhealthy provider" time="0.000166986">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -783,7 +783,7 @@ Health check for test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Shutdown &gt; should shutdown cleanly" time="0.000299641">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Shutdown &gt; should shutdown cleanly" time="0.00029158">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -794,14 +794,14 @@ LLM Manager shutdown complete
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Shutdown &gt; should remove all listeners on shutdown" time="0.000175962">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Shutdown &gt; should remove all listeners on shutdown" time="0.000223324">
             <system-out>
 Shutting down LLM Manager
 LLM Manager shutdown complete
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider ID Generation &gt; should use provided ID" time="0.000165745">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider ID Generation &gt; should use provided ID" time="0.000153744">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -809,7 +809,7 @@ Health check for custom-id: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider ID Generation &gt; should generate ID from type and name when not provided" time="0.000235141">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider ID Generation &gt; should generate ID from type and name when not provided" time="0.000389622">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -817,7 +817,7 @@ Health check for ollama-test-provider: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider ID Generation &gt; should handle names with spaces and special characters" time="0.00014881">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Provider ID Generation &gt; should handle names with spaces and special characters" time="0.000201638">
             <system-out>
 LLM provider added: Test Provider With Spaces (ollama)
 
@@ -825,7 +825,7 @@ Health check for ollama-test-provider-with-spaces: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Edge Cases &gt; should handle multiple providers of same type" time="0.000205979">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Edge Cases &gt; should handle multiple providers of same type" time="0.000289628">
             <system-out>
 LLM provider added: Ollama 1 (ollama)
 
@@ -837,7 +837,7 @@ Health check for ollama-2: healthy
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Edge Cases &gt; should handle provider config updates with undefined values" time="0.000365912">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Edge Cases &gt; should handle provider config updates with undefined values" time="0.000497354">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -847,7 +847,7 @@ LLM provider updated: test-provider
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Edge Cases &gt; should handle health check with no initial health status" time="0.000187736">
+        <testcase classname="tests/main/llm/LlmManager.test.ts" name="LlmManager &gt; Edge Cases &gt; should handle health check with no initial health status" time="0.000175268">
             <system-out>
 LLM provider added: Test Provider (ollama)
 
@@ -856,8 +856,8 @@ Health check for test-provider: healthy
             </system-out>
         </testcase>
     </testsuite>
-    <testsuite name="tests/main/mcp/ConnectionManager.test.ts" timestamp="2025-07-04T12:57:47.138Z" hostname="DESKTOP-HR2BSFJ" tests="57" failures="0" errors="0" skipped="0" time="0.169492593">
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should successfully start a STDIO server" time="0.007639134">
+    <testsuite name="tests/main/mcp/ConnectionManager.test.ts" timestamp="2025-07-04T13:20:33.837Z" hostname="DESKTOP-HR2BSFJ" tests="57" failures="0" errors="0" skipped="0" time="0.166219878">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should successfully start a STDIO server" time="0.00646624">
             <system-out>
 Starting MCP server: Test Server (test-server)
 
@@ -879,7 +879,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should successfully start an HTTP server" time="0.003588501">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should successfully start an HTTP server" time="0.003441645">
             <system-out>
 Starting MCP server: Test HTTP Server (test-http-server)
 
@@ -899,7 +899,7 @@ Successfully stopped MCP server: Test HTTP Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle Windows command resolution" time="0.002733004">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle Windows command resolution" time="0.003448021">
             <system-out>
 Starting MCP server: Test Server (test-server)
 
@@ -919,7 +919,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle command with spaces and quotes" time="0.00302859">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle command with spaces and quotes" time="0.003776261">
             <system-out>
 Starting MCP server: Test Server (test-server)
 
@@ -939,7 +939,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle maximum server limit" time="0.011750906">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle maximum server limit" time="0.008540134">
             <system-out>
 Stopping MCP server: Server 0
 Stopping MCP server: Server 1
@@ -968,7 +968,7 @@ Successfully stopped MCP server: Server 7
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle server already running" time="0.003092375">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle server already running" time="0.00311198">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -976,16 +976,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle MCP SDK loading failure" time="0.002469147">
-            <system-out>
-Starting MCP server: Test Server (test-server)
-
-Stopping MCP server: Test Server
-Successfully stopped MCP server: Test Server
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle client connection failure" time="0.002214347">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle MCP SDK loading failure" time="0.002472969">
             <system-out>
 Starting MCP server: Test Server (test-server)
 
@@ -994,7 +985,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle missing command for STDIO transport" time="0.001057741">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle client connection failure" time="0.002719226">
             <system-out>
 Starting MCP server: Test Server (test-server)
 
@@ -1003,7 +994,16 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should set up environment variables correctly" time="0.002990155">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should handle missing command for STDIO transport" time="0.001361447">
+            <system-out>
+Starting MCP server: Test Server (test-server)
+
+Stopping MCP server: Test Server
+Successfully stopped MCP server: Test Server
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; startServer &gt; should set up environment variables correctly" time="0.003226042">
             <system-out>
 Starting MCP server: Test Server (test-server)
 
@@ -1023,7 +1023,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should successfully stop a running server" time="0.003059981">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should successfully stop a running server" time="0.002839332">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1031,9 +1031,9 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should handle stopping non-existent server gracefully" time="0.000620484">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should handle stopping non-existent server gracefully" time="0.000892567">
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should handle client close failure" time="0.00228684">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should handle client close failure" time="0.002507949">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1041,7 +1041,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should kill process if client close fails" time="0.003109014">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopServer &gt; should kill process if client close fails" time="0.002386351">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1049,7 +1049,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopAllServers &gt; should stop all running servers" time="0.001953916">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Server Lifecycle Management &gt; stopAllServers &gt; should stop all running servers" time="0.00356419">
             <system-out>
 Stopping MCP server: Test Server
 Stopping MCP server: Test Server
@@ -1063,7 +1063,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should execute a tool with permission" time="0.004034131">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should execute a tool with permission" time="0.005643406">
             <system-out>
 Executing tool test-tool on server test-server { args: { arg1: [32m&apos;value1&apos;[39m } }
 
@@ -1075,7 +1075,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when server not found" time="0.002591247">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when server not found" time="0.003236361">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1083,7 +1083,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when server not ready" time="0.002825062">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when server not ready" time="0.002787335">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1091,7 +1091,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when tool not found" time="0.002972804">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when tool not found" time="0.002934189">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1099,7 +1099,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when permission denied" time="0.00229206">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should reject when permission denied" time="0.003264843">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1107,7 +1107,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should handle tool execution errors" time="0.00279968">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; executeTool &gt; should handle tool execution errors" time="0.003062572">
             <system-out>
 Executing tool test-tool on server test-server { args: {} }
 
@@ -1117,7 +1117,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAvailableTools &gt; should return tools for a specific server" time="0.001935226">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAvailableTools &gt; should return tools for a specific server" time="0.003504627">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1125,7 +1125,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAvailableTools &gt; should return empty array for non-existent server" time="0.00317227">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAvailableTools &gt; should return empty array for non-existent server" time="0.003322533">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1133,7 +1133,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAvailableTools &gt; should return empty array for server without tools" time="0.00240233">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAvailableTools &gt; should return empty array for server without tools" time="0.003365524">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1141,7 +1141,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAllAvailableTools &gt; should return tools from all servers" time="0.005785355">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Tool Management &gt; getAllAvailableTools &gt; should return tools from all servers" time="0.005227132">
             <system-out>
 Stopping MCP server: Test Server
 Stopping MCP server: Test Server
@@ -1152,7 +1152,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should read a resource successfully" time="0.003370584">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should read a resource successfully" time="0.003143044">
             <system-out>
 Reading resource file://test.txt from server test-server
 
@@ -1164,7 +1164,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should reject when server not found" time="0.002885265">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should reject when server not found" time="0.003023312">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1172,7 +1172,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should reject when server not ready" time="0.003112171">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should reject when server not ready" time="0.002889902">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1180,7 +1180,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should handle read errors" time="0.00410406">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; readResource &gt; should handle read errors" time="0.003753077">
             <system-out>
 Reading resource file://test.txt from server test-server
 
@@ -1190,7 +1190,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; subscribeToResource &gt; should subscribe to a resource successfully" time="0.002598673">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; subscribeToResource &gt; should subscribe to a resource successfully" time="0.003698861">
             <system-out>
 Subscribed to resource file://test.txt on test-server
 
@@ -1200,7 +1200,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; subscribeToResource &gt; should handle already subscribed resources" time="0.002731241">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; subscribeToResource &gt; should handle already subscribed resources" time="0.002884025">
             <system-out>
 Already subscribed to resource file://test.txt on test-server
 
@@ -1210,7 +1210,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; subscribeToResource &gt; should handle subscription errors" time="0.002310789">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; subscribeToResource &gt; should handle subscription errors" time="0.003745715">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1218,17 +1218,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; unsubscribeFromResource &gt; should unsubscribe from a resource successfully" time="0.002820476">
-            <system-out>
-Unsubscribed from resource file://test.txt on test-server
-
-Stopping MCP server: Test Server
-
-Successfully stopped MCP server: Test Server
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; unsubscribeFromResource &gt; should handle not subscribed resources" time="0.002695145">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; unsubscribeFromResource &gt; should unsubscribe from a resource successfully" time="0.002552375">
             <system-out>
 Unsubscribed from resource file://test.txt on test-server
 
@@ -1238,7 +1228,17 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; getAvailableResources &gt; should return resources for a specific server" time="0.002515462">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; unsubscribeFromResource &gt; should handle not subscribed resources" time="0.002893846">
+            <system-out>
+Unsubscribed from resource file://test.txt on test-server
+
+Stopping MCP server: Test Server
+
+Successfully stopped MCP server: Test Server
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; getAvailableResources &gt; should return resources for a specific server" time="0.00290154">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1246,7 +1246,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; getAvailableResources &gt; should return empty array for non-existent server" time="0.002723632">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; getAvailableResources &gt; should return empty array for non-existent server" time="0.002586938">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1254,7 +1254,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; getAllAvailableResources &gt; should return resources from all servers" time="0.003772396">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Resource Management &gt; getAllAvailableResources &gt; should return resources from all servers" time="0.003186623">
             <system-out>
 Stopping MCP server: Test Server
 Stopping MCP server: Test Server
@@ -1265,7 +1265,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should execute a prompt successfully" time="0.002033445">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should execute a prompt successfully" time="0.003098292">
             <system-out>
 Executing prompt test-prompt on server test-server { args: { arg1: [32m&apos;value1&apos;[39m } }
 
@@ -1277,7 +1277,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should execute prompt without arguments" time="0.002980666">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should execute prompt without arguments" time="0.002458849">
             <system-out>
 Executing prompt test-prompt on server test-server { args: [90mundefined[39m }
 
@@ -1289,7 +1289,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should reject when server not found" time="0.00288599">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should reject when server not found" time="0.002294931">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1297,7 +1297,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should reject when prompt not found" time="0.00327675">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should reject when prompt not found" time="0.002189194">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1305,7 +1305,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should handle prompt execution errors" time="0.00346249">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; executePrompt &gt; should handle prompt execution errors" time="0.004325804">
             <system-out>
 Executing prompt test-prompt on server test-server { args: [90mundefined[39m }
 
@@ -1315,7 +1315,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; getAvailablePrompts &gt; should return prompts for a specific server" time="0.002194223">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; getAvailablePrompts &gt; should return prompts for a specific server" time="0.001007582">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1323,7 +1323,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; getAvailablePrompts &gt; should return empty array for non-existent server" time="0.002035266">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; getAvailablePrompts &gt; should return empty array for non-existent server" time="0.002147445">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1331,28 +1331,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; getAllAvailablePrompts &gt; should return prompts from all servers" time="0.002635043">
-            <system-out>
-Stopping MCP server: Test Server
-Stopping MCP server: Test Server
-
-Successfully stopped MCP server: Test Server
-
-Successfully stopped MCP server: Test Server
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; State Management &gt; should get server state" time="0.003322503">
-            <system-out>
-Stopping MCP server: Test Server
-
-Successfully stopped MCP server: Test Server
-
-            </system-out>
-        </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; State Management &gt; should return null for non-existent server state" time="0.001491018">
-        </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; State Management &gt; should get all server states" time="0.002874502">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Prompt Management &gt; getAllAvailablePrompts &gt; should return prompts from all servers" time="0.003272584">
             <system-out>
 Stopping MCP server: Test Server
 Stopping MCP server: Test Server
@@ -1363,7 +1342,28 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; sampleLLM &gt; should handle LLM sampling requests" time="0.002934162">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; State Management &gt; should get server state" time="0.002328138">
+            <system-out>
+Stopping MCP server: Test Server
+
+Successfully stopped MCP server: Test Server
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; State Management &gt; should return null for non-existent server state" time="0.000638054">
+        </testcase>
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; State Management &gt; should get all server states" time="0.002620162">
+            <system-out>
+Stopping MCP server: Test Server
+Stopping MCP server: Test Server
+
+Successfully stopped MCP server: Test Server
+
+Successfully stopped MCP server: Test Server
+
+            </system-out>
+        </testcase>
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; sampleLLM &gt; should handle LLM sampling requests" time="0.002238758">
             <system-out>
 Warning: sampleLLM called directly - this should go through normal tool execution
 
@@ -1385,13 +1385,13 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; sampleLLM &gt; should reject when server not found" time="0.001264697">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; sampleLLM &gt; should reject when server not found" time="0.000901348">
             <system-out>
 Warning: sampleLLM called directly - this should go through normal tool execution
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; sampleLLM &gt; should handle sampling errors gracefully" time="0.003298241">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; sampleLLM &gt; should handle sampling errors gracefully" time="0.002143199">
             <system-out>
 Warning: sampleLLM called directly - this should go through normal tool execution
 
@@ -1401,27 +1401,27 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should discover tools correctly" time="0.002558875">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should discover tools correctly" time="0.000997162">
             <system-out>
 Discovered tools for test-server: [33m2[39m [ [32m&apos;tool1&apos;[39m, [32m&apos;tool2&apos;[39m ]
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should discover resources correctly" time="0.001052457">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should discover resources correctly" time="0.000914796">
             <system-out>
 Discovered resources for test-server: [33m2[39m
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should discover prompts correctly" time="0.001699631">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should discover prompts correctly" time="0.000680968">
             <system-out>
 Discovered prompts for test-server: [33m2[39m
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should handle discovery errors gracefully" time="0.000846804">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Discovery Methods &gt; should handle discovery errors gracefully" time="0.000576678">
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Resource Refresh &gt; should refresh server resources" time="0.002270996">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Resource Refresh &gt; should refresh server resources" time="0.001945198">
             <system-out>
 Discovered resources for test-server: [33m1[39m
 
@@ -1431,7 +1431,7 @@ Successfully stopped MCP server: Test Server
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Resource Refresh &gt; should handle refresh errors gracefully" time="0.003447355">
+        <testcase classname="tests/main/mcp/ConnectionManager.test.ts" name="ServerManager &gt; Advanced Features &gt; Resource Refresh &gt; should handle refresh errors gracefully" time="0.00254581">
             <system-out>
 Stopping MCP server: Test Server
 
@@ -1440,182 +1440,182 @@ Successfully stopped MCP server: Test Server
             </system-out>
         </testcase>
     </testsuite>
-    <testsuite name="tests/main/permissions/PermissionManager.test.ts" timestamp="2025-07-04T12:57:47.163Z" hostname="DESKTOP-HR2BSFJ" tests="18" failures="0" errors="0" skipped="0" time="0.016127969">
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Initialization &gt; should initialize with default settings" time="0.003212123">
+    <testsuite name="tests/main/permissions/PermissionManager.test.ts" timestamp="2025-07-04T13:20:33.861Z" hostname="DESKTOP-HR2BSFJ" tests="18" failures="0" errors="0" skipped="0" time="0.017282472">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Initialization &gt; should initialize with default settings" time="0.004178713">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Initialization &gt; should set max listeners to 50" time="0.000648667">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Initialization &gt; should set max listeners to 50" time="0.000467822">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Auto-Approval &gt; should auto-approve for trusted servers" time="0.000741164">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Auto-Approval &gt; should auto-approve for trusted servers" time="0.0007946">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Auto-Approval &gt; should auto-approve based on risk level settings" time="0.000366469">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Auto-Approval &gt; should auto-approve based on risk level settings" time="0.000514317">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should revoke permissions" time="0.000836349">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should revoke permissions" time="0.000889805">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should handle revoking non-existent permissions" time="0.000336319">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should handle revoking non-existent permissions" time="0.000718043">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should clear all permissions" time="0.000190727">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should clear all permissions" time="0.000747887">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should update settings" time="0.000446338">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should update settings" time="0.000626233">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should manage trusted servers" time="0.001297317">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Permission Management API &gt; should manage trusted servers" time="0.001911498">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Session Management &gt; should clear session permissions" time="0.000409902">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Session Management &gt; should clear session permissions" time="0.000757801">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Approval Request Handling &gt; should timeout approval requests" time="0.001005901">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Approval Request Handling &gt; should timeout approval requests" time="0.001064486">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Approval Request Handling &gt; should handle invalid approval responses" time="0.000761849">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Approval Request Handling &gt; should handle invalid approval responses" time="0.000566197">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Approval Request Handling &gt; should emit permission request events" time="0.001017743">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Approval Request Handling &gt; should emit permission request events" time="0.000850076">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Shutdown &gt; should clean up all resources on shutdown" time="0.000477277">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Shutdown &gt; should clean up all resources on shutdown" time="0.000440169">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle empty permission key generation" time="0.000905822">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle empty permission key generation" time="0.000303418">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle session key generation with various inputs" time="0.000398453">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle session key generation with various inputs" time="0.0001495">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle argument hashing with special characters" time="0.000423382">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle argument hashing with special characters" time="0.000159942">
         </testcase>
-        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle argument hashing with undefined/null values" time="0.000709786">
+        <testcase classname="tests/main/permissions/PermissionManager.test.ts" name="PermissionManager &gt; Edge Cases &gt; should handle argument hashing with undefined/null values" time="0.000199585">
         </testcase>
     </testsuite>
-    <testsuite name="tests/renderer/components/SessionSidebar.test.tsx" timestamp="2025-07-04T12:57:47.167Z" hostname="DESKTOP-HR2BSFJ" tests="1" failures="0" errors="0" skipped="0" time="0.026524875">
-        <testcase classname="tests/renderer/components/SessionSidebar.test.tsx" name="SessionSidebar &gt; creates a new chat when clicking + New Chat" time="0.025804011">
+    <testsuite name="tests/renderer/components/SessionSidebar.test.tsx" timestamp="2025-07-04T13:20:33.864Z" hostname="DESKTOP-HR2BSFJ" tests="1" failures="0" errors="0" skipped="0" time="0.022807324">
+        <testcase classname="tests/renderer/components/SessionSidebar.test.tsx" name="SessionSidebar &gt; creates a new chat when clicking + New Chat" time="0.022271192">
             <system-out>
 SessionManager: No app storage found, checking for legacy chat history...
 SessionManager: No legacy data found, creating default storage
 SessionContext: Loading initial session data...
 SessionContext: Loaded [33m0[39m sessions, current: [90mundefined[39m
 SessionContext: Creating new session with options: {}
-SessionManager: Created new session: session_1751633866802_6h4h2ki5i
-SessionContext: Created and switched to new session: session_1751633866802_6h4h2ki5i
+SessionManager: Created new session: session_1751635233506_8zp3ewgyt
+SessionContext: Created and switched to new session: session_1751635233506_8zp3ewgyt
 
             </system-out>
         </testcase>
     </testsuite>
-    <testsuite name="tests/main/llm/providers/OllamaProvider.test.ts" timestamp="2025-07-04T12:57:47.168Z" hostname="DESKTOP-HR2BSFJ" tests="45" failures="0" errors="0" skipped="0" time="0.02664776">
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Constructor &gt; should initialize with provided config" time="0.001841489">
+    <testsuite name="tests/main/llm/providers/OllamaProvider.test.ts" timestamp="2025-07-04T13:20:33.864Z" hostname="DESKTOP-HR2BSFJ" tests="45" failures="0" errors="0" skipped="0" time="0.02265156">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Constructor &gt; should initialize with provided config" time="0.001351124">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Constructor &gt; should use default URL when none provided" time="0.00031017">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Constructor &gt; should use default URL when none provided" time="0.000321695">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should test connection successfully" time="0.003777234">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should test connection successfully" time="0.002389962">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle connection refused error" time="0.000782722">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle connection refused error" time="0.000545969">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle connection error with cause" time="0.000318951">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle connection error with cause" time="0.000326874">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle HTTP errors" time="0.00024042">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle HTTP errors" time="0.000227711">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle timeout errors" time="0.000256907">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Connection Testing &gt; should handle timeout errors" time="0.000283306">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should get available models successfully" time="0.001021024">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should get available models successfully" time="0.00101153">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle empty model list" time="0.000466594">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle empty model list" time="0.00045219">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle missing models property" time="0.000311784">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle missing models property" time="0.000343499">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle connection error when getting models" time="0.001021542">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle connection error when getting models" time="0.001095183">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle HTTP error when getting models" time="0.000307198">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should handle HTTP error when getting models" time="0.000301779">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should format sizes correctly" time="0.000203354">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Management &gt; should format sizes correctly" time="0.000210748">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should send message successfully" time="0.000838">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should send message successfully" time="0.00096369">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should send message with custom options" time="0.000499806">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should send message with custom options" time="0.000461771">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should send message with tools" time="0.00052201">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should send message with tools" time="0.001034318">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should handle HTTP error when sending message" time="0.000325676">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should handle HTTP error when sending message" time="0.00059619">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should handle network error when sending message" time="0.000339818">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should handle network error when sending message" time="0.000453923">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should handle finish reason based on done status" time="0.000180321">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Sending &gt; should handle finish reason based on done status" time="0.000296775">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should stream message successfully" time="0.000819106">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should stream message successfully" time="0.002058472">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle streaming with custom options" time="0.000564491">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle streaming with custom options" time="0.000662189">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle HTTP error when streaming" time="0.000356342">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle HTTP error when streaming" time="0.000369302">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle missing response body when streaming" time="0.000335561">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle missing response body when streaming" time="0.000352131">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle invalid JSON in streaming response" time="0.000391434">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle invalid JSON in streaming response" time="0.000479822">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle incomplete streaming data" time="0.000637175">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should handle incomplete streaming data" time="0.000541685">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should release reader lock even on error" time="0.000511758">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Streaming &gt; should release reader lock even on error" time="0.000329569">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should download model successfully" time="0.000907077">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should download model successfully" time="0.000463856">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should download model without progress callback" time="0.000552987">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should download model without progress callback" time="0.000354268">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should handle HTTP error when downloading" time="0.000381437">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should handle HTTP error when downloading" time="0.00020608">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should handle missing response body when downloading" time="0.000587037">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should handle missing response body when downloading" time="0.000227656">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should handle invalid JSON in download response" time="0.000767461">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should handle invalid JSON in download response" time="0.000304089">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should release reader lock even on download error" time="0.000688462">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Download &gt; should release reader lock even on download error" time="0.000320517">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Deletion &gt; should delete model successfully" time="0.000839501">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Deletion &gt; should delete model successfully" time="0.000396471">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Deletion &gt; should handle HTTP error when deleting model" time="0.000382198">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Deletion &gt; should handle HTTP error when deleting model" time="0.000180752">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Deletion &gt; should handle network error when deleting model" time="0.000303969">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Model Deletion &gt; should handle network error when deleting model" time="0.000137966">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Formatting &gt; should format regular messages correctly" time="0.000211197">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Formatting &gt; should format regular messages correctly" time="0.000102264">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Formatting &gt; should format tool response messages correctly" time="0.000259828">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Formatting &gt; should format tool response messages correctly" time="0.000090466">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Formatting &gt; should format messages with tool calls correctly" time="0.000278837">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Message Formatting &gt; should format messages with tool calls correctly" time="0.000069534">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle timeout errors properly" time="0.000172737">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle timeout errors properly" time="0.000079012">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle connection refused errors" time="0.000144914">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle connection refused errors" time="0.000069725">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle authentication errors" time="0.000149555">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle authentication errors" time="0.000051153">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle rate limit errors" time="0.000147976">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle rate limit errors" time="0.000045396">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle server errors" time="0.000142004">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle server errors" time="0.000046805">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle unknown errors" time="0.000125719">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle unknown errors" time="0.000044454">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle non-Error objects" time="0.000195893">
+        <testcase classname="tests/main/llm/providers/OllamaProvider.test.ts" name="OllamaProvider &gt; Error Handling &gt; should handle non-Error objects" time="0.000065614">
         </testcase>
     </testsuite>
-    <testsuite name="tests/main/llm/providers/OpenRouterProvider.test.ts" timestamp="2025-07-04T12:57:47.174Z" hostname="DESKTOP-HR2BSFJ" tests="46" failures="0" errors="0" skipped="0" time="0.028097206">
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Constructor &gt; should initialize with provided config" time="0.001248753">
+    <testsuite name="tests/main/llm/providers/OpenRouterProvider.test.ts" timestamp="2025-07-04T13:20:33.872Z" hostname="DESKTOP-HR2BSFJ" tests="46" failures="0" errors="0" skipped="0" time="0.032641149">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Constructor &gt; should initialize with provided config" time="0.001589167">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should test connection successfully with valid API key" time="0.001919017">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should test connection successfully with valid API key" time="0.004087548">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should fail connection test without API key" time="0.000857005">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should fail connection test without API key" time="0.001478918">
             <system-out>
 Provider config updated: Test OpenRouter
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should handle HTTP errors during connection test" time="0.000232184">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should handle HTTP errors during connection test" time="0.000366117">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should handle network errors during connection test" time="0.000405605">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should handle network errors during connection test" time="0.000433246">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should handle timeout during connection test" time="0.000284849">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Connection Testing &gt; should handle timeout during connection test" time="0.000334017">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should get available models successfully" time="0.00142479">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should get available models successfully" time="0.001160187">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle models without description" time="0.000478329">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle models without description" time="0.000357241">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle error when API key is missing" time="0.001689628">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle error when API key is missing" time="0.001536108">
             <system-out>
 Provider config updated: Test OpenRouter
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle HTTP error when getting models" time="0.000377286">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle HTTP error when getting models" time="0.000585174">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle network error when getting models" time="0.000333151">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Management &gt; should handle network error when getting models" time="0.000385514">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should send message successfully" time="0.001214151">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should send message successfully" time="0.001296256">
             <system-out>
 OpenRouter: Response received: {
   hasContent: [33mtrue[39m,
@@ -1627,7 +1627,7 @@ OpenRouter: Response received: {
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should send message with custom options" time="0.000748198">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should send message with custom options" time="0.000605365">
             <system-out>
 OpenRouter: Response received: {
   hasContent: [33mtrue[39m,
@@ -1639,7 +1639,7 @@ OpenRouter: Response received: {
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should send message with tools" time="0.001875808">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should send message with tools" time="0.000759644">
             <system-out>
 OpenRouter: Sending tools: { count: [33m1[39m, toolNames: [ [32m&apos;get_weather&apos;[39m ] }
 
@@ -1653,17 +1653,17 @@ OpenRouter: Response received: {
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle missing API key" time="0.000807666">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle missing API key" time="0.000269737">
             <system-out>
 Provider config updated: Test OpenRouter
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle HTTP error response" time="0.000583186">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle HTTP error response" time="0.000211806">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle missing choices in response" time="0.000395921">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle missing choices in response" time="0.000327812">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle response with empty content" time="0.000435603">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle response with empty content" time="0.000371156">
             <system-out>
 OpenRouter: Response received: {
   hasContent: [33mfalse[39m,
@@ -1675,157 +1675,157 @@ OpenRouter: Response received: {
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle network error" time="0.000278552">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Sending &gt; should handle network error" time="0.000257493">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should stream message successfully" time="0.001004567">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should stream message successfully" time="0.001277445">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle streaming with custom options" time="0.000529921">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle streaming with custom options" time="0.000772647">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle missing API key during streaming" time="0.000695015">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle missing API key during streaming" time="0.000903061">
             <system-out>
 Provider config updated: Test OpenRouter
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle HTTP error during streaming" time="0.000614868">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle HTTP error during streaming" time="0.000710572">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle missing response body during streaming" time="0.000393538">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle missing response body during streaming" time="0.000440525">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle invalid JSON in streaming response" time="0.000906126">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle invalid JSON in streaming response" time="0.000814508">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle incomplete streaming data" time="0.000610307">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should handle incomplete streaming data" time="0.000382489">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should release reader lock even on error" time="0.000500972">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Streaming &gt; should release reader lock even on error" time="0.000383972">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should get model info successfully" time="0.000613961">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should get model info successfully" time="0.000428188">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should return null for non-existent model" time="0.000307142">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should return null for non-existent model" time="0.000207484">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should handle missing API key" time="0.000426766">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should handle missing API key" time="0.001059441">
             <system-out>
 Provider config updated: Test OpenRouter
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should handle HTTP errors other than 404" time="0.000273006">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should handle HTTP errors other than 404" time="0.000449995">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should handle network errors" time="0.000225849">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Model Info &gt; should handle network errors" time="0.000315211">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should get credit balance successfully" time="0.000716713">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should get credit balance successfully" time="0.000655992">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should return null when no API key configured" time="0.000403145">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should return null when no API key configured" time="0.000209365">
             <system-out>
 Provider config updated: Test OpenRouter
 
             </system-out>
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should return null on HTTP error" time="0.000216174">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should return null on HTTP error" time="0.000099969">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should return null when credit_balance is missing" time="0.000202829">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should return null when credit_balance is missing" time="0.000072868">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should handle network errors" time="0.000205816">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Credit Balance &gt; should handle network errors" time="0.000077008">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Formatting &gt; should format regular messages correctly" time="0.000208463">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Formatting &gt; should format regular messages correctly" time="0.000078926">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Formatting &gt; should format tool response messages correctly" time="0.000183225">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Formatting &gt; should format tool response messages correctly" time="0.000097927">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Formatting &gt; should format messages with tool calls correctly" time="0.000181729">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Message Formatting &gt; should format messages with tool calls correctly" time="0.003607232">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle insufficient credits error" time="0.000158792">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle insufficient credits error" time="0.000443241">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle rate limit error" time="0.000134053">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle rate limit error" time="0.000128447">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle model validation error" time="0.000137553">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle model validation error" time="0.000084067">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle timeout errors" time="0.000226726">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle timeout errors" time="0.00007357">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle timeout message errors" time="0.000120361">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should handle timeout message errors" time="0.000099771">
         </testcase>
-        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should fall back to base error handling" time="0.000130268">
+        <testcase classname="tests/main/llm/providers/OpenRouterProvider.test.ts" name="OpenRouterProvider &gt; Error Handling &gt; should fall back to base error handling" time="0.000062814">
         </testcase>
     </testsuite>
-    <testsuite name="tests/renderer/components/MCP/McpIntegration.test.tsx" timestamp="2025-07-04T12:57:47.182Z" hostname="DESKTOP-HR2BSFJ" tests="27" failures="0" errors="0" skipped="0" time="0.295165971">
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; renders without crashing" time="0.022815488">
+    <testsuite name="tests/renderer/components/MCP/McpIntegration.test.tsx" timestamp="2025-07-04T13:20:33.882Z" hostname="DESKTOP-HR2BSFJ" tests="27" failures="0" errors="0" skipped="0" time="0.285483219">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; renders without crashing" time="0.020310272">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; shows loading state initially" time="0.004977551">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; shows loading state initially" time="0.003647895">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; loads and displays servers successfully" time="0.014414798">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; loads and displays servers successfully" time="0.010533374">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; displays empty state when no servers configured" time="0.034541419">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; displays empty state when no servers configured" time="0.032905446">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; displays error state when loading fails" time="0.004425495">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; displays error state when loading fails" time="0.007621447">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; handles network errors during loading" time="0.004038422">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Initial Rendering and Loading &gt; handles network errors during loading" time="0.004181567">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Display and Status &gt; displays server status badges correctly" time="0.009851732">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Display and Status &gt; displays server status badges correctly" time="0.008573838">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Display and Status &gt; displays transport information correctly" time="0.007514392">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Display and Status &gt; displays transport information correctly" time="0.007944201">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Display and Status &gt; displays status icons correctly" time="0.006166124">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Display and Status &gt; displays status icons correctly" time="0.007325754">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; toggles server enabled state successfully" time="0.015099891">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; toggles server enabled state successfully" time="0.01199316">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; handles server toggle errors" time="0.008281166">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; handles server toggle errors" time="0.01179529">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; removes server with confirmation" time="0.012582605">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; removes server with confirmation" time="0.01287622">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; cancels server removal when user declines confirmation" time="0.008141145">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; cancels server removal when user declines confirmation" time="0.009330306">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; handles server removal errors" time="0.01503322">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Management Actions &gt; handles server removal errors" time="0.012286266">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Wizard Integration &gt; opens server wizard when add server button is clicked" time="0.013943432">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Wizard Integration &gt; opens server wizard when add server button is clicked" time="0.013829193">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Wizard Integration &gt; opens wizard from empty state" time="0.017424823">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Wizard Integration &gt; opens wizard from empty state" time="0.018323386">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Wizard Integration &gt; refreshes server list when server is added via wizard" time="0.01588776">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Server Wizard Integration &gt; refreshes server list when server is added via wizard" time="0.016094749">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; handles undefined server data gracefully" time="0.003274675">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; handles undefined server data gracefully" time="0.002972905">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; handles malformed server data" time="0.003496477">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; handles malformed server data" time="0.001978905">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; retries loading on initial failure with user action" time="0.004620045">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; retries loading on initial failure with user action" time="0.004244233">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; handles rapid server state changes" time="0.016258021">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Error Handling and Edge Cases &gt; handles rapid server state changes" time="0.016139108">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; has proper ARIA labels and roles" time="0.011998726">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; has proper ARIA labels and roles" time="0.011756244">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; supports keyboard navigation" time="0.008147222">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; supports keyboard navigation" time="0.008130833">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; provides clear loading states" time="0.010121949">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; provides clear loading states" time="0.008481427">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; provides clear error messages" time="0.007561218">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Accessibility and UX &gt; provides clear error messages" time="0.008368046">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Integration with Settings &gt; calls onSettingsUpdate when servers change" time="0.009324615">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Integration with Settings &gt; calls onSettingsUpdate when servers change" time="0.00864848">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Integration with Settings &gt; reloads servers when settings prop changes" time="0.003546075">
+        <testcase classname="tests/renderer/components/MCP/McpIntegration.test.tsx" name="McpIntegration &gt; Integration with Settings &gt; reloads servers when settings prop changes" time="0.003829991">
         </testcase>
     </testsuite>
-    <testsuite name="tests/renderer/components/MCP/McpServerWizard.test.tsx" timestamp="2025-07-04T12:57:47.185Z" hostname="DESKTOP-HR2BSFJ" tests="13" failures="0" errors="0" skipped="0" time="0.173386751">
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Basic Rendering &gt; renders without crashing when open" time="0.029338016">
+    <testsuite name="tests/renderer/components/MCP/McpServerWizard.test.tsx" timestamp="2025-07-04T13:20:33.887Z" hostname="DESKTOP-HR2BSFJ" tests="13" failures="0" errors="0" skipped="0" time="0.167754108">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Basic Rendering &gt; renders without crashing when open" time="0.025395234">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Basic Rendering &gt; does not render when closed" time="0.002264322">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Basic Rendering &gt; does not render when closed" time="0.001141984">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Basic Rendering &gt; displays wizard steps" time="0.009002944">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Basic Rendering &gt; displays wizard steps" time="0.007789984">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Form Validation &gt; validates server name is required" time="0.043067913">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Form Validation &gt; validates server name is required" time="0.041595124">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Form Validation &gt; validates command for STDIO transport" time="0.038147111">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Form Validation &gt; validates command for STDIO transport" time="0.037261921">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Connection Testing &gt; tests connection successfully" time="0.007208096">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Connection Testing &gt; tests connection successfully" time="0.006647526">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Connection Testing &gt; handles connection test failure" time="0.004745725">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Connection Testing &gt; handles connection test failure" time="0.006513971">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Server Creation &gt; creates server successfully" time="0.006432619">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Server Creation &gt; creates server successfully" time="0.007672185">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Server Creation &gt; handles server creation error" time="0.007852442">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Server Creation &gt; handles server creation error" time="0.007662423">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; User Interactions &gt; closes when close button is clicked" time="0.00657772">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; User Interactions &gt; closes when close button is clicked" time="0.008235669">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; User Interactions &gt; calls onServerAdded when server is created" time="0.009515774">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; User Interactions &gt; calls onServerAdded when server is created" time="0.008239961">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Accessibility &gt; has proper ARIA labels" time="0.004367231">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Accessibility &gt; has proper ARIA labels" time="0.004831395">
         </testcase>
-        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Accessibility &gt; supports keyboard navigation" time="0.003288564">
+        <testcase classname="tests/renderer/components/MCP/McpServerWizard.test.tsx" name="McpServerWizard &gt; Accessibility &gt; supports keyboard navigation" time="0.003446219">
         </testcase>
     </testsuite>
 </testsuites>

@@ -107,6 +107,7 @@ export interface AppSettings {
       providerId: string;
       modelName: string;
     };
+    systemPrompt: string;
   };
   mcp: {
     servers: McpServerConfig[];

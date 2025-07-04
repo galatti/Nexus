@@ -607,13 +607,15 @@ async function autoConfigureLlmDefaults(): Promise<void> {
     );
     
     // Update settings with enabled Ollama and set as default
+    const currentSettings = configManager.getSettings();
     configManager.updateSettings({
       llm: {
         providers: updatedProviders,
         defaultProviderModel: {
           providerId: ollamaProvider.id,
           modelName: firstModel
-        }
+        },
+        systemPrompt: currentSettings.llm.systemPrompt
       }
     });
     
@@ -1419,6 +1421,24 @@ ipcMain.handle('llm:sendMessage', async (_event, conversationHistory, options = 
   try {
     let messages = [...conversationHistory];
     let extractedToolCalls: Array<{ id: string; name: string; args: Record<string, unknown>; result?: unknown }> = [];
+    
+    // Inject system prompt for new conversations
+    const settings = configManager.getSettings();
+    const systemPrompt = settings.llm.systemPrompt;
+    
+    // Check if this is a new conversation (no system message at the start and systemPrompt is not empty)
+    const isNewConversation = messages.length === 0 || 
+      (messages.length > 0 && messages[0].role !== 'system');
+    
+    if (isNewConversation && systemPrompt && systemPrompt.trim()) {
+      console.log('LLM: Injecting system prompt for new conversation');
+      messages.unshift({
+        id: `system-${Date.now()}`,
+        role: 'system',
+        content: systemPrompt,
+        timestamp: new Date()
+      });
+    }
     
     // Get available tools and convert to OpenRouter format
     const availableTools = serverManager.getAllAvailableTools();
