@@ -128,6 +128,19 @@ export const IPCSchemas = {
   // App operations
   'app:getVersion': z.tuple([]),
   'app:quit': z.tuple([]),
+  'app:reportRendererError': z.tuple([
+    z.object({
+      errorId: z.string().min(1).max(100),
+      name: z.string().max(200),
+      message: z.string().max(5000),
+      stack: z.string().max(10000).optional(),
+      componentStack: z.string().max(10000).optional(),
+      boundaryName: z.string().max(100).optional(),
+      timestamp: z.string().max(50),
+      userAgent: z.string().max(500).optional(),
+      url: z.string().max(1000).optional()
+    })
+  ]),
 
   // File operations
   'file:openDialog': z.tuple([

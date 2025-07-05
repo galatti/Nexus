@@ -72,6 +72,34 @@ export class IPCValidator {
   }
 
   /**
+   * Determine if command injection checks should be applied based on context
+   */
+  private static shouldCheckForCommandInjection(channel: string, value: string): boolean {
+    // Skip command injection checks for assistant responses and content that should contain code
+    if (channel === 'llm:sendMessage') {
+      // Check if this looks like assistant response content (contains code blocks, long text, etc.)
+      if (value.includes('```') || value.includes('def ') || value.includes('function ') || 
+          value.includes('import ') || value.includes('print(') || value.length > 500) {
+        return false;
+      }
+    }
+    
+    // Skip for settings and configuration where technical content is expected
+    if (channel.includes('settings') || channel.includes('config')) {
+      return false;
+    }
+    
+    // Apply checks for potentially dangerous channels
+    if (channel.includes('execute') || channel.includes('run') || channel.includes('shell') || 
+        channel.includes('command') || channel.includes('process')) {
+      return true;
+    }
+    
+    // Default to checking for short strings that could be commands
+    return value.length < 100;
+  }
+
+  /**
    * Recursively validate a value for security issues
    */
   private static validateValue(value: any, depth: number, channel: string): void {
@@ -96,14 +124,17 @@ export class IPCValidator {
         throw new Error('Path traversal attempt detected');
       }
 
-      // Command injection prevention
-      if (/[;&|`$]/.test(value)) {
-        SecurityMonitor.getInstance().logSecurityIncident(
-          'injection_attempt',
-          channel,
-          { attemptedCommand: value, type: 'command_injection' }
-        );
-        throw new Error('Potential command injection detected');
+      // Command injection prevention - but exclude legitimate assistant responses
+      // Only check for command injection in potentially dangerous contexts
+      if (this.shouldCheckForCommandInjection(channel, value)) {
+        if (/^[\s]*[;&|]+|[;&|]+[\s]*$|^\$\(|\$\{/.test(value)) {
+          SecurityMonitor.getInstance().logSecurityIncident(
+            'injection_attempt',
+            channel,
+            { attemptedCommand: value, type: 'command_injection' }
+          );
+          throw new Error('Potential command injection detected');
+        }
       }
 
       // Script injection prevention

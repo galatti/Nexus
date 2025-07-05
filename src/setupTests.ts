@@ -30,3 +30,33 @@ global.console = {
   warn: vi.fn(),
   error: vi.fn(),
 };
+
+// Suppress JSDOM error reporting for React error boundary tests
+// This prevents "Uncaught [Error]" messages from appearing in test output
+// when testing error boundaries, which is expected behavior
+const originalOnError = window.onerror;
+const originalOnUnhandledRejection = window.onunhandledrejection;
+
+window.onerror = function(message, source, lineno, colno, error) {
+  // Allow React error boundaries to work without noise
+  if (error && error.message && (error.message.includes('Test error') || error.message.includes('Retryable error'))) {
+    return true; // Suppress the error
+  }
+  // For other errors, use original handler
+  if (originalOnError) {
+    return originalOnError.call(this, message, source, lineno, colno, error);
+  }
+  return false;
+};
+
+window.onunhandledrejection = function(event) {
+  // Suppress promise rejections related to error boundary tests
+  if (event.reason && event.reason.message && (event.reason.message.includes('Test error') || event.reason.message.includes('Retryable error'))) {
+    event.preventDefault();
+    return;
+  }
+  // For other rejections, use original handler
+  if (originalOnUnhandledRejection) {
+    return originalOnUnhandledRejection.call(this, event);
+  }
+};

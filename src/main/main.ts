@@ -669,6 +669,40 @@ ipcMain.handle('app:getVersion', IPCValidator.wrapHandler('app:getVersion',
   IPCSchemas['app:getVersion']
 ));
 
+// Error reporting handler
+ipcMain.handle('app:reportRendererError', IPCValidator.wrapHandler('app:reportRendererError',
+  (event, errorData) => {
+    try {
+      IPCLogger.logCall('app:reportRendererError', [errorData], event);
+      
+      // Log the error with structured format
+      logger.error('Renderer Error Boundary caught an error', {
+        errorId: errorData.errorId,
+        errorName: errorData.name,
+        errorMessage: errorData.message,
+        boundaryName: errorData.boundaryName,
+        timestamp: errorData.timestamp,
+        userAgent: errorData.userAgent,
+        url: errorData.url,
+        stack: errorData.stack,
+        componentStack: errorData.componentStack
+      });
+
+      // In production, you might want to send this to an error reporting service
+      if (process.env.NODE_ENV === 'production') {
+        // Example: Send to error reporting service
+        // await sendToErrorReportingService(errorData);
+      }
+
+      return { success: true };
+    } catch (error) {
+      logger.error('Failed to report renderer error', error);
+      return { success: false, error: error instanceof Error ? error.message : String(error) };
+    }
+  },
+  IPCSchemas['app:reportRendererError']
+));
+
 // Window control handlers
 ipcMain.handle('window:minimize', IPCValidator.wrapHandler('window:minimize',
   () => {

@@ -156,6 +156,10 @@ const electronAPI = {
     ipcRenderer.on('permissions:requestPermission', listener);
     return () => ipcRenderer.removeListener('permissions:requestPermission', listener);
   },
+
+  // Error reporting
+  reportRendererError: (errorData: Record<string, unknown>) =>
+    ipcRenderer.invoke('app:reportRendererError', errorData),
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

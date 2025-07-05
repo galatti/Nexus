@@ -9,27 +9,6 @@
   required to achieve production readiness.
 
   ---
-  🚨 CRITICAL BLOCKERS (P0) - Must Fix Before ANY Release
-
-  💥 Stability Critical Issues
-
-  STAB-002: Missing React Error Boundaries
-
-  - Issue: No error boundaries to catch component crashes
-  - Risk: High - Application crashes, poor UX
-  - Files: src/renderer/components/Layout/Layout.tsx, src/renderer/App.tsx
-  - Solution: Add comprehensive error boundaries
-  - Estimate: 2 days
-  - Tasks:
-    - Create ErrorBoundary component with logging
-    - Add error boundary around main Layout component
-    - Add error boundaries for lazy-loaded components
-    - Implement error reporting to main process
-    - Create user-friendly error UI
-    - Add error boundary tests
-    - Document error handling strategy
-
-  ---
   🏗️ ARCHITECTURE IMPROVEMENTS (P1) - Required for MCP-First Vision
 
   ARCH-001: True MCP-First Implementation

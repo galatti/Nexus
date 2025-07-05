@@ -3,6 +3,7 @@ import { Header } from './Header';
 import { SessionSidebar } from '../Chat/SessionSidebar';
 import { Dashboard } from '../Dashboard/Dashboard';
 import { PermissionModal } from '../Permissions/PermissionModal';
+import { LazyErrorBoundary, ComponentErrorBoundary } from '../ErrorBoundary';
 
 // Lazy load heavy components
 const ChatWindow = lazy(() => 
@@ -79,46 +80,58 @@ export const Layout: React.FC = () => {
   return (
     <div className="flex h-full bg-gray-50 dark:bg-gray-900">
       {/* Session Sidebar */}
-      <SessionSidebar isOpen={sidebarOpen} />
+      <ComponentErrorBoundary name="SessionSidebar">
+        <SessionSidebar isOpen={sidebarOpen} />
+      </ComponentErrorBoundary>
       
       {/* Main content area */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <Header 
-          onMenuToggle={() => setSidebarOpen(!sidebarOpen)} 
-          onSettingsOpen={() => setSettingsOpen(true)}
-          activeView={activeView}
-          onViewChange={setActiveView}
-        />
+        <ComponentErrorBoundary name="Header">
+          <Header 
+            onMenuToggle={() => setSidebarOpen(!sidebarOpen)} 
+            onSettingsOpen={() => setSettingsOpen(true)}
+            activeView={activeView}
+            onViewChange={setActiveView}
+          />
+        </ComponentErrorBoundary>
         
         {/* Main content */}
         <main className="flex-1 overflow-hidden">
           {activeView === 'dashboard' ? (
-            <Dashboard />
+            <ComponentErrorBoundary name="Dashboard">
+              <Dashboard />
+            </ComponentErrorBoundary>
           ) : (
-            <Suspense fallback={<LoadingSpinner message="Loading Chat..." />}>
-              <ChatWindow isActive={activeView === 'chat'} />
-            </Suspense>
+            <LazyErrorBoundary name="ChatWindow">
+              <Suspense fallback={<LoadingSpinner message="Loading Chat..." />}>
+                <ChatWindow isActive={activeView === 'chat'} />
+              </Suspense>
+            </LazyErrorBoundary>
           )}
         </main>
       </div>
 
       {/* Settings Modal - Lazy loaded only when opened */}
       {settingsOpen && (
-        <Suspense fallback={<LoadingSpinner message="Loading Settings..." />}>
-          <Settings 
-            isOpen={settingsOpen} 
-            onClose={handleSettingsClose}
-            initialTab={settingsTab}
-          />
-        </Suspense>
+        <LazyErrorBoundary name="Settings">
+          <Suspense fallback={<LoadingSpinner message="Loading Settings..." />}>
+            <Settings 
+              isOpen={settingsOpen} 
+              onClose={handleSettingsClose}
+              initialTab={settingsTab}
+            />
+          </Suspense>
+        </LazyErrorBoundary>
       )}
 
       {/* Permission Modal */}
-      <PermissionModal
-        isOpen={permissionModalOpen}
-        onClose={() => setPermissionModalOpen(false)}
-      />
+      <ComponentErrorBoundary name="PermissionModal">
+        <PermissionModal
+          isOpen={permissionModalOpen}
+          onClose={() => setPermissionModalOpen(false)}
+        />
+      </ComponentErrorBoundary>
     </div>
   );
 }; 
