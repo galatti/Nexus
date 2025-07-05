@@ -2003,6 +2003,11 @@ llmManager.on('messageError', (data) => {
   mainWindow?.webContents.send('llm:messageError', data);
 });
 
+llmManager.on('providerHealthChanged', (data) => {
+  console.log('Forwarding provider health change to frontend:', data);
+  mainWindow?.webContents.send('llm:providerChanged', data);
+});
+
 // Permission event forwarding
 permissionManager.on('permissionRequest', (pendingApproval) => {
   console.log('Forwarding permission request:', pendingApproval.toolName, 'mainWindow exists:', !!mainWindow);

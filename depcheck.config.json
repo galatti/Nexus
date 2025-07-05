@@ -1,0 +1,16 @@
+{
+  "ignoreMatches": [
+    "@modelcontextprotocol/sdk",
+    "@expo/sudo-prompt",
+    "prismjs",
+    "zustand",
+    "autoprefixer",
+    "concurrently",
+    "cross-env",
+    "jest",
+    "postcss",
+    "rimraf",
+    "ts-jest",
+    "wait-on"
+  ]
+}

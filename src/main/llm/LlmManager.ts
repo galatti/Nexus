@@ -2,6 +2,11 @@ import { EventEmitter } from 'events';
 import { BaseProvider, LlmResponse } from './providers/BaseProvider.js';
 import { OllamaProvider } from './providers/OllamaProvider.js';
 import { OpenRouterProvider } from './providers/OpenRouterProvider.js';
+import { OpenAIProvider } from './providers/OpenAIProvider.js';
+import { AnthropicProvider } from './providers/AnthropicProvider.js';
+import { GeminiProvider } from './providers/GeminiProvider.js';
+import { GrokProvider } from './providers/GrokProvider.js';
+import { DeepSeekProvider } from './providers/DeepSeekProvider.js';
 import { LlmProviderConfig, LlmModel, ChatMessage, ProviderHealth, ProviderWarning } from '../../shared/types.js';
 
 export interface LlmManagerStatus {
@@ -43,6 +48,21 @@ export class LlmManager extends EventEmitter {
           break;
         case 'openrouter':
           provider = new OpenRouterProvider(config);
+          break;
+        case 'openai':
+          provider = new OpenAIProvider(config);
+          break;
+        case 'anthropic':
+          provider = new AnthropicProvider(config);
+          break;
+        case 'gemini':
+          provider = new GeminiProvider(config);
+          break;
+        case 'grok':
+          provider = new GrokProvider(config);
+          break;
+        case 'deepseek':
+          provider = new DeepSeekProvider(config);
           break;
         default:
           throw new Error(`Unsupported provider type: ${config.type}`);

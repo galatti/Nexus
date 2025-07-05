@@ -167,12 +167,14 @@ describe('OllamaProvider', () => {
       
       expect(models).toHaveLength(2);
       expect(models[0]).toEqual({
+        id: 'llama2:latest',
         name: 'llama2:latest',
         size: '3.56 GB',
         description: 'llama (7B)',
         modified_at: '2024-01-01T00:00:00Z'
       });
       expect(models[1]).toEqual({
+        id: 'codellama:13b',
         name: 'codellama:13b',
         size: '6.86 GB', 
         description: 'llama (13B)',

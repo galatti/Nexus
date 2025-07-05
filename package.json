@@ -41,7 +41,8 @@
     "lint:fix": "eslint src --fix",
     "type-check": "tsc --noEmit",
     "clean": "rimraf dist",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps",
+    "depcheck": "depcheck --config depcheck.config.json"
   },
   "dependencies": {
     "@expo/sudo-prompt": "^9.3.2",

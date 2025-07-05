@@ -67,6 +67,61 @@ export class ConfigManager {
             enabled: false,
             temperature: 0.7,
             maxTokens: 2048
+          },
+          {
+            id: 'openai',
+            type: 'openai',
+            name: 'OpenAI',
+            baseUrl: 'https://api.openai.com/v1',
+            apiKey: '',
+            model: 'gpt-4o',
+            enabled: false,
+            temperature: 0.7,
+            maxTokens: 2048
+          },
+          {
+            id: 'anthropic',
+            type: 'anthropic',
+            name: 'Anthropic Claude',
+            baseUrl: 'https://api.anthropic.com/v1',
+            apiKey: '',
+            model: 'claude-3-5-sonnet-20241022',
+            enabled: false,
+            temperature: 0.7,
+            maxTokens: 4000
+          },
+          {
+            id: 'gemini',
+            type: 'gemini',
+            name: 'Google Gemini',
+            baseUrl: 'https://generativelanguage.googleapis.com/v1',
+            apiKey: '',
+            model: 'gemini-2.0-flash-exp',
+            enabled: false,
+            temperature: 0.7,
+            maxTokens: 2048
+          },
+          {
+            id: 'grok',
+            type: 'grok',
+            name: 'xAI Grok',
+            baseUrl: 'https://api.x.ai/v1',
+            apiKey: '',
+            model: 'grok-beta',
+            enabled: false,
+            temperature: 0.7,
+            maxTokens: 2048
+          },
+          {
+            id: 'deepseek',
+            type: 'deepseek',
+            name: 'DeepSeek',
+            baseUrl: 'https://api.deepseek.com/v1',
+            apiKey: '',
+            model: 'deepseek-chat',
+            enabled: false,
+            temperature: 0.7,
+            maxTokens: 2048
           }
         ],
         defaultProviderModel: undefined,
@@ -136,8 +191,8 @@ export class ConfigManager {
   }
 
   /**
-   * Deduplicate providers so we only keep one entry per provider type (ollama / openrouter).
-   * Keeps the first occurrence.
+   * Deduplicate providers so we only keep one entry per provider type.
+   * Keeps the first occurrence and ensures all required default providers exist.
    */
   private deduplicateProviders(providers: LlmProviderConfig[]): LlmProviderConfig[] {
     const seen = new Set<string>();
@@ -153,7 +208,7 @@ export class ConfigManager {
 
     // Ensure required default providers exist
     const defaults = this.getDefaultSettings();
-    const requiredProviders = ['ollama', 'openrouter'];
+    const requiredProviders = ['ollama', 'openrouter', 'openai', 'anthropic', 'gemini', 'grok', 'deepseek'];
     for (const reqType of requiredProviders) {
       if (!result.find(p => p.type === reqType)) {
         const defProv = defaults.llm.providers.find(p => p.type === reqType);

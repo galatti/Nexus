@@ -168,12 +168,14 @@ describe('OpenRouterProvider', () => {
       
       expect(models).toHaveLength(2);
       expect(models[0]).toEqual({
+        id: 'anthropic/claude-3-sonnet',
         name: 'anthropic/claude-3-sonnet',
         size: '200000 tokens',
         description: 'Anthropic Claude 3 Sonnet model',
         modified_at: undefined
       });
       expect(models[1]).toEqual({
+        id: 'openai/gpt-4',
         name: 'openai/gpt-4',
         size: '8192 tokens',
         description: 'GPT-4 - text model',

@@ -143,7 +143,7 @@ export interface McpServerConfig {
 // LLM Provider configuration
 export interface LlmProviderConfig {
   id: string;
-  type: 'ollama' | 'openrouter';
+  type: 'ollama' | 'openrouter' | 'openai' | 'anthropic' | 'gemini' | 'grok' | 'deepseek';
   name: string;
   baseUrl?: string;
   apiKey?: string;
@@ -156,10 +156,14 @@ export interface LlmProviderConfig {
 
 // LLM Model information
 export interface LlmModel {
+  id: string;
   name: string;
   size?: string;
   description?: string;
   modified_at?: string;
+  contextLength?: number;
+  supportsTools?: boolean;
+  provider?: string;
 }
 
 // Chat message types

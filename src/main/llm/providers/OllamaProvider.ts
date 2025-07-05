@@ -111,6 +111,7 @@ export class OllamaProvider extends BaseProvider {
       }
       
       return data.models.map(model => ({
+        id: model.name,
         name: model.name,
         size: this.formatSize(model.size),
         description: `${model.details.family} (${model.details.parameter_size})`,

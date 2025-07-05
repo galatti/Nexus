@@ -114,6 +114,7 @@ export class OpenRouterProvider extends BaseProvider {
       const data = await response.json() as { data: OpenRouterModelData[] };
       
       return data.data.map(model => ({
+        id: model.id,
         name: model.id,
         size: `${model.context_length} tokens`,
         description: model.description || `${model.name} - ${model.architecture.modality} model`,

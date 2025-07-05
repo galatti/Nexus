@@ -5,6 +5,11 @@ export interface LlmResponse {
   tokens?: number;
   finishReason?: string;
   model?: string;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
   toolCalls?: Array<{
     id: string;
     type: 'function';
@@ -25,6 +30,7 @@ export abstract class BaseProvider {
   protected config: LlmProviderConfig;
   protected isHealthy: boolean = false;
   protected lastHealthCheck: Date | null = null;
+  protected requestTimeout: number = 30000; // 30 seconds default timeout
 
   constructor(config: LlmProviderConfig) {
     this.config = config;

@@ -728,8 +728,8 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                             </div>
                           )}
 
-                          {/* API Key (for OpenRouter) */}
-                          {selectedProvider.type === 'openrouter' && (
+                          {/* API Key (for all API-based providers) */}
+                          {['openrouter', 'openai', 'anthropic', 'gemini', 'grok', 'deepseek'].includes(selectedProvider.type) && (
                             <div>
                               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                 API Key
@@ -739,10 +739,20 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                 value={providerApiKeys[selectedProvider.id] || ''}
                                 onChange={(e) => updateProviderApiKey(selectedProvider.id, e.target.value)}
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                placeholder="Your OpenRouter API key"
+                                placeholder={`Your ${capitalizeProvider(selectedProvider.type)} API key`}
                               />
                               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                                Get your API key from <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai</a>
+                                Get your API key from {(() => {
+                                  switch (selectedProvider.type) {
+                                    case 'openrouter': return <a href="https://openrouter.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">openrouter.ai</a>;
+                                    case 'openai': return <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">OpenAI Platform</a>;
+                                    case 'anthropic': return <a href="https://console.anthropic.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Anthropic Console</a>;
+                                    case 'gemini': return <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google AI Studio</a>;
+                                    case 'grok': return <a href="https://console.x.ai" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">xAI Console</a>;
+                                    case 'deepseek': return <a href="https://platform.deepseek.com" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">DeepSeek Platform</a>;
+                                    default: return `the ${capitalizeProvider(selectedProvider.type)} website`;
+                                  }
+                                })()}
                               </p>
                               
                               {/* Security status for API key */}
@@ -799,7 +809,18 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 placeholder={availableModels.length > 0 
                                   ? 'Search models...' 
-                                  : selectedProvider.type === 'ollama' ? 'llama2' : 'meta-llama/llama-2-7b-chat'
+                                  : (() => {
+                                      switch (selectedProvider.type) {
+                                        case 'ollama': return 'llama2';
+                                        case 'openrouter': return 'meta-llama/llama-2-7b-chat';
+                                        case 'openai': return 'gpt-4o';
+                                        case 'anthropic': return 'claude-3-5-sonnet-20241022';
+                                        case 'gemini': return 'gemini-2.0-flash-exp';
+                                        case 'grok': return 'grok-beta';
+                                        case 'deepseek': return 'deepseek-reasoner';
+                                        default: return 'Enter model name';
+                                      }
+                                    })()
                                 }
                                 disabled={isLoadingModels}
                               />
@@ -849,7 +870,9 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                     ? 'Loading models...'
                                     : selectedProvider.type === 'ollama' 
                                       ? 'Connect to load available models or enter manually'
-                                      : 'Add API key to load available models or enter manually'
+                                      : ['openrouter', 'openai', 'anthropic', 'gemini', 'grok', 'deepseek'].includes(selectedProvider.type)
+                                        ? 'Add API key to load available models or enter manually'
+                                        : 'Enter model name manually'
                                 }
                               </p>
                               {!isLoadingModels && (

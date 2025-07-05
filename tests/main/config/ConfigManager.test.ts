@@ -74,7 +74,7 @@ describe('ConfigManager', () => {
       expect(settings.general.autoStart).toBe(false);
       expect(settings.general.minimizeToTray).toBe(true);
       expect(settings.general.language).toBe('en');
-      expect(settings.llm.providers).toHaveLength(2);
+      expect(settings.llm.providers).toHaveLength(7);
       expect(settings.mcp.servers).toHaveLength(0);
     });
 
@@ -108,7 +108,7 @@ describe('ConfigManager', () => {
       
       // Should fall back to defaults
       expect(settings.general.theme).toBe('system');
-      expect(settings.llm.providers).toHaveLength(2);
+      expect(settings.llm.providers).toHaveLength(7);
     });
 
     it('should handle invalid JSON gracefully', () => {
@@ -120,7 +120,7 @@ describe('ConfigManager', () => {
       
       // Should fall back to defaults
       expect(settings.general.theme).toBe('system');
-      expect(settings.llm.providers).toHaveLength(2);
+      expect(settings.llm.providers).toHaveLength(7);
     });
 
     it('should use fallback path when userData path fails', () => {
@@ -245,8 +245,8 @@ describe('ConfigManager', () => {
       configManager.addLlmProvider(newProvider);
       const providers = configManager.getLlmProviders();
       
-      expect(providers).toHaveLength(3); // 2 defaults + 1 new
-      expect(providers[2]).toEqual(newProvider);
+      expect(providers).toHaveLength(8); // 7 defaults + 1 new
+      expect(providers[7]).toEqual(newProvider);
     });
 
     it('should update LLM provider by ID', () => {
@@ -270,7 +270,7 @@ describe('ConfigManager', () => {
       configManager.removeLlmProvider(providerId);
       const remainingProviders = configManager.getLlmProviders();
       
-      expect(remainingProviders).toHaveLength(1);
+      expect(remainingProviders).toHaveLength(6);
       expect(remainingProviders.find(p => p.id === providerId)).toBeUndefined();
     });
 
@@ -513,7 +513,7 @@ describe('ConfigManager', () => {
       const parsed = JSON.parse(exported);
       
       expect(parsed.general.theme).toBe('system');
-      expect(parsed.llm.providers).toHaveLength(2);
+      expect(parsed.llm.providers).toHaveLength(7);
       expect(parsed.mcp.servers).toHaveLength(0);
     });
 
@@ -682,7 +682,7 @@ describe('ConfigManager', () => {
       configManager = new ConfigManager();
       const settings = configManager.getSettings();
       
-      expect(settings.llm.providers).toHaveLength(2); // Should use defaults
+      expect(settings.llm.providers).toHaveLength(7); // Should use defaults
     });
   });
 });
