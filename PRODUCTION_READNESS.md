@@ -11,53 +11,6 @@
   ---
   🚨 CRITICAL BLOCKERS (P0) - Must Fix Before ANY Release
 
-  🔒 Security Critical Issues
-
-  SEC-001: API Key Storage Vulnerability (done_)
-
-  - Issue: API keys stored in plain text in configuration files
-  - Risk: High - Exposed credentials, potential account compromise
-  - Files: src/main/config/ConfigManager.ts
-  - Solution: Implement Electron's safeStorage API
-  - Estimate: 2 days
-  - Tasks:
-    - Research Electron safeStorage API implementation
-    - Create encrypted storage wrapper class
-    - Migrate existing API key storage to encrypted format
-    - Add migration logic for existing plain text keys
-    - Update UI to handle encryption/decryption
-    - Test encryption/decryption across app restarts
-
-  SEC-002: IPC Security Vulnerabilities
-
-  - Issue: Unvalidated parameters in IPC handlers
-  - Risk: High - Code injection, privilege escalation
-  - Files: src/main/main.ts (lines 673, 1163, 1175, 1183, etc.)
-  - Solution: Add comprehensive input validation
-  - Estimate: 3 days
-  - Tasks:
-    - Audit all IPC handlers for validation gaps
-    - Implement schema validation using Joi or Zod
-    - Create validation middleware for IPC calls
-    - Add sanitization for file paths and commands
-    - Implement rate limiting for sensitive operations
-    - Add security logging for failed validations
-    - Write security tests for all IPC endpoints
-
-  SEC-003: Permission System Bypass
-
-  - Issue: Trusted servers bypass permission checks without proper validation
-  - Risk: Medium - Unauthorized tool execution
-  - Files: src/main/permissions/PermissionManager.ts
-  - Solution: Strengthen trusted server validation
-  - Estimate: 1 day
-  - Tasks:
-    - Review trusted server bypass logic
-    - Add additional validation for trusted servers
-    - Implement audit logging for bypassed permissions
-    - Add user confirmation for critical operations
-    - Create emergency revocation mechanism
-
   💥 Stability Critical Issues
 
   STAB-001: TypeScript Compilation Errors
