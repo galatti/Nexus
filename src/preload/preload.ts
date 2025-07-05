@@ -149,6 +149,13 @@ const electronAPI = {
     ipcRenderer.on('llm:providerChanged', listener);
     return () => ipcRenderer.removeListener('llm:providerChanged', listener);
   },
+
+  // Permission event listeners
+  onPermissionRequest: (callback: (approval: any) => void) => {
+    const listener = (_event: any, approval: any) => callback(approval);
+    ipcRenderer.on('permissions:requestPermission', listener);
+    return () => ipcRenderer.removeListener('permissions:requestPermission', listener);
+  },
 };
 
 // Use `contextBridge` APIs to expose Electron APIs to

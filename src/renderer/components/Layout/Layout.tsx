@@ -45,24 +45,30 @@ export const Layout: React.FC = () => {
     return () => window.removeEventListener('openSettings', handleOpenSettings);
   }, []);
 
-  // Check for pending permission approvals
+  // Listen for permission requests (event-driven instead of polling)
   useEffect(() => {
-    const checkPendingApprovals = async () => {
+    // Check for any existing pending approvals on mount
+    const checkExistingPendingApprovals = async () => {
       try {
         const result = await (window as any).electronAPI.getPendingApprovals();
         if (result.success && result.pending && result.pending.length > 0) {
           setPermissionModalOpen(true);
         }
       } catch (error) {
-        console.error('Failed to check pending approvals:', error);
+        console.error('Failed to check existing pending approvals:', error);
       }
     };
 
-    // Check immediately and then every 2 seconds
-    checkPendingApprovals();
-    const interval = setInterval(checkPendingApprovals, 2000);
+    // Set up event listener for new permission requests
+    const unsubscribe = (window as any).electronAPI.onPermissionRequest((approval: any) => {
+      console.log('🔔 Permission request received:', approval);
+      setPermissionModalOpen(true);
+    });
 
-    return () => clearInterval(interval);
+    // Check immediately for existing pending approvals
+    checkExistingPendingApprovals();
+
+    return unsubscribe;
   }, []);
 
   const handleSettingsClose = () => {
