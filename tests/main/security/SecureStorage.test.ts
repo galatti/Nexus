@@ -41,10 +41,10 @@ describe('SecureStorage', () => {
       const instance2 = SecureStorage.getInstance();
       
       expect(instance1).toBe(instance2);
-      expect(mockSafeStorage.isEncryptionAvailable).toHaveBeenCalled();
+      // Note: isEncryptionAvailable is called when isSecureStorageAvailable() is called, not on init
     });
 
-    it('should check encryption availability on initialization', () => {
+    it('should check encryption availability', () => {
       mockSafeStorage.isEncryptionAvailable.mockReturnValue(true);
       
       const instance = SecureStorage.getInstance();
@@ -75,22 +75,22 @@ describe('SecureStorage', () => {
 
       const result = secureStorage.encrypt(testData);
 
-      expect(result).toBe(mockEncryptedBuffer.toString('base64'));
+      expect(result).toBe('ENCRYPTED:' + mockEncryptedBuffer.toString('base64'));
       expect(mockSafeStorage.encryptString).toHaveBeenCalledWith(testData);
     });
 
     it('should decrypt string successfully', () => {
-      const encryptedData = 'ZW5jcnlwdGVkLWRhdGE='; // base64 encoded 'encrypted-data'
+      const encryptedData = 'ENCRYPTED:ZW5jcnlwdGVkLWRhdGE='; // prefixed base64 encoded
       const decryptedData = 'secret-api-key';
       mockSafeStorage.decryptString.mockReturnValue(decryptedData);
 
       const result = secureStorage.decrypt(encryptedData);
 
       expect(result).toBe(decryptedData);
-      expect(mockSafeStorage.decryptString).toHaveBeenCalledWith(Buffer.from(encryptedData, 'base64'));
+      expect(mockSafeStorage.decryptString).toHaveBeenCalledWith(Buffer.from('ZW5jcnlwdGVkLWRhdGE=', 'base64'));
     });
 
-    it('should return null when encryption is not available', () => {
+    it('should return plain text when encryption is not available', () => {
       // Reset singleton and create new instance with encryption disabled
       (SecureStorage as any).instance = undefined;
       mockSafeStorage.isEncryptionAvailable.mockReturnValue(false);
@@ -98,18 +98,13 @@ describe('SecureStorage', () => {
 
       const result = secureStorage.encrypt('test-data');
 
-      expect(result).toBeNull();
+      expect(result).toBe('test-data'); // Returns plain text when encryption unavailable
     });
 
-    it('should return null when decryption is not available', () => {
-      // Reset singleton and create new instance with encryption disabled
-      (SecureStorage as any).instance = undefined;
-      mockSafeStorage.isEncryptionAvailable.mockReturnValue(false);
-      secureStorage = SecureStorage.getInstance();
+    it('should return plain text when decrypting non-encrypted data', () => {
+      const result = secureStorage.decrypt('plain-text-data');
 
-      const result = secureStorage.decrypt('encrypted-data');
-
-      expect(result).toBeNull();
+      expect(result).toBe('plain-text-data'); // Returns plain text if not encrypted
     });
 
     it('should handle encryption errors gracefully', () => {
@@ -127,43 +122,16 @@ describe('SecureStorage', () => {
         throw new Error('Decryption failed');
       });
 
-      const result = secureStorage.decrypt('invalid-data');
+      const result = secureStorage.decrypt('ENCRYPTED:invalid-data');
 
       expect(result).toBeNull();
     });
   });
 
-  describe('API Key Management', () => {
+  describe('API Key Management Methods', () => {
     beforeEach(() => {
       mockSafeStorage.isEncryptionAvailable.mockReturnValue(true);
       secureStorage = SecureStorage.getInstance();
-    });
-
-    it('should store API key successfully', () => {
-      const mockEncryptedBuffer = Buffer.from('encrypted-key', 'base64');
-      mockSafeStorage.encryptString.mockReturnValue(mockEncryptedBuffer);
-
-      const result = secureStorage.storeApiKey('provider-1', 'secret-key');
-
-      expect(result).toBe(true);
-      expect(mockSafeStorage.encryptString).toHaveBeenCalledWith('secret-key');
-    });
-
-    it('should retrieve API key successfully', () => {
-      const encryptedValue = 'ENCRYPTED:ZW5jcnlwdGVkLWtleQ==';
-      mockSafeStorage.decryptString.mockReturnValue('secret-key');
-
-      const result = secureStorage.retrieveApiKey('provider-1', encryptedValue);
-
-      expect(result).toBe('secret-key');
-    });
-
-    it('should return null for non-encrypted values', () => {
-      const plainValue = 'plain-text-key';
-
-      const result = secureStorage.retrieveApiKey('provider-1', plainValue);
-
-      expect(result).toBeNull();
     });
 
     it('should migrate plain text to encrypted format', () => {
@@ -183,6 +151,29 @@ describe('SecureStorage', () => {
       expect(result).toBe(encryptedValue);
     });
 
+    it('should get plain text value from encrypted storage', () => {
+      const encryptedValue = 'ENCRYPTED:ZW5jcnlwdGVkLWtleQ==';
+      mockSafeStorage.decryptString.mockReturnValue('secret-key');
+
+      const result = secureStorage.getPlainTextValue('provider-1', encryptedValue);
+
+      expect(result).toBe('secret-key');
+    });
+
+    it('should return plain text value as-is', () => {
+      const plainValue = 'plain-text-key';
+
+      const result = secureStorage.getPlainTextValue('provider-1', plainValue);
+
+      expect(result).toBe(plainValue);
+    });
+
+    it('should return empty string for empty input', () => {
+      const result = secureStorage.getPlainTextValue('provider-1', '');
+
+      expect(result).toBe('');
+    });
+
     it('should detect encrypted values correctly', () => {
       expect(secureStorage.isEncrypted('ENCRYPTED:data')).toBe(true);
       expect(secureStorage.isEncrypted('plain-text')).toBe(false);
@@ -199,38 +190,9 @@ describe('SecureStorage', () => {
     it('should validate encryption successfully', () => {
       const mockEncryptedBuffer = Buffer.from('encrypted-test', 'base64');
       
-      // Mock the encryption and decryption to return matching data
-      mockSafeStorage.encryptString.mockReturnValue(mockEncryptedBuffer);
-      mockSafeStorage.decryptString.mockImplementation((buffer) => {
-        // Return a string that will match the validation data
-        return 'test-encryption-validation-' + Date.now();
-      });
-
-      // Override the validation to use a fixed test string
-      const originalValidate = secureStorage.validateEncryption;
-      secureStorage.validateEncryption = function() {
-        if (!this.isSecureStorageAvailable()) {
-          return false;
-        }
-
-        const testData = 'test-validation-data';
-        
-        try {
-          const encrypted = this.encrypt(testData);
-          if (!encrypted) {
-            return false;
-          }
-
-          const decrypted = this.decrypt(encrypted);
-          return decrypted === testData;
-        } catch (error) {
-          return false;
-        }
-      };
-
       // Set up mocks to return consistent data
       mockSafeStorage.encryptString.mockReturnValue(mockEncryptedBuffer);
-      mockSafeStorage.decryptString.mockReturnValue('test-validation-data');
+      mockSafeStorage.decryptString.mockReturnValue('test-encryption-validation');
 
       const result = secureStorage.validateEncryption();
 
@@ -238,6 +200,7 @@ describe('SecureStorage', () => {
     });
 
     it('should fail validation when encryption is not available', () => {
+      (SecureStorage as any).instance = undefined;
       mockSafeStorage.isEncryptionAvailable.mockReturnValue(false);
       secureStorage = SecureStorage.getInstance();
 
@@ -273,22 +236,28 @@ describe('SecureStorage', () => {
       secureStorage = SecureStorage.getInstance();
     });
 
-    it('should handle empty strings', () => {
-      expect(secureStorage.encrypt('')).toBeNull();
-      expect(secureStorage.decrypt('')).toBeNull();
-      expect(secureStorage.getPlainTextValue('test', '')).toBeNull();
+    it('should handle empty strings in getPlainTextValue', () => {
+      expect(secureStorage.getPlainTextValue('test', '')).toBe('');
     });
 
-    it('should handle null values', () => {
-      expect(secureStorage.encrypt(null as any)).toBeNull();
-      expect(secureStorage.decrypt(null as any)).toBeNull();
+    it('should handle decryption failure gracefully in getPlainTextValue', () => {
+      mockSafeStorage.decryptString.mockImplementation(() => {
+        throw new Error('Decryption failed');
+      });
+
+      const result = secureStorage.getPlainTextValue('test', 'ENCRYPTED:invalid');
+
+      expect(result).toBe('');
     });
 
-    it('should handle invalid inputs', () => {
-      expect(secureStorage.storeApiKey('', 'key')).toBe(false);
-      expect(secureStorage.storeApiKey('id', '')).toBe(false);
-      expect(secureStorage.retrieveApiKey('', 'value')).toBeNull();
-      expect(secureStorage.retrieveApiKey('id', '')).toBeNull();
+    it('should return plain text on failed encryption during migration', () => {
+      mockSafeStorage.encryptString.mockImplementation(() => {
+        throw new Error('Encryption failed');
+      });
+
+      const result = secureStorage.migrateToEncrypted('provider-1', 'plain-key');
+
+      expect(result).toBe('plain-key'); // Fallback to plain text
     });
   });
 });

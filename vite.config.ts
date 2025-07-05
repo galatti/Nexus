@@ -30,15 +30,9 @@ export default defineConfig({
       }
     },
     target: 'esnext',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-      },
-    },
-    cssCodeSplit: true,
-    sourcemap: false
+    minify: false, // Disable minification completely in development
+    sourcemap: true, // Enable source maps for debugging
+    cssCodeSplit: true
   },
   optimizeDeps: {
     include: [

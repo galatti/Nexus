@@ -90,8 +90,8 @@ const electronAPI = {
   clearExpiredPermissions: () => ipcRenderer.invoke('permissions:clearExpired'),
   
   // LLM operations
-  sendMessage: (messages: Record<string, unknown>[], options?: Record<string, unknown>) =>
-    ipcRenderer.invoke('llm:sendMessage', messages, options),
+  sendMessage: (params: { messages: Record<string, unknown>[]; providerId: string; modelName: string; options?: Record<string, unknown> }) =>
+    ipcRenderer.invoke('llm:sendMessage', params),
   getLlmStatus: () => ipcRenderer.invoke('llm:getStatus'),
   getAvailableModels: (providerId?: string) => 
     ipcRenderer.invoke('llm:getAvailableModels', providerId),

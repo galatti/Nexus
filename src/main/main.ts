@@ -529,17 +529,35 @@ async function initializeServices(): Promise<void> {
     console.log('Initializing application services');
     
     // Initialize LLM manager
+    console.log('=== Main: Initializing LLM Manager ===');
     await llmManager.initialize();
     
     // Load configuration and set up providers
     const settings = configManager.getSettings();
+    console.log('Main: Loading LLM providers from config:', {
+      totalProviders: settings.llm.providers.length,
+      providers: settings.llm.providers.map(p => ({
+        id: p.id,
+        type: p.type,
+        name: p.name,
+        enabled: p.enabled,
+        hasModel: !!p.model,
+        hasApiKey: p.type === 'openrouter' ? !!p.apiKey : true
+      }))
+    });
     
     // Add all enabled LLM providers
+    let enabledCount = 0;
     for (const provider of settings.llm.providers) {
       if (provider.enabled) {
+        console.log(`Main: Adding enabled provider: ${provider.id} (${provider.type})`);
         await llmManager.addProvider(provider);
+        enabledCount++;
+      } else {
+        console.log(`Main: Skipping disabled provider: ${provider.id} (${provider.type})`);
       }
     }
+    console.log(`Main: Added ${enabledCount} enabled providers to LLM manager`);
     
     // Auto-configure defaults on first run or after reset
     await autoConfigureLlmDefaults();
@@ -1572,8 +1590,14 @@ function detectToolUsageFromContent(content: string, availableTools: Array<{ ser
 
 // LLM handlers
 ipcMain.handle('llm:sendMessage', IPCValidator.wrapHandler('llm:sendMessage',
-  async (_event, conversationHistory, options = {}) => {
+  async (_event, params) => {
     try {
+    console.log('🔍 Main process received params:', { 
+      paramsType: typeof params,
+      paramsKeys: typeof params === 'object' ? Object.keys(params) : 'N/A',
+      params: params 
+    });
+    const { messages: conversationHistory, providerId, modelName, options = {} } = params;
     let messages = [...conversationHistory];
     let extractedToolCalls: Array<{ id: string; name: string; args: Record<string, unknown>; result?: unknown }> = [];
     
@@ -1613,12 +1637,11 @@ ipcMain.handle('llm:sendMessage', IPCValidator.wrapHandler('llm:sendMessage',
     }
 
     // Make initial LLM request with tools
-    const { providerId, modelName, ...llmOptions } = options;
     if (!providerId || !modelName) {
-      throw new Error('Provider and model must be specified for LLM message');
+      throw new Error(`Provider and model must be specified for LLM message. Received: providerId=${providerId}, modelName=${modelName}`);
     }
     const response = await llmManager.sendMessage(messages, providerId, modelName, {
-      ...llmOptions,
+      ...options,
       tools: tools.length > 0 ? tools : undefined
     });
 
@@ -1775,7 +1798,7 @@ ipcMain.handle('llm:sendMessage', IPCValidator.wrapHandler('llm:sendMessage',
       // Make second LLM request with tool results
       console.log('LLM: Sending follow-up request with tool results');
       finalResponse = await llmManager.sendMessage(messages, providerId, modelName, {
-        ...llmOptions,
+        ...options,
         tools: tools.length > 0 ? tools : undefined
       });
     } else {
@@ -1812,28 +1835,49 @@ ipcMain.handle('llm:sendMessage', IPCValidator.wrapHandler('llm:sendMessage',
 ipcMain.handle('llm:getStatus', IPCValidator.wrapHandler('llm:getStatus',
   async () => {
     try {
+    console.log('=== [IPC] llm:getStatus: Starting status check ===');
+    
     // Fetch current LLM status including enabled providers and their models
     const status = await llmManager.getStatus();
+    console.log('[IPC] llm:getStatus: LlmManager status:', {
+      enabledProvidersCount: status.enabledProviders.length,
+      enabledProviders: status.enabledProviders.map(p => ({
+        id: p.id,
+        name: p.name,
+        type: p.type,
+        isHealthy: p.isHealthy,
+        modelsCount: p.models.length
+      }))
+    });
 
     // Retrieve the default provider+model selection from persisted settings
     let defaultProviderModel = configManager.getDefaultProviderModel();
+    console.log('[IPC] llm:getStatus: Config default provider:', defaultProviderModel);
 
     // Fallback: if not set or refers to provider/model that no longer exists, pick first available
     if (!defaultProviderModel) {
+      console.log('[IPC] llm:getStatus: No default provider, looking for fallback...');
       const firstProvider = status.enabledProviders.find(p => p.models.length > 0);
       if (firstProvider) {
         defaultProviderModel = {
           providerId: firstProvider.id,
           modelName: firstProvider.models[0].name
         };
-        console.log('[IPC] llm:getStatus fallback default selected:', defaultProviderModel);
+        console.log('[IPC] llm:getStatus: Fallback default selected:', defaultProviderModel);
+      } else {
+        console.log('[IPC] llm:getStatus: No providers with models available for fallback');
       }
     }
 
-    // Merge and return
-    return { success: true, data: { ...status, defaultProviderModel } };
+    const finalResult = { success: true, data: { ...status, defaultProviderModel } };
+    console.log('[IPC] llm:getStatus: Final result:', JSON.stringify(finalResult, null, 2));
+    
+    return finalResult;
   } catch (error) {
-    console.error('Failed to get LLM status:', error);
+    console.error('[IPC] llm:getStatus: Exception occurred:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : 'No stack'
+    });
     return { success: false, error: error instanceof Error ? error.message : String(error) };
   }
   },

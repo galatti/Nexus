@@ -13,20 +13,6 @@
 
   💥 Stability Critical Issues
 
-  STAB-001: TypeScript Compilation Errors
-
-  - Issue: 6 type errors preventing clean builds
-  - Risk: High - Build failures, deployment issues
-  - Files: src/renderer/components/Settings/Settings.tsx
-  - Solution: Fix missing systemPrompt property
-  - Estimate: 1 day
-  - Tasks:
-    - Add systemPrompt property to LLM settings interface
-    - Update all Settings.tsx calls to include systemPrompt
-    - Ensure type consistency across components
-    - Run full type check to verify fixes
-    - Add systemPrompt to default configuration
-
   STAB-002: Missing React Error Boundaries
 
   - Issue: No error boundaries to catch component crashes

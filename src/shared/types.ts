@@ -78,6 +78,16 @@ export interface ElectronAPI {
   onSettingsChange: (callback: (settings: AppSettings) => void) => () => void;
   onLlmProviderChange: (callback: (data: any) => void) => () => void;
   
+  // Secure storage methods
+  getProviderApiKey: (providerId: string) => Promise<string>;
+  setProviderApiKey: (providerId: string, apiKey: string) => Promise<void>;
+  getSecurityStatus: () => Promise<{
+    secureStorageAvailable: boolean;
+    encryptedApiKeys: number;
+    plainTextApiKeys: number;
+    totalApiKeys: number;
+  }>;
+  
   // MCP Server management
   getMcpServers: () => Promise<ApiResponse<McpServerConfig[]>>;
   addMcpServer: (config: Omit<McpServerConfig, 'id'>) => Promise<ApiResponse<void>>;

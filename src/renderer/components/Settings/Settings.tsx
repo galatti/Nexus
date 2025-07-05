@@ -699,6 +699,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                 value={selectedProvider.baseUrl || ''}
                                 onChange={(e) => updateSettings({
                                   llm: {
+                                    ...settings.llm,
                                     providers: settings.llm.providers.map(p => 
                                       p.id === selectedProvider.id ? { ...p, baseUrl: e.target.value } : p
                                     ),
@@ -861,6 +862,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               value={selectedProvider.temperature || 0.7}
                               onChange={(e) => updateSettings({
                                 llm: {
+                                  ...settings.llm,
                                   providers: settings.llm.providers.map(p => 
                                     p.id === selectedProvider.id ? { ...p, temperature: parseFloat(e.target.value) } : p
                                   ),
@@ -873,7 +875,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               <span>Creative (1.0)</span>
                             </div>
                             <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                              Controls randomness in the model's responses
+                              Controls randomness in the model&apos;s responses
                             </p>
                           </div>
 
@@ -889,6 +891,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               value={selectedProvider.maxTokens || 2048}
                               onChange={(e) => updateSettings({
                                 llm: {
+                                  ...settings.llm,
                                   providers: settings.llm.providers.map(p => 
                                     p.id === selectedProvider.id ? { ...p, maxTokens: parseInt(e.target.value) || 2048 } : p
                                   ),
@@ -943,6 +946,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               checked={selectedProvider.enabled}
                               onChange={(e) => updateSettings({
                                 llm: {
+                                  ...settings.llm,
                                   providers: settings.llm.providers.map(p => 
                                     p.id === selectedProvider.id ? { ...p, enabled: e.target.checked } : p
                                   ),
@@ -969,6 +973,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                                 if (e.target.checked && selectedProvider.model) {
                                   updateSettings({
                                     llm: {
+                                      ...settings.llm,
                                       providers: settings.llm.providers,
                                       defaultProviderModel: {
                                         providerId: selectedProvider.id,

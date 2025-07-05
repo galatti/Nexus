@@ -4,6 +4,8 @@ import { SessionProvider } from './context/SessionContext';
 import { Layout } from './components/Layout/Layout';
 
 export const App: React.FC = () => {
+  console.log('=== RENDERER: App component rendering ===');
+  
   return (
     <ThemeProvider>
       <SessionProvider>

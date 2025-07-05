@@ -88,7 +88,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     const seq = ++loadSeq.current; // capture sequence for this invocation
 
     try {
-      console.log('ChatWindow: Loading LLM status... (seq)', seq);
+      console.log('=== ChatWindow: Loading LLM status... (seq)', seq, '===');
       const statusResult = await window.electronAPI.getLlmStatus();
 
       // If a newer invocation has started, abort processing
@@ -97,18 +97,39 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
         return;
       }
 
-      console.log('ChatWindow: LLM status result:', statusResult);
+      console.log('ChatWindow: Raw LLM status result:', JSON.stringify(statusResult, null, 2));
       
       if (statusResult.success && statusResult.data) {
-        console.log('ChatWindow: Setting LLM status:', statusResult.data, '(seq)', seq);
+        console.log('ChatWindow: Successfully loaded LLM status:', {
+          enabledProvidersCount: statusResult.data.enabledProviders?.length || 0,
+          enabledProviders: statusResult.data.enabledProviders?.map(p => ({ 
+            id: p.id, 
+            name: p.name, 
+            type: p.type, 
+            isHealthy: p.isHealthy,
+            modelsCount: p.models?.length || 0,
+            firstModel: p.models?.[0]?.name || 'none'
+          })) || [],
+          defaultProviderModel: statusResult.data.defaultProviderModel,
+          seq
+        });
         setLlmStatus(statusResult.data);
       } else {
-        console.warn('ChatWindow: Failed to get LLM status:', statusResult, '(seq)', seq);
+        console.error('ChatWindow: Failed to get LLM status:', {
+          success: statusResult.success,
+          error: statusResult.error || 'No error message',
+          data: statusResult.data,
+          seq
+        });
       }
     } catch (error) {
       // Abort log if outdated
       if (seq !== loadSeq.current) return;
-      console.error('Failed to load LLM info:', error, '(seq)', seq);
+      console.error('ChatWindow: Exception while loading LLM info:', {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : 'No stack',
+        seq
+      });
     }
   }, []);
 
@@ -172,12 +193,32 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   // Initialize local provider/model selection from defaults
   useEffect(() => {
     if (llmStatus?.defaultProviderModel && (!selectedProvider || !selectedModel)) {
-      setSelectedProvider(llmStatus.defaultProviderModel.providerId);
+      const defaultProviderId = llmStatus.defaultProviderModel.providerId;
+      const defaultModelName = llmStatus.defaultProviderModel.modelName;
+      
+      console.log('ChatWindow: Initializing with default provider/model:', { defaultProviderId, defaultModelName });
+      
+      setSelectedProvider(defaultProviderId);
+      
       // Find the actual model object
-      const provider = llmStatus.enabledProviders.find(p => p.id === llmStatus.defaultProviderModel?.providerId);
-      const model = provider?.models.find(m => m.name === llmStatus.defaultProviderModel?.modelName);
+      const provider = llmStatus.enabledProviders.find(p => p.id === defaultProviderId);
+      const model = provider?.models.find(m => m.name === defaultModelName);
+      
       if (model) {
         setSelectedModel(model);
+        console.log('ChatWindow: Successfully set default model:', model);
+      } else {
+        console.warn('ChatWindow: Default model not found in provider models:', { 
+          defaultModelName, 
+          availableModels: provider?.models?.map(m => m.name) || [] 
+        });
+        
+        // Fallback to first available model if default model not found
+        if (provider?.models && provider.models.length > 0) {
+          const fallbackModel = provider.models[0];
+          setSelectedModel(fallbackModel);
+          console.log('ChatWindow: Using fallback model:', fallbackModel);
+        }
       }
     }
   }, [llmStatus, selectedProvider, selectedModel]);
@@ -210,7 +251,20 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   }, [currentSession, selectedProvider, selectedModel]);
 
   const handleSendMessage = async () => {
+    console.log('🚀 SEND MESSAGE CLICKED!', { 
+      inputMessage: inputMessage.substring(0, 50), 
+      isLoading,
+      selectedProvider,
+      selectedModel: selectedModel?.name
+    });
+    
     if (!inputMessage.trim() || isLoading) return;
+
+    // Check if we have any providers available
+    if (!llmStatus?.enabledProviders || llmStatus.enabledProviders.length === 0) {
+      setError('No LLM providers are enabled. Please go to Settings → LLM Providers to enable and configure a provider (Ollama or OpenRouter).');
+      return;
+    }
 
     const trimmedMessage = inputMessage.trim();
     
@@ -253,12 +307,53 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     setError(null);
 
     try {
+      // Validate provider and model selection before sending
+      console.log('ChatWindow: Current state before validation:', {
+        selectedProvider,
+        selectedModel: selectedModel?.name,
+        llmStatus: llmStatus ? {
+          enabledProviders: llmStatus.enabledProviders?.map(p => ({ id: p.id, name: p.name, models: p.models?.length || 0 })),
+          defaultProviderModel: llmStatus.defaultProviderModel
+        } : null
+      });
+      
+      let finalProviderId = selectedProvider;
+      let finalModelName = selectedModel?.name;
+      
+      // Fallback to default provider/model if not selected
+      if (!finalProviderId || !finalModelName) {
+        if (llmStatus?.defaultProviderModel) {
+          finalProviderId = llmStatus.defaultProviderModel.providerId;
+          finalModelName = llmStatus.defaultProviderModel.modelName;
+          console.log('ChatWindow: Using fallback default provider/model:', { finalProviderId, finalModelName });
+        } else {
+          const errorDetails = {
+            hasLlmStatus: !!llmStatus,
+            enabledProvidersCount: llmStatus?.enabledProviders?.length || 0,
+            hasDefaultProvider: !!llmStatus?.defaultProviderModel,
+            selectedProvider,
+            selectedModel: selectedModel?.name
+          };
+          console.error('ChatWindow: No provider configuration available:', errorDetails);
+          throw new Error(`No provider or model selected, and no default provider configured. Status: ${JSON.stringify(errorDetails)}`);
+        }
+      }
+      
+      console.log('ChatWindow: Sending message with provider/model:', { 
+        providerId: finalProviderId, 
+        modelName: finalModelName 
+      });
+      
       // Send the full conversation history including the new user message
       const conversationHistory = [...messages, userMessage];
-      const result = await window.electronAPI.sendMessage(conversationHistory, {
-        providerId: selectedProvider,
-        modelName: selectedModel?.name
-      }) as any;
+      const payload = {
+        messages: conversationHistory,
+        providerId: finalProviderId,
+        modelName: finalModelName
+      };
+      
+      console.log('🚀 About to send message with payload:', payload);
+      const result = await window.electronAPI.sendMessage(payload) as any;
       
       if (result.success) {
         // Debug logging removed for cleaner console
@@ -289,7 +384,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
       }
     } catch (error) {
       console.error('Chat error:', error);
-      setError('Failed to communicate with the assistant');
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(`Failed to communicate with the assistant: ${errorMessage}`);
     } finally {
       setIsLoading(false);
       // Restore focus to input after the message is processed
@@ -793,6 +889,19 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   // Check if we have a valid provider/model configuration
   const hasValidConfiguration = selectedProvider && selectedModel && currentProvider && currentModel && currentProvider.isHealthy;
   const hasUnhealthyProvider = selectedProvider && selectedModel && currentProvider && !currentProvider.isHealthy;
+  
+  console.log('🔍 Provider health debug:', {
+    selectedProvider,
+    selectedModel: selectedModel?.name,
+    currentProvider: currentProvider ? {
+      id: currentProvider.id,
+      name: currentProvider.name,
+      isHealthy: currentProvider.isHealthy,
+      type: currentProvider.type
+    } : null,
+    hasValidConfiguration,
+    hasUnhealthyProvider
+  });
 
   return (
     <div className={`flex flex-col h-full bg-white dark:bg-gray-900 ${className}`}>
