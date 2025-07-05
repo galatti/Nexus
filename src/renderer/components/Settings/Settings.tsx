@@ -11,7 +11,7 @@ interface SettingsProps {
   initialTab?: string;
 }
 
-type SettingsTab = 'general' | 'llm' | 'mcp' | 'permissions';
+type SettingsTab = 'general' | 'prompt' | 'llm' | 'mcp' | 'permissions';
 
 export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab = 'general' }) => {
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab as SettingsTab);
@@ -452,6 +452,20 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                 <div className="flex items-center">
                   <span className="mr-2">⚙️</span>
                   General
+                </div>
+              </button>
+              
+              <button
+                onClick={() => setActiveTab('prompt')}
+                className={`w-full text-left px-3 py-2 rounded-md mb-2 transition-colors ${
+                  activeTab === 'prompt'
+                    ? 'bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                <div className="flex items-center">
+                  <span className="mr-2">💬</span>
+                  System Prompt
                 </div>
               </button>
               
@@ -992,12 +1006,18 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                         </div>
                       </div>
                     )}
+                  </div>
+                )}
 
-                    {/* System Prompt Section */}
+                {/* System Prompt Settings */}
+                {activeTab === 'prompt' && (
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">System Prompt</h3>
+                    
                     <div className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded-lg p-6 space-y-4">
                       <div className="flex items-center justify-between">
                         <h4 className="text-lg font-medium text-gray-900 dark:text-white">
-                          System Prompt
+                          System Instructions
                         </h4>
                         <button
                           onClick={() => {
@@ -1017,7 +1037,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                       
                       <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          System Instructions
+                          Custom System Prompt
                         </label>
                         <textarea
                           value={settings.llm.systemPrompt}
@@ -1027,7 +1047,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                               systemPrompt: e.target.value
                             }
                           })}
-                          rows={8}
+                          rows={10}
                           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
                           placeholder="Enter system prompt instructions for the AI model..."
                         />
@@ -1038,6 +1058,21 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
                           <span className="text-xs text-gray-500 dark:text-gray-400">
                             {settings.llm.systemPrompt.length} characters
                           </span>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-4">
+                        <div className="flex items-start">
+                          <span className="text-blue-600 dark:text-blue-400 mr-2 mt-0.5">💡</span>
+                          <div className="text-sm text-blue-800 dark:text-blue-200">
+                            <p className="font-medium mb-1">Tips for effective system prompts:</p>
+                            <ul className="text-xs space-y-1 list-disc list-inside">
+                              <li>Be specific about the AI&apos;s role and capabilities</li>
+                              <li>Include guidelines for tool usage and MCP integration</li>
+                              <li>Set expectations for response format and behavior</li>
+                              <li>Keep it concise but comprehensive</li>
+                            </ul>
+                          </div>
                         </div>
                       </div>
                     </div>
