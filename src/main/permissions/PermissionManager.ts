@@ -575,7 +575,7 @@ export class PermissionManager extends EventEmitter {
     logger.info('Shutting down PermissionManager');
     
     // Clear all pending approval timeouts
-    for (const [approvalId, pending] of this.pendingApprovals.entries()) {
+    for (const [, pending] of this.pendingApprovals.entries()) {
       if (pending.timeout) {
         clearTimeout(pending.timeout);
       }

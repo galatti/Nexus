@@ -85,7 +85,7 @@ export const Settings: React.FC<SettingsProps> = ({ isOpen, onClose, initialTab 
     if (selectedProvider?.model && modelSearchQuery !== selectedProvider.model) {
       setModelSearchQuery(selectedProvider.model);
     }
-  }, [selectedProvider?.model]);
+  }, [selectedProvider?.model, modelSearchQuery]);
 
   // Listen for server status changes
   useEffect(() => {

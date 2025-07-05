@@ -10,7 +10,7 @@ export class IPCLogger {
   /**
    * Log an IPC call with parameters for analysis
    */
-  static logCall(channel: string, args: any[], event?: any): void {
+  static logCall(channel: string, args: any[], _event?: any): void {
     // Increment call count
     const count = this.callCounts.get(channel) || 0;
     this.callCounts.set(channel, count + 1);

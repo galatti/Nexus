@@ -34,7 +34,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
   const [llmStatus, setLlmStatus] = useState<LlmStatusResponse | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [selectedModel, setSelectedModel] = useState<LlmModel | null>(null);
-  const [showThinking, setShowThinking] = useState(true);
+  const [showThinking] = useState(true);
   const [expandedThinkBlocks, setExpandedThinkBlocks] = useState<Set<string>>(new Set());
   const [expandedToolCalls, setExpandedToolCalls] = useState<Set<string>>(new Set());
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -138,14 +138,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
     loadLlmInfo();
 
     // Debug: log when llmStatus changes
-    const debugLog = (status: any) => {
-      console.log('[ChatWindow] LLM status updated:', status);
-    };
-
-    let unsubscribe: (() => void) | undefined;
 
     // Watch llmStatus via event for debugging
-    const handleStatusChange = (data: any) => debugLog(data);
 
     // Not ideal but we can log inside effect after state set
 
@@ -691,7 +685,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
         )}
       </div>
     );
-  }, [expandedThinkBlocks]);
+  }, [expandedThinkBlocks, toggleThinkBlock]);
 
   const renderToolCall = (toolCall: ToolCall, index: number) => {
     // Create a consistent ID for each tool call
@@ -939,7 +933,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ className = '', isActive
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
               <span className="text-sm font-medium text-red-800 dark:text-red-200">
-                Provider "{currentProvider?.name}" is currently unavailable
+                Provider &quot;{currentProvider?.name}&quot; is currently unavailable
               </span>
             </div>
             <div className="flex items-center space-x-2">

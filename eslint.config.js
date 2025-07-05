@@ -103,6 +103,7 @@ export default [
       globals: {
         ...globals.browser,
         NodeJS: 'readonly',
+        process: 'readonly',
       },
     },
     plugins: {

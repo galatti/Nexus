@@ -611,7 +611,7 @@ const ConfigurationStep: React.FC<{
               </button>
             </div>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-              Arguments are passed to the command in order. For npx commands, typically start with "-y" to auto-install packages.
+              Arguments are passed to the command in order. For npx commands, typically start with &quot;-y&quot; to auto-install packages.
             </p>
           </div>
 

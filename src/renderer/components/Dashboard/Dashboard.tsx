@@ -57,10 +57,11 @@ export const Dashboard: React.FC = () => {
 
   // Refresh servers periodically to catch new additions
   useEffect(() => {
+    const serversLength = servers?.length || 0;
     const interval = setInterval(async () => {
       try {
         const result = await (window as any).electronAPI.getMcpServers();
-        if (result.success && Array.isArray(result.data) && result.data.length !== servers.length) {
+        if (result.success && Array.isArray(result.data) && result.data.length !== serversLength) {
           // Server count changed, refresh the list
           setServers(result.data);
         }
@@ -70,7 +71,7 @@ export const Dashboard: React.FC = () => {
     }, 3000); // Check every 3 seconds
 
     return () => clearInterval(interval);
-  }, [servers?.length || 0]);
+  }, [servers?.length]);
 
   const loadServers = async () => {
     try {
@@ -126,7 +127,6 @@ export const Dashboard: React.FC = () => {
   };
 
   // Convenience wrapper for loading capabilities with current servers
-  const loadCapabilities = () => loadCapabilitiesForServers(servers || []);
 
   // Get capabilities for a specific server
   const getServerCapabilities = (serverId: string) => {

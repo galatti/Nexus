@@ -35,20 +35,6 @@ export const McpIntegration: React.FC<McpIntegrationProps> = ({ settings, onSett
     }
   };
 
-  const handleServerToggle = async (serverId: string, enabled: boolean) => {
-    try {
-      const result = await window.electronAPI.updateMcpServer(serverId, { enabled });
-      if (result.success) {
-        await loadServers();
-        onSettingsUpdate();
-      } else {
-        setError(result.error || 'Failed to update server');
-      }
-    } catch (error) {
-      console.error('Failed to toggle server:', error);
-      setError('Failed to update server');
-    }
-  };
 
   const handleRemoveServer = async (serverId: string) => {
     if (!confirm('Are you sure you want to remove this server?')) return;
@@ -71,25 +57,6 @@ export const McpIntegration: React.FC<McpIntegrationProps> = ({ settings, onSett
     onSettingsUpdate();
   };
 
-  const getServerStatusIcon = (server: McpServerConfig) => {
-    switch (server.state) {
-      case 'ready': return '🟢';
-      case 'starting': return '🟡';
-      case 'failed': return '🔴';
-      case 'stopped': return '⚫';
-      default: return '⚪';
-    }
-  };
-
-  const getServerStatusText = (server: McpServerConfig) => {
-    switch (server.state) {
-      case 'ready': return 'Running';
-      case 'starting': return 'Starting...';
-      case 'failed': return 'Failed';
-      case 'stopped': return 'Stopped';
-      default: return 'Configured';
-    }
-  };
 
   if (isLoading) {
     return (

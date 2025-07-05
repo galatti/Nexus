@@ -65,7 +65,7 @@ export class SecurityMonitor {
   /**
    * Handle rate limiting incidents
    */
-  private handleRateLimitIncident(channel: string, details: any): void {
+  private handleRateLimitIncident(channel: string, _details: any): void {
     const stats = IPCLogger.getStats();
     const channelStats = stats.find(s => s.channel === channel);
     
@@ -132,7 +132,6 @@ export class SecurityMonitor {
    */
   checkSuspiciousActivity(): void {
     const stats = IPCLogger.getStats();
-    const now = Date.now();
 
     for (const stat of stats) {
       // Check for unusual call patterns
