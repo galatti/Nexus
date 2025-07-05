@@ -73,7 +73,7 @@ describe('MCP Integration Tests', () => {
       await serverManager.startServer(testServerConfig);
 
       // Verify server is running and tools are discovered
-      const serverState = serverManager.getServerState(testServerConfig.id);
+      const serverState = serverManager.getServerStateObject(testServerConfig.id);
       expect(serverState?.state).toBe('ready');
       expect(serverState?.tools).toHaveLength(1);
       expect(serverState?.tools?.[0].name).toBe('test-tool');
@@ -122,7 +122,7 @@ describe('MCP Integration Tests', () => {
       // 6. Stop server
       await serverManager.stopServer(testServerConfig.id);
       expect(mockingSetup.mockClient.close).toHaveBeenCalled();
-      expect(serverManager.getServerState(testServerConfig.id)).toBeNull();
+      expect(serverManager.getServerStateObject(testServerConfig.id)).toBeNull();
     });
 
     it('should handle server failure and recovery', async () => {
@@ -132,7 +132,7 @@ describe('MCP Integration Tests', () => {
       await expect(serverManager.startServer(testServerConfig))
         .rejects.toThrow('Connection failed');
 
-      const failedState = serverManager.getServerState(testServerConfig.id);
+      const failedState = serverManager.getServerStateObject(testServerConfig.id);
       expect(failedState?.state).toBe('failed');
       expect(failedState?.error).toContain('Connection failed');
 
@@ -144,7 +144,7 @@ describe('MCP Integration Tests', () => {
       
       // Start again successfully
       await serverManager.startServer(testServerConfig);
-      const recoveredState = serverManager.getServerState(testServerConfig.id);
+      const recoveredState = serverManager.getServerStateObject(testServerConfig.id);
       expect(recoveredState?.state).toBe('ready');
     });
   });
@@ -161,7 +161,7 @@ describe('MCP Integration Tests', () => {
       ).rejects.toThrow('Tool execution failed');
 
       // Server should still be running
-      const state = serverManager.getServerState(testServerConfig.id);
+      const state = serverManager.getServerStateObject(testServerConfig.id);
       expect(state?.state).toBe('ready');
     });
 
@@ -176,7 +176,7 @@ describe('MCP Integration Tests', () => {
       ).rejects.toThrow('Resource not found');
 
       // Server should still be running
-      const state = serverManager.getServerState(testServerConfig.id);
+      const state = serverManager.getServerStateObject(testServerConfig.id);
       expect(state?.state).toBe('ready');
     });
 
@@ -190,7 +190,7 @@ describe('MCP Integration Tests', () => {
       await serverManager.stopServer(testServerConfig.id);
       
       // Server should be removed
-      expect(serverManager.getServerState(testServerConfig.id)).toBeNull();
+      expect(serverManager.getServerStateObject(testServerConfig.id)).toBeNull();
     });
   });
 

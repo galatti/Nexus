@@ -1076,7 +1076,7 @@ ipcMain.handle('mcp:updateServer', IPCValidator.wrapHandler('mcp:updateServer',
     configManager.updateMcpServer(serverId, updates);
     
     // If the server is running and critical settings changed, restart it
-    const serverState = serverManager.getServerState(serverId);
+    const serverState = serverManager.getServerStateObject(serverId);
     if (serverState && serverState.state === 'ready') {
       if (updates.command || updates.args || updates.env) {
         await serverManager.stopServer(serverId);
@@ -1143,7 +1143,7 @@ ipcMain.handle('mcp:getServers', IPCValidator.wrapHandler('mcp:getServers',
     // Add current server state to each server
     const serversWithState = servers.map(server => ({
       ...server,
-      state: serverManager.getServerState(server.id)?.state || 'configured'
+      state: serverManager.getServerStateObject(server.id)?.state || 'configured'
     }));
     return { success: true, data: serversWithState };
   } catch (error) {
@@ -1279,7 +1279,7 @@ ipcMain.handle('mcp:testConnection', IPCValidator.wrapHandler('mcp:testConnectio
 ipcMain.handle('mcp:getServerCapabilities', IPCValidator.wrapHandler('mcp:getServerCapabilities',
   async (_event, serverId) => {
     try {
-    const serverState = serverManager.getServerState(serverId);
+    const serverState = serverManager.getServerStateObject(serverId);
     if (!serverState || serverState.state !== 'ready') {
       return { success: false, error: 'Server not ready' };
     }

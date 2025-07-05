@@ -64,7 +64,7 @@ describe('ServerManager', () => {
 
         await serverManager.startServer(mockConfig);
         
-        const state = serverManager.getServerState(mockConfig.id);
+        const state = serverManager.getServerStateObject(mockConfig.id);
         expect(state?.state).toBe('ready');
         expect(state?.tools).toHaveLength(1);
         expect(state?.tools?.[0].name).toBe('test-tool');
@@ -86,7 +86,7 @@ describe('ServerManager', () => {
 
         await serverManager.startServer(httpConfigWithCommand);
         
-        const state = serverManager.getServerState(httpConfigWithCommand.id);
+        const state = serverManager.getServerStateObject(httpConfigWithCommand.id);
         expect(state?.state).toBe('ready');
       });
 
@@ -101,7 +101,7 @@ describe('ServerManager', () => {
 
         await serverManager.startServer(npmConfig);
         
-        const state = serverManager.getServerState(npmConfig.id);
+        const state = serverManager.getServerStateObject(npmConfig.id);
         expect(state?.state).toBe('ready');
 
         Object.defineProperty(process, 'platform', { value: originalPlatform });
@@ -115,7 +115,7 @@ describe('ServerManager', () => {
 
         await serverManager.startServer(quotedConfig);
         
-        const state = serverManager.getServerState(quotedConfig.id);
+        const state = serverManager.getServerStateObject(quotedConfig.id);
         expect(state?.state).toBe('ready');
       });
 
@@ -245,7 +245,7 @@ describe('ServerManager', () => {
         await serverManager.stopServer(mockConfig.id);
         
         expect(mockClose).toHaveBeenCalled();
-        expect(serverManager.getServerState(mockConfig.id)).toBeNull();
+        expect(serverManager.getServerStateObject(mockConfig.id)).toBeNull();
         expect(stateChanges).toHaveLength(1);
         expect(stateChanges[0].state).toBe('stopped');
       });
@@ -269,7 +269,7 @@ describe('ServerManager', () => {
         await expect(serverManager.stopServer(mockConfig.id))
           .resolves.not.toThrow();
         
-        expect(serverManager.getServerState(mockConfig.id)).toBeNull();
+        expect(serverManager.getServerStateObject(mockConfig.id)).toBeNull();
       });
 
       it('should kill process if client close fails', async () => {
@@ -287,7 +287,7 @@ describe('ServerManager', () => {
         await serverManager.stopServer(mockConfig.id);
         
         expect(mockKill).toHaveBeenCalled();
-        expect(serverManager.getServerState(mockConfig.id)).toBeNull();
+        expect(serverManager.getServerStateObject(mockConfig.id)).toBeNull();
       });
     });
 
@@ -710,12 +710,12 @@ describe('ServerManager', () => {
         state: mockState
       });
 
-      const state = serverManager.getServerState(mockConfig.id);
+      const state = serverManager.getServerStateObject(mockConfig.id);
       expect(state).toEqual(mockState);
     });
 
     it('should return null for non-existent server state', () => {
-      const state = serverManager.getServerState('non-existent');
+      const state = serverManager.getServerStateObject('non-existent');
       expect(state).toBeNull();
     });
 

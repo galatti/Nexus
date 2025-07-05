@@ -73,29 +73,112 @@ export class ServerManager extends EventEmitter {
   }>();
 
   private readonly MAX_SERVERS = 8;
+  
+  // Concurrency control
+  private operationLocks = new Map<string, Promise<void>>();
+  private operationQueue: Array<() => Promise<void>> = [];
+  private isProcessingQueue = false;
 
   constructor() {
     super();
     this.setMaxListeners(50);
   }
 
+  /**
+   * Acquires a lock for a server operation to prevent race conditions
+   */
+  private async acquireOperationLock(serverId: string): Promise<() => void> {
+    const existingLock = this.operationLocks.get(serverId);
+    if (existingLock) {
+      console.log(`🔒 Operation lock exists for server ${serverId}, waiting...`);
+      await existingLock;
+    }
+
+    let releaseLock: () => void;
+    const lockPromise = new Promise<void>((resolve) => {
+      releaseLock = () => {
+        this.operationLocks.delete(serverId);
+        console.log(`🔓 Released operation lock for server ${serverId}`);
+        resolve();
+      };
+    });
+
+    this.operationLocks.set(serverId, lockPromise);
+    console.log(`🔒 Acquired operation lock for server ${serverId}`);
+    
+    return releaseLock!;
+  }
+
+  /**
+   * Safely checks server state with proper locking
+   */
+  getServerState(serverId: string): 'configured' | 'starting' | 'ready' | 'stopped' | 'failed' | null {
+    const server = this.servers.get(serverId);
+    return server?.state?.state || null;
+  }
+
+  /**
+   * Detects potential race conditions by checking for concurrent operations
+   */
+  private detectRaceConditions(serverId: string, operation: string): void {
+    const hasLock = this.operationLocks.has(serverId);
+    const serverExists = this.servers.has(serverId);
+    const currentState = this.getServerState(serverId);
+
+    console.log(`🔍 Race condition check for ${operation} on ${serverId}:`, {
+      hasLock,
+      serverExists,
+      currentState,
+      totalServers: this.servers.size,
+      activeLocks: this.operationLocks.size
+    });
+
+    if (hasLock) {
+      console.warn(`⚠️ Potential race condition detected: ${operation} on ${serverId} while operation lock exists`);
+    }
+  }
+
   async startServer(config: McpServerConfig): Promise<void> {
-    if (this.servers.size >= this.MAX_SERVERS) {
-      throw new Error(`Maximum number of servers (${this.MAX_SERVERS}) reached`);
-    }
+    // Detect potential race conditions before acquiring lock
+    this.detectRaceConditions(config.id, 'startServer');
 
-    if (this.servers.has(config.id)) {
-      throw new Error(`Server ${config.id} is already running`);
-    }
+    // Acquire operation lock to prevent race conditions
+    const releaseLock = await this.acquireOperationLock(config.id);
 
-    console.log(`Starting MCP server: ${config.name} (${config.id})`);
+    try {
+      // Check server limit with lock protection
+      if (this.servers.size >= this.MAX_SERVERS) {
+        throw new Error(`Maximum number of servers (${this.MAX_SERVERS}) reached`);
+      }
 
-    // Emit starting state
-    const startingState: ServerState = {
-      serverId: config.id,
-      state: 'starting'
-    };
-    this.emit('stateChange', startingState);
+      // Check current server state with lock protection
+      const currentState = this.getServerState(config.id);
+      if (currentState === 'ready') {
+        throw new Error(`Server ${config.id} is already running`);
+      }
+      if (currentState === 'starting') {
+        throw new Error(`Server ${config.id} is already starting`);
+      }
+
+      console.log(`🚀 Starting MCP server: ${config.name} (${config.id})`);
+
+      // Immediately mark as starting to prevent other concurrent operations
+      const startingState: ServerState = {
+        serverId: config.id,
+        state: 'starting'
+      };
+      
+      // Store starting state immediately to prevent race conditions
+      this.servers.set(config.id, {
+        client: null,
+        transport: null,
+        config,
+        state: startingState,
+        process: undefined,
+        subscribedResources: new Set<string>()
+      });
+      
+      this.emit('stateChange', startingState);
 
     try {
       // Load MCP SDK dynamically
@@ -233,41 +316,69 @@ export class ServerManager extends EventEmitter {
       // Emit ready state
       this.emit('stateChange', serverInfo.state);
 
-      console.log(`Successfully started MCP server: ${config.name}`);
+        console.log(`✅ Successfully started MCP server: ${config.name}`);
 
-    } catch (error) {
-      console.error(`Failed to start MCP server ${config.name}:`, error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      
-      // Store failed server info
-      const failedServer = {
-        client: null,
-        transport: null,
-        config,
-        state: {
-          serverId: config.id,
-          state: 'failed' as const,
-          error: errorMessage,
-          tools: []
-        }
-      };
-      this.servers.set(config.id, failedServer);
-      
-      // Emit failed state
-      this.emit('stateChange', failedServer.state);
-      
-      throw error;
+      } catch (startupError) {
+        console.error(`❌ Failed to start MCP server ${config.name}:`, startupError);
+        const errorMessage = startupError instanceof Error ? startupError.message : 'Unknown error';
+        
+        // Store failed server info
+        const failedServer = {
+          client: null,
+          transport: null,
+          config,
+          state: {
+            serverId: config.id,
+            state: 'failed' as const,
+            error: errorMessage,
+            tools: [],
+            resources: [],
+            prompts: []
+          },
+          process: undefined,
+          subscribedResources: new Set<string>()
+        };
+        this.servers.set(config.id, failedServer);
+        
+        // Emit failed state
+        this.emit('stateChange', failedServer.state);
+        
+        throw startupError;
+      }
+    } finally {
+      // Always release the operation lock
+      releaseLock();
     }
   }
 
   async stopServer(serverId: string): Promise<void> {
-    const server = this.servers.get(serverId);
-    if (!server) {
-      console.warn(`Attempted to stop non-existent server: ${serverId}`);
-      return;
-    }
+    // Detect potential race conditions before acquiring lock
+    this.detectRaceConditions(serverId, 'stopServer');
 
-    console.log(`Stopping MCP server: ${server.config.name}`);
+    // Acquire operation lock to prevent race conditions
+    const releaseLock = await this.acquireOperationLock(serverId);
+
+    try {
+      const server = this.servers.get(serverId);
+      if (!server) {
+        console.warn(`⚠️ Attempted to stop non-existent server: ${serverId}`);
+        return;
+      }
+
+      const currentState = this.getServerState(serverId);
+      if (currentState === 'stopped') {
+        console.log(`🔄 Server ${serverId} is already stopped`);
+        return;
+      }
+
+      console.log(`🛑 Stopping MCP server: ${server.config.name} (${serverId})`);
+
+      // Immediately mark as stopped to prevent other operations
+      const stoppedState: ServerState = {
+        serverId: serverId,
+        state: 'stopped'
+      };
+      server.state = stoppedState;
 
     try {
       // Close client connection if possible
@@ -306,22 +417,29 @@ export class ServerManager extends EventEmitter {
         }
       }
 
-      // Remove from internal map
-      this.servers.delete(serverId);
+        // Remove from internal map
+        this.servers.delete(serverId);
 
-      // Emit stopped state
-      const stoppedState: ServerState = {
-        serverId,
-        state: 'stopped'
-      };
-      this.emit('stateChange', stoppedState);
+        // Emit stopped state
+        this.emit('stateChange', stoppedState);
 
-      console.log(`Successfully stopped MCP server: ${server.config.name}`);
+        console.log(`✅ Successfully stopped MCP server: ${server.config.name}`);
 
-    } catch (error) {
-      console.error(`Error stopping server ${serverId}:`, error);
-      // Still remove from servers even if there was an error
-      this.servers.delete(serverId);
+      } catch (shutdownError) {
+        console.error(`❌ Error stopping server ${serverId}:`, shutdownError);
+        // Still remove from servers even if there was an error
+        this.servers.delete(serverId);
+        
+        // Emit stopped state even on error
+        const stoppedState: ServerState = {
+          serverId,
+          state: 'stopped'
+        };
+        this.emit('stateChange', stoppedState);
+      }
+    } finally {
+      // Always release the operation lock
+      releaseLock();
     }
   }
 
@@ -371,7 +489,7 @@ export class ServerManager extends EventEmitter {
     }
   }
 
-  getServerState(serverId: string): ServerState | null {
+  getServerStateObject(serverId: string): ServerState | null {
     const server = this.servers.get(serverId);
     return server ? server.state : null;
   }
@@ -453,7 +571,7 @@ export class ServerManager extends EventEmitter {
     }
 
     if (!server.subscribedResources) {
-      server.subscribedResources = new Set();
+      server.subscribedResources = new Set<string>();
     }
 
     if (server.subscribedResources.has(uri)) {

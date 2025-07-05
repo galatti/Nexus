@@ -29,20 +29,6 @@
     - Add error boundary tests
     - Document error handling strategy
 
-  STAB-003: Race Conditions in Server Management
-
-  - Issue: Concurrent server startup can cause conflicts
-  - Risk: Medium - Server startup failures
-  - Files: src/main/mcp/ConnectionManager.ts:startServer
-  - Solution: Add proper concurrency control
-  - Estimate: 1 day
-  - Tasks:
-    - Add mutex/lock mechanism for server operations
-    - Implement startup queue for concurrent requests
-    - Add proper state checking before operations
-    - Test concurrent server startup scenarios
-    - Add logging for race condition detection
-
   ---
   🏗️ ARCHITECTURE IMPROVEMENTS (P1) - Required for MCP-First Vision
 
